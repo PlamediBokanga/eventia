@@ -1,0 +1,21 @@
+-- AlterTable
+ALTER TABLE `guest` ADD COLUMN `allergies` VARCHAR(191) NULL,
+    ADD COLUMN `mealPreference` VARCHAR(191) NULL,
+    ADD COLUMN `plusOneCount` INTEGER NOT NULL DEFAULT 0;
+
+-- AlterTable
+ALTER TABLE `guestinvitation` ADD COLUMN `openCount` INTEGER NOT NULL DEFAULT 0,
+    ADD COLUMN `openedAt` DATETIME(3) NULL;
+
+-- AlterTable
+ALTER TABLE `organizer` ADD COLUMN `addressLine1` VARCHAR(191) NULL,
+    ADD COLUMN `addressLine2` VARCHAR(191) NULL,
+    ADD COLUMN `bio` VARCHAR(191) NULL,
+    ADD COLUMN `city` VARCHAR(191) NULL,
+    ADD COLUMN `companyName` VARCHAR(191) NULL,
+    ADD COLUMN `country` VARCHAR(191) NULL,
+    ADD COLUMN `dateOfBirth` DATETIME(3) NULL,
+    ADD COLUMN `jobTitle` VARCHAR(191) NULL,
+    ADD COLUMN `phone` VARCHAR(191) NULL,
+    ADD COLUMN `postalCode` VARCHAR(191) NULL,
+    ADD COLUMN `website` VARCHAR(191) NULL;

@@ -1,0 +1,37 @@
+CREATE TABLE `Payment` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `organizerId` INT NOT NULL,
+  `eventId` INT NULL,
+  `planCode` VARCHAR(191) NOT NULL,
+  `planType` ENUM('EVENT', 'SUBSCRIPTION') NOT NULL,
+  `amount` INT NOT NULL,
+  `currency` VARCHAR(10) NOT NULL,
+  `provider` VARCHAR(40) NOT NULL,
+  `status` ENUM('PENDING', 'PAID', 'FAILED', 'CANCELED') NOT NULL DEFAULT 'PENDING',
+  `txRef` VARCHAR(191) NOT NULL,
+  `providerRef` VARCHAR(191) NULL,
+  `paymentLink` VARCHAR(500) NULL,
+  `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updatedAt` DATETIME(3) NOT NULL,
+  UNIQUE INDEX `Payment_txRef_key` (`txRef`),
+  PRIMARY KEY (`id`),
+  CONSTRAINT `Payment_organizerId_fkey` FOREIGN KEY (`organizerId`) REFERENCES `Organizer` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `Payment_eventId_fkey` FOREIGN KEY (`eventId`) REFERENCES `Event` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE `OrganizerSubscription` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `organizerId` INT NOT NULL,
+  `planCode` VARCHAR(191) NOT NULL,
+  `status` ENUM('ACTIVE', 'CANCELED', 'EXPIRED') NOT NULL DEFAULT 'ACTIVE',
+  `currentPeriodStart` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `currentPeriodEnd` DATETIME(3) NOT NULL,
+  `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `updatedAt` DATETIME(3) NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `OrganizerSubscription_organizerId_fkey` FOREIGN KEY (`organizerId`) REFERENCES `Organizer` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+ALTER TABLE `Event`
+  ADD COLUMN `paidPlanCode` VARCHAR(191) NULL,
+  ADD COLUMN `paidAt` DATETIME(3) NULL;

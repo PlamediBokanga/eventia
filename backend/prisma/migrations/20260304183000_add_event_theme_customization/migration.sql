@@ -1,0 +1,7 @@
+ALTER TABLE `Event`
+  ADD COLUMN `logoUrl` VARCHAR(500) NULL,
+  ADD COLUMN `themePreset` VARCHAR(40) NULL,
+  ADD COLUMN `primaryColor` VARCHAR(20) NULL,
+  ADD COLUMN `accentColor` VARCHAR(20) NULL,
+  ADD COLUMN `fontFamily` VARCHAR(80) NULL,
+  ADD COLUMN `animationStyle` VARCHAR(30) NULL;

@@ -1,0 +1,2 @@
+ALTER TABLE `Event`
+  ADD COLUMN `hostNames` VARCHAR(200) NULL;

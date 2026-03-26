@@ -1,0 +1,2 @@
+ALTER TABLE `Table`
+  ADD COLUMN `location` VARCHAR(160) NULL;

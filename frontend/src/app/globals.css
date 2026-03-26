@@ -1,0 +1,222 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --theme-bg: #f9fafb;
+  --theme-bg-soft: #f1f5f9;
+  --theme-text: #1f2937;
+  --theme-card: #ffffff;
+  --theme-card-border: rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="soir"] {
+  --theme-bg: #f3f5f8;
+  --theme-bg-soft: #eef1f6;
+  --theme-text: #1f2937;
+  --theme-card: #ffffff;
+  --theme-card-border: rgba(15, 23, 42, 0.08);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  color: var(--theme-text);
+  background: var(--theme-bg);
+  line-height: 1.6;
+}
+
+h1,
+h2 {
+  font-family: "Playfair Display", serif;
+  line-height: 1.2;
+}
+
+h3,
+h4 {
+  line-height: 1.2;
+}
+
+small,
+.text-small {
+  line-height: 1.5;
+}
+
+a {
+  @apply text-accent hover:underline decoration-accent/60;
+}
+
+@layer components {
+  .title-1 {
+    @apply font-heading text-4xl md:text-5xl font-bold tracking-tight;
+    line-height: 1.2;
+  }
+
+  .title-2 {
+    @apply font-heading text-3xl md:text-4xl font-semibold;
+    line-height: 1.2;
+  }
+
+  .title-3 {
+    @apply text-2xl font-semibold;
+    line-height: 1.2;
+  }
+
+  .title-4 {
+    @apply text-xl font-semibold;
+    line-height: 1.2;
+  }
+
+  .text-body {
+    @apply text-base text-text;
+    line-height: 1.6;
+  }
+
+  .text-body-muted {
+    @apply text-sm text-textSecondary;
+    line-height: 1.6;
+  }
+
+  .text-small {
+    @apply text-xs text-textMuted;
+    line-height: 1.5;
+  }
+}
+
+.card {
+  @apply rounded-2xl border;
+  background-color: var(--theme-card);
+  border-color: var(--theme-card-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-card {
+  @apply rounded-2xl border border-primary/10 bg-white/90 p-4 transition duration-200;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px -20px rgba(11, 28, 44, 0.6);
+}
+
+.nav-chip {
+  @apply inline-flex items-center justify-center rounded-lg px-3 py-2 text-center transition duration-200;
+}
+
+.event-item {
+  @apply w-full rounded-xl border border-primary/10 bg-background/60 px-3 py-2 text-left transition duration-200;
+}
+
+.event-item:hover {
+  transform: translateY(-1px);
+}
+
+.empty-state {
+  background-image: radial-gradient(circle at top, rgba(11, 28, 44, 0.05), transparent 60%);
+}
+
+[contenteditable="true"]:empty:before {
+  content: attr(data-placeholder);
+  color: rgba(43, 43, 43, 0.45);
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-xl bg-primary text-white px-5 py-3 text-sm font-semibold tracking-wide shadow-md hover:bg-primary/90 transition;
+}
+
+.btn-ghost {
+  @apply inline-flex items-center justify-center rounded-xl border border-primary/20 text-primary px-5 py-3 text-sm font-semibold hover:bg-primary/5 transition;
+}
+
+.toast-fade {
+  animation: toast-in 0.2s ease-out;
+}
+
+.page-enter {
+  animation: page-enter 0.22s ease-out;
+}
+
+.invite-skin {
+  font-family: var(--invite-font);
+}
+
+.invite-skin .btn-primary {
+  background-color: var(--invite-primary);
+}
+
+.invite-skin .btn-primary:hover {
+  background-color: color-mix(in srgb, var(--invite-primary) 88%, black);
+}
+
+.invite-skin .btn-ghost {
+  border-color: color-mix(in srgb, var(--invite-primary) 25%, transparent);
+  color: var(--invite-primary);
+}
+
+.invite-skin .invite-title {
+  color: var(--invite-primary);
+}
+
+.invite-skin .invite-accent {
+  color: var(--invite-accent);
+}
+
+.invite-anim-soft {
+  animation: invite-soft 0.55s ease-out;
+}
+
+.invite-anim-float {
+  animation: invite-float 4.2s ease-in-out infinite;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes invite-soft {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes invite-float {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}

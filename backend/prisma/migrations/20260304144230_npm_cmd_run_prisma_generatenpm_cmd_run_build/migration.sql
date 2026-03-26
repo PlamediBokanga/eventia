@@ -1,0 +1,3 @@
+-- No-op migration.
+-- This migration was generated during a failed Prisma generate/build
+-- and referenced columns that did not exist yet.

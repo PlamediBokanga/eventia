@@ -1,0 +1,3 @@
+ALTER TABLE `GuestInvitation`
+  ADD COLUMN `checkedInAt` DATETIME(3) NULL,
+  ADD COLUMN `checkInCount` INT NOT NULL DEFAULT 0;
