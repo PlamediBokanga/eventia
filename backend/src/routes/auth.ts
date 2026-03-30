@@ -1,5 +1,6 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../prisma";
 import type { AuthRequest } from "../middleware/auth";
 import { authMiddleware, signToken } from "../middleware/auth";
@@ -98,9 +99,17 @@ authRouter.post("/register", async (req, res) => {
     res.status(201).json({ organizer, token });
   } catch (err) {
     console.error(err);
-    res
-      .status(500)
-      .json({ message: "Erreur lors de la création du compte organisateur." });
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === "P2002") {
+        return res.status(409).json({ message: "Un compte existe deja avec cet email." });
+      }
+      if (err.code === "P2021") {
+        return res
+          .status(500)
+          .json({ message: "Table Organizer introuvable. Migrations non appliquees." });
+      }
+    }
+    res.status(500).json({ message: "Erreur lors de la creation du compte organisateur." });
   }
 });
 
