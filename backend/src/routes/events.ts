@@ -163,7 +163,7 @@ function normalizeProgramItems(items: unknown) {
     })
     .filter(Boolean) as { timeLabel: string; title: string; description: string | null; order: number }[];
 
-  if (cleaned.length === 0) return [];
+  if (cleaned.length === 0) return null;
   return cleaned.slice(0, 30);
 }
 
@@ -356,7 +356,7 @@ eventsRouter.post("/", authMiddleware, async (req, res) => {
         capacityPerTable: capacityPerTableFinal,
         organizerId,
         programItems:
-          normalizedProgramItems
+          normalizedProgramItems && normalizedProgramItems.length > 0
             ? {
                 createMany: {
                   data: normalizedProgramItems
