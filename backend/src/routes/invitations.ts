@@ -15,7 +15,7 @@ function isValidToken(token: string) {
 }
 
 function buildInvitationUrl(token: string) {
-  const appUrl = process.env.APP_URL || process.env.FRONTEND_URL || "http://localhost:3000";
+  const appUrl = process.env.FRONTEND_URL || process.env.APP_URL || "http://localhost:3000";
   return `${appUrl.replace(/\/+$/, "")}/invitation/${token}`;
 }
 
