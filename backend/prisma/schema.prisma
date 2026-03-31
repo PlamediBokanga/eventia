@@ -47,9 +47,9 @@ model Event {
   dateTime         DateTime
   location         String
   address          String?
-  details          String?
-  program          String?
-  invitationMessage String?
+  details          String? @db.Text
+  program          String? @db.Text
+  invitationMessage String? @db.Text
   coverImageUrl    String?
   hostNames        String?
   seatingMode      SeatingMode @default(TABLE)
