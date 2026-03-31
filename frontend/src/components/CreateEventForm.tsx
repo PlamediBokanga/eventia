@@ -67,11 +67,8 @@ export function CreateEventForm() {
           return;
         }
 
-        setMessage(
-          payload?.message
-            ? `Creation impossible: ${payload.message}`
-            : `Creation impossible (HTTP ${res.status}).`
-        );
+        const detail = payload?.message ? ` ${payload.message}` : "";
+        setMessage(`Creation impossible (HTTP ${res.status}).${detail}`);
         return;
       }
 

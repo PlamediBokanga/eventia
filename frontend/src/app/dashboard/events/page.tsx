@@ -303,7 +303,8 @@ export default function DashboardEventsPage() {
       });
       if (!res.ok) {
         const payload = (await res.json().catch(() => null)) as { message?: string } | null;
-        pushToast(payload?.message ?? "Creation impossible.", "error");
+        const detail = payload?.message ? ` ${payload.message}` : "";
+        pushToast(`Creation impossible (HTTP ${res.status}).${detail}`, "error");
         return;
       }
 
@@ -351,7 +352,8 @@ export default function DashboardEventsPage() {
       });
       if (!res.ok) {
         const payload = (await res.json().catch(() => null)) as { message?: string } | null;
-        pushToast(payload?.message ?? "Mise a jour impossible.", "error");
+        const detail = payload?.message ? ` ${payload.message}` : "";
+        pushToast(`Mise a jour impossible (HTTP ${res.status}).${detail}`, "error");
         return;
       }
       pushToast("Evenement mis a jour.");
