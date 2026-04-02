@@ -56,7 +56,6 @@ export default function DashboardCheckinPage() {
   const [manualQuery, setManualQuery] = useState("");
   const [scanHint, setScanHint] = useState("En attente d'un QR code...");
   const [showResultModal, setShowResultModal] = useState(false);
-  const [scanHint, setScanHint] = useState("En attente d'un QR code...");
   const [manualResults, setManualResults] = useState<
     Array<{
       id: number;
