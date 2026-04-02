@@ -54,6 +54,7 @@ export default function DashboardCheckinPage() {
   const [direction, setDirection] = useState<"IN" | "OUT">("IN");
   const [manualToken, setManualToken] = useState("");
   const [manualQuery, setManualQuery] = useState("");
+  const [scanHint, setScanHint] = useState("En attente d'un QR code...");
   const [manualResults, setManualResults] = useState<
     Array<{
       id: number;
@@ -167,6 +168,7 @@ export default function DashboardCheckinPage() {
             const text = result.getText();
             const token = extractToken(text);
             if (token) {
+              setScanHint("QR detecte. Validation en cours...");
               void handleScan(token);
             }
           }
@@ -197,6 +199,14 @@ export default function DashboardCheckinPage() {
       setScanning(false);
     }
   }, [mode]);
+
+  useEffect(() => {
+    if (!scanning) {
+      setScanHint("Activez la camera pour commencer.");
+    } else {
+      setScanHint("En attente d'un QR code...");
+    }
+  }, [scanning]);
 
   useEffect(() => {
     if (!fullscreen) return;
@@ -261,6 +271,7 @@ export default function DashboardCheckinPage() {
         action: actionToSend
       };
       setCurrentResult(offlineResult);
+      setScanHint("En attente d'un QR code...");
       playBeep("warning");
       setResults(prev => [offlineResult, ...prev]);
       return;
@@ -280,6 +291,7 @@ export default function DashboardCheckinPage() {
         action: actionToSend
       };
         setCurrentResult(errorResult);
+        setScanHint("En attente d'un QR code...");
         playBeep("error");
         setResults(prev => [errorResult, ...prev]);
         return;
@@ -314,6 +326,7 @@ export default function DashboardCheckinPage() {
         action: actionToSend
       };
       setCurrentResult(okResult);
+      setScanHint("En attente d'un QR code...");
       playBeep(payload.alreadyCheckedIn ? "warning" : "success");
       setResults(prev => [okResult, ...prev]);
       void refreshStats();
@@ -326,6 +339,7 @@ export default function DashboardCheckinPage() {
         action: actionToSend
       };
       setCurrentResult(offlineResult);
+      setScanHint("En attente d'un QR code...");
       playBeep("warning");
       setResults(prev => [offlineResult, ...prev]);
     }
@@ -588,7 +602,7 @@ export default function DashboardCheckinPage() {
               </div>
             <video ref={videoRef} className="h-[320px] w-full rounded-2xl object-cover" />
             </div>
-          <p className="text-small text-text/70">Scannez le QR code de l'invite. Retour automatique au scanner.</p>
+          <p className="text-small text-text/70">{scanHint}</p>
 
           {mode === "MANUAL" ? (
             <div className="space-y-3">
