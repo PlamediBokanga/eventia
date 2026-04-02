@@ -150,7 +150,17 @@ export default function DashboardCheckinPage() {
     async function start() {
       if (!videoRef.current) return;
       try {
-        const deviceId: string | undefined = undefined;
+        let deviceId: string | undefined = undefined;
+        try {
+          const devices = await BrowserMultiFormatReader.listVideoInputDevices();
+          if (devices.length > 0) {
+            const preferred = devices.find(d => /back|rear|environment/i.test(d.label));
+            deviceId = (preferred ?? devices[devices.length - 1]).deviceId;
+          }
+        } catch {
+          deviceId = undefined;
+        }
+
         await reader.decodeFromVideoDevice(deviceId, videoRef.current, (result, err) => {
           if (cancelled) return;
           if (result) {
@@ -161,7 +171,13 @@ export default function DashboardCheckinPage() {
             }
           }
           if (err && err.name !== "NotFoundException") {
-            pushToast("Camera indisponible.", "error");
+            if (err.name === "NotAllowedError") {
+              pushToast("Autorisation camera refusee. Autorisez la camera dans le navigateur.", "error");
+            } else if (err.name === "NotReadableError") {
+              pushToast("Camera utilisee par une autre application.", "error");
+            } else {
+              pushToast("Camera indisponible.", "error");
+            }
           }
         });
       } catch {
