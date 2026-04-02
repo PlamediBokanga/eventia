@@ -55,6 +55,8 @@ export default function DashboardCheckinPage() {
   const [manualToken, setManualToken] = useState("");
   const [manualQuery, setManualQuery] = useState("");
   const [scanHint, setScanHint] = useState("En attente d'un QR code...");
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [scanHint, setScanHint] = useState("En attente d'un QR code...");
   const [manualResults, setManualResults] = useState<
     Array<{
       id: number;
@@ -271,6 +273,7 @@ export default function DashboardCheckinPage() {
         action: actionToSend
       };
       setCurrentResult(offlineResult);
+      setShowResultModal(true);
       setScanHint("En attente d'un QR code...");
       playBeep("warning");
       setResults(prev => [offlineResult, ...prev]);
@@ -291,6 +294,7 @@ export default function DashboardCheckinPage() {
         action: actionToSend
       };
         setCurrentResult(errorResult);
+        setShowResultModal(true);
         setScanHint("En attente d'un QR code...");
         playBeep("error");
         setResults(prev => [errorResult, ...prev]);
@@ -326,6 +330,7 @@ export default function DashboardCheckinPage() {
         action: actionToSend
       };
       setCurrentResult(okResult);
+      setShowResultModal(true);
       setScanHint("En attente d'un QR code...");
       playBeep(payload.alreadyCheckedIn ? "warning" : "success");
       setResults(prev => [okResult, ...prev]);
@@ -339,6 +344,7 @@ export default function DashboardCheckinPage() {
         action: actionToSend
       };
       setCurrentResult(offlineResult);
+      setShowResultModal(true);
       setScanHint("En attente d'un QR code...");
       playBeep("warning");
       setResults(prev => [offlineResult, ...prev]);
@@ -599,8 +605,9 @@ export default function DashboardCheckinPage() {
             <div className="relative overflow-hidden rounded-2xl border border-primary/10 bg-black">
               <div className="absolute inset-0 pointer-events-none">
                 <div className="scan-line" />
+                <div className="scan-frame" />
               </div>
-            <video ref={videoRef} className="h-[320px] w-full rounded-2xl object-cover" />
+              <video ref={videoRef} className="h-[320px] w-full rounded-2xl object-cover" />
             </div>
           <p className="text-small text-text/70">{scanHint}</p>
 
@@ -827,6 +834,72 @@ export default function DashboardCheckinPage() {
         </section>
       </div>
 
+      {showResultModal && currentResult ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-text/50">Resultat du scan</p>
+                <h3 className="mt-1 text-lg font-semibold text-text">
+                  {currentResult.guestName ?? "Invite"}
+                </h3>
+              </div>
+              <span
+                className={`rounded-full px-3 py-1 text-[11px] ${
+                  currentResult.status === "ok"
+                    ? currentResult.alreadyCheckedIn
+                      ? "bg-amber-100 text-amber-700"
+                      : "bg-green-100 text-green-700"
+                    : currentResult.status === "offline"
+                      ? "bg-amber-100 text-amber-700"
+                      : "bg-red-100 text-red-700"
+                }`}
+              >
+                {currentResult.message}
+              </span>
+            </div>
+            <div className="mt-4 space-y-2 text-sm text-text/80">
+              <div className="flex items-center justify-between">
+                <span>Statut</span>
+                <span className="font-medium">{guestStatusLabel(currentResult.guestStatus)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Table/Zone</span>
+                <span className="font-medium">{currentResult.tableLabel ?? "-"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Horaire</span>
+                <span className="font-medium">
+                  {currentResult.checkedInAt
+                    ? new Date(currentResult.checkedInAt).toLocaleString("fr-FR")
+                    : "-"}
+                </span>
+              </div>
+            </div>
+            <div className="mt-5 flex flex-wrap justify-end gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                className="px-4 py-2 text-xs"
+                onClick={() => setShowResultModal(false)}
+              >
+                Fermer
+              </Button>
+              <Button
+                type="button"
+                className="px-4 py-2 text-xs"
+                onClick={() => {
+                  setShowResultModal(false);
+                  setCurrentResult(null);
+                }}
+              >
+                Scan suivant
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <style jsx>{`
         .scan-line {
           position: absolute;
@@ -850,6 +923,31 @@ export default function DashboardCheckinPage() {
           100% {
             top: 12%;
             opacity: 0.4;
+          }
+        }
+
+        .scan-frame {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          width: 120px;
+          height: 120px;
+          transform: translate(-50%, -50%);
+          border-radius: 18px;
+          border: 1px solid rgba(255, 255, 255, 0.35);
+          box-shadow: 0 0 28px rgba(212, 175, 55, 0.35);
+          animation: pulseFrame 2.4s ease-in-out infinite;
+        }
+
+        @keyframes pulseFrame {
+          0% {
+            opacity: 0.5;
+          }
+          50% {
+            opacity: 0.95;
+          }
+          100% {
+            opacity: 0.5;
           }
         }
       `}</style>
