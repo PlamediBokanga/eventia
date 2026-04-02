@@ -170,7 +170,7 @@ export default function DashboardCheckinPage() {
               void handleScan(token);
             }
           }
-          if (err && err.name !== "NotFoundException") {
+          if (err && err.name !== "NotFoundException" && err.name !== "ChecksumException" && err.name !== "FormatException") {
             if (err.name === "NotAllowedError") {
               pushToast("Autorisation camera refusee. Autorisez la camera dans le navigateur.", "error");
             } else if (err.name === "NotReadableError") {
