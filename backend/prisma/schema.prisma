@@ -17,6 +17,7 @@ model Organizer {
   password  String
   name      String?
   phone     String?
+  avatarUrl String?
   companyName String?
   jobTitle  String?
   addressLine1 String?

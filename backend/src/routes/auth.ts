@@ -5,6 +5,9 @@ import { prisma } from "../prisma";
 import type { AuthRequest } from "../middleware/auth";
 import { authMiddleware, signToken } from "../middleware/auth";
 import { createSimpleRateLimiter } from "../middleware/rateLimit";
+import fs from "fs/promises";
+import path from "path";
+import crypto from "crypto";
 
 export const authRouter = Router();
 const loginRateLimiter = createSimpleRateLimiter(10 * 60 * 1000, 7);
@@ -46,6 +49,27 @@ function cleanDate(value: unknown) {
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return null;
   return date;
+}
+
+function cleanAvatarUrl(value: unknown) {
+  const cleaned = cleanNullableString(value, 500);
+  if (!cleaned) return null;
+  if (!/^https?:\/\//i.test(cleaned) && !cleaned.startsWith("/uploads/")) {
+    return null;
+  }
+  return cleaned;
+}
+
+function parseImageDataUrl(dataUrl: unknown) {
+  if (typeof dataUrl !== "string") return null;
+  const match = dataUrl.match(/^data:(image\/(png|jpeg|jpg|webp));base64,(.+)$/i);
+  if (!match) return null;
+  const mime = match[1].toLowerCase();
+  const rawBase64 = match[3];
+  const buffer = Buffer.from(rawBase64, "base64");
+  if (!buffer.length) return null;
+  const ext = mime === "image/png" ? "png" : mime === "image/webp" ? "webp" : "jpg";
+  return { buffer, ext };
 }
 
 // Inscription organisateur
@@ -179,6 +203,7 @@ authRouter.get("/me", authMiddleware, async (req, res) => {
         email: true,
         name: true,
         phone: true,
+        avatarUrl: true,
         companyName: true,
         jobTitle: true,
         addressLine1: true,
@@ -217,6 +242,7 @@ authRouter.put("/me", authMiddleware, async (req, res) => {
       name,
       password,
       phone,
+      avatarUrl,
       companyName,
       jobTitle,
       addressLine1,
@@ -231,6 +257,7 @@ authRouter.put("/me", authMiddleware, async (req, res) => {
       name?: string;
       password?: string;
       phone?: string | null;
+      avatarUrl?: string | null;
       companyName?: string | null;
       jobTitle?: string | null;
       addressLine1?: string | null;
@@ -246,6 +273,7 @@ authRouter.put("/me", authMiddleware, async (req, res) => {
       name?: string | null;
       password?: string;
       phone?: string | null;
+      avatarUrl?: string | null;
       companyName?: string | null;
       jobTitle?: string | null;
       addressLine1?: string | null;
@@ -272,6 +300,13 @@ authRouter.put("/me", authMiddleware, async (req, res) => {
     }
 
     if (phone !== undefined) data.phone = cleanPhone(phone);
+    if (avatarUrl !== undefined) {
+      const clean = cleanAvatarUrl(avatarUrl);
+      if (avatarUrl && !clean) {
+        return res.status(400).json({ message: "URL photo invalide (https://...)." });
+      }
+      data.avatarUrl = clean;
+    }
     if (companyName !== undefined) data.companyName = cleanNullableString(companyName, 120);
     if (jobTitle !== undefined) data.jobTitle = cleanNullableString(jobTitle, 120);
     if (addressLine1 !== undefined) data.addressLine1 = cleanNullableString(addressLine1, 160);
@@ -303,6 +338,7 @@ authRouter.put("/me", authMiddleware, async (req, res) => {
         email: true,
         name: true,
         phone: true,
+        avatarUrl: true,
         companyName: true,
         jobTitle: true,
         addressLine1: true,
@@ -320,6 +356,135 @@ authRouter.put("/me", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Erreur lors de la mise a jour du profil." });
+  }
+});
+
+// Upload avatar (dataUrl) for organizer
+authRouter.post("/me/avatar", authMiddleware, async (req, res) => {
+  try {
+    const authReq = req as AuthRequest;
+    const organizerId = authReq.user?.id;
+    if (!organizerId) {
+      return res.status(401).json({ message: "Organisateur non authentifie." });
+    }
+    const { fileName, dataUrl } = req.body as { fileName?: string; dataUrl?: string };
+    if (!fileName || !dataUrl) {
+      return res.status(400).json({ message: "Fichier image manquant." });
+    }
+    const parsed = parseImageDataUrl(dataUrl);
+    if (!parsed) {
+      return res.status(400).json({ message: "Format image invalide. Utilisez PNG ou JPG." });
+    }
+    if (parsed.buffer.length > 3 * 1024 * 1024) {
+      return res.status(400).json({ message: "Image trop lourde (max 3MB)." });
+    }
+    const safeBase = String(fileName).replace(/[^a-zA-Z0-9._-]/g, "").slice(0, 40) || "avatar";
+    const filename = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}-${safeBase}.${parsed.ext}`;
+    const uploadDir = path.join(process.cwd(), "uploads", "avatars");
+    await fs.mkdir(uploadDir, { recursive: true });
+    await fs.writeFile(path.join(uploadDir, filename), parsed.buffer);
+    const baseUrl = process.env.APP_URL || process.env.FRONTEND_URL || "http://localhost:3000";
+    const url = `${baseUrl.replace(/\/+$/, "")}/uploads/avatars/${filename}`;
+    const organizer = await prisma.organizer.update({
+      where: { id: organizerId },
+      data: { avatarUrl: url },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        phone: true,
+        avatarUrl: true
+      }
+    });
+    return res.json({ organizer, avatarUrl: url });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur lors de l'upload de la photo." });
+  }
+});
+
+// Changer mot de passe
+authRouter.put("/password", authMiddleware, async (req, res) => {
+  try {
+    const authReq = req as AuthRequest;
+    const organizerId = authReq.user?.id;
+    if (!organizerId) {
+      return res.status(401).json({ message: "Organisateur non authentifie." });
+    }
+    const currentPassword = normalizeString(req.body?.currentPassword);
+    const newPassword = normalizeString(req.body?.newPassword);
+    const confirmPassword = normalizeString(req.body?.confirmPassword);
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({ message: "Tous les champs sont obligatoires." });
+    }
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "La confirmation ne correspond pas." });
+    }
+    if (newPassword.length < 6 || newPassword.length > 72) {
+      return res.status(400).json({ message: "Le mot de passe doit contenir entre 6 et 72 caracteres." });
+    }
+    const organizer = await prisma.organizer.findUnique({
+      where: { id: organizerId }
+    });
+    if (!organizer) {
+      return res.status(404).json({ message: "Organisateur introuvable." });
+    }
+    const valid = await bcrypt.compare(currentPassword, organizer.password);
+    if (!valid) {
+      return res.status(400).json({ message: "Ancien mot de passe incorrect." });
+    }
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await prisma.organizer.update({
+      where: { id: organizerId },
+      data: { password: hashed }
+    });
+    return res.json({ message: "Mot de passe mis a jour." });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur lors de la mise a jour du mot de passe." });
+  }
+});
+
+// Stats profil organisateur
+authRouter.get("/me/stats", authMiddleware, async (req, res) => {
+  try {
+    const authReq = req as AuthRequest;
+    const organizerId = authReq.user?.id;
+    if (!organizerId) {
+      return res.status(401).json({ message: "Organisateur non authentifie." });
+    }
+    const events = await prisma.event.findMany({
+      where: { organizerId },
+      select: { id: true, type: true }
+    });
+    const eventIds = events.map(e => e.id);
+    const totalEvents = eventIds.length;
+    const guestTotals = await prisma.guest.groupBy({
+      by: ["status"],
+      where: { eventId: { in: eventIds } },
+      _count: { _all: true }
+    });
+    const totalGuests = guestTotals.reduce((sum, item) => sum + item._count._all, 0);
+    const confirmed = guestTotals.find(item => item.status === "CONFIRMED")?._count._all ?? 0;
+    const pending = guestTotals.find(item => item.status === "PENDING")?._count._all ?? 0;
+    const canceled = guestTotals.find(item => item.status === "CANCELED")?._count._all ?? 0;
+    const types = events.reduce<Record<string, number>>((acc, evt) => {
+      const key = evt.type || "Autre";
+      acc[key] = (acc[key] ?? 0) + 1;
+      return acc;
+    }, {});
+
+    return res.json({
+      totalEvents,
+      totalGuests,
+      confirmed,
+      pending,
+      canceled,
+      types
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur lors du chargement des statistiques." });
   }
 });
 
