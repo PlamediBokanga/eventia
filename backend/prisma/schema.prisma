@@ -18,6 +18,7 @@ model Organizer {
   name      String?
   phone     String?
   avatarUrl String?
+  securityAlerts Boolean @default(true)
   companyName String?
   jobTitle  String?
   addressLine1 String?

@@ -152,6 +152,7 @@ export type OrganizerProfile = {
   name?: string | null;
   phone?: string | null;
   avatarUrl?: string | null;
+  securityAlerts?: boolean;
   companyName?: string | null;
   jobTitle?: string | null;
   addressLine1?: string | null;
@@ -172,6 +173,14 @@ export type OrganizerStats = {
   pending: number;
   canceled: number;
   types: Record<string, number>;
+};
+
+export type OrganizerSession = {
+  id: string;
+  device: string;
+  ip?: string | null;
+  location?: string | null;
+  lastActive?: string | null;
 };
 
 const EVENT_STORAGE_KEY = "eventia_selected_event_id";

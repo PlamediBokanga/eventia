@@ -204,6 +204,7 @@ authRouter.get("/me", authMiddleware, async (req, res) => {
         name: true,
         phone: true,
         avatarUrl: true,
+        securityAlerts: true,
         companyName: true,
         jobTitle: true,
         addressLine1: true,
@@ -258,6 +259,7 @@ authRouter.put("/me", authMiddleware, async (req, res) => {
       password?: string;
       phone?: string | null;
       avatarUrl?: string | null;
+      securityAlerts?: boolean;
       companyName?: string | null;
       jobTitle?: string | null;
       addressLine1?: string | null;
@@ -274,6 +276,7 @@ authRouter.put("/me", authMiddleware, async (req, res) => {
       password?: string;
       phone?: string | null;
       avatarUrl?: string | null;
+      securityAlerts?: boolean;
       companyName?: string | null;
       jobTitle?: string | null;
       addressLine1?: string | null;
@@ -307,6 +310,9 @@ authRouter.put("/me", authMiddleware, async (req, res) => {
       }
       data.avatarUrl = clean;
     }
+    if (typeof securityAlerts === "boolean") {
+      data.securityAlerts = securityAlerts;
+    }
     if (companyName !== undefined) data.companyName = cleanNullableString(companyName, 120);
     if (jobTitle !== undefined) data.jobTitle = cleanNullableString(jobTitle, 120);
     if (addressLine1 !== undefined) data.addressLine1 = cleanNullableString(addressLine1, 160);
@@ -339,6 +345,7 @@ authRouter.put("/me", authMiddleware, async (req, res) => {
         name: true,
         phone: true,
         avatarUrl: true,
+        securityAlerts: true,
         companyName: true,
         jobTitle: true,
         addressLine1: true,
@@ -442,6 +449,48 @@ authRouter.put("/password", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Erreur lors de la mise a jour du mot de passe." });
+  }
+});
+
+// Sessions actives (MVP)
+authRouter.get("/sessions", authMiddleware, async (req, res) => {
+  try {
+    const authReq = req as AuthRequest;
+    const organizerId = authReq.user?.id;
+    if (!organizerId) {
+      return res.status(401).json({ message: "Organisateur non authentifie." });
+    }
+    const userAgent = req.get("user-agent") || "Navigateur";
+    const ip = (req.headers["x-forwarded-for"] as string | undefined)?.split(",")[0]?.trim() || req.ip;
+    return res.json({
+      sessions: [
+        {
+          id: `current-${organizerId}`,
+          device: userAgent,
+          ip,
+          location: null,
+          lastActive: new Date().toISOString()
+        }
+      ]
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur lors du chargement des sessions." });
+  }
+});
+
+// Deconnexion de tous les appareils (MVP)
+authRouter.delete("/sessions", authMiddleware, async (req, res) => {
+  try {
+    const authReq = req as AuthRequest;
+    const organizerId = authReq.user?.id;
+    if (!organizerId) {
+      return res.status(401).json({ message: "Organisateur non authentifie." });
+    }
+    return res.json({ message: "Deconnexion demandee." });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur lors de la deconnexion." });
   }
 });
 

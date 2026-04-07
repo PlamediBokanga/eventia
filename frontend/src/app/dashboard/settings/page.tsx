@@ -5,11 +5,14 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
-import { authFetch, type OrganizerProfile, type OrganizerStats } from "@/lib/dashboard";
+import { authFetch, type OrganizerProfile, type OrganizerStats, type OrganizerSession } from "@/lib/dashboard";
+import { clearToken } from "@/lib/auth";
 
 export default function DashboardSettingsPage() {
   const [profile, setProfile] = useState<OrganizerProfile | null>(null);
   const [stats, setStats] = useState<OrganizerStats | null>(null);
+  const [sessions, setSessions] = useState<OrganizerSession[]>([]);
+  const [securityAlerts, setSecurityAlerts] = useState(true);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -43,6 +46,7 @@ export default function DashboardSettingsPage() {
       setName(data.organizer.name ?? "");
       setPhone(data.organizer.phone ?? "");
       setAvatarUrl(data.organizer.avatarUrl ?? "");
+      setSecurityAlerts(data.organizer.securityAlerts ?? true);
       setCompanyName(data.organizer.companyName ?? "");
       setJobTitle(data.organizer.jobTitle ?? "");
       setAddressLine1(data.organizer.addressLine1 ?? "");
@@ -56,12 +60,20 @@ export default function DashboardSettingsPage() {
     }
     void load();
     void loadStats();
+    void loadSessions();
   }, []);
 
   async function loadStats() {
     const res = await authFetch("/auth/me/stats");
     if (!res.ok) return;
     setStats((await res.json()) as OrganizerStats);
+  }
+
+  async function loadSessions() {
+    const res = await authFetch("/auth/sessions");
+    if (!res.ok) return;
+    const payload = (await res.json()) as { sessions: OrganizerSession[] };
+    setSessions(payload.sessions || []);
   }
 
   async function save(e: React.FormEvent) {
@@ -84,7 +96,8 @@ export default function DashboardSettingsPage() {
           country,
           website,
           bio,
-          dateOfBirth: dateOfBirth || null
+          dateOfBirth: dateOfBirth || null,
+          securityAlerts
         })
       });
       if (!res.ok) {
@@ -98,6 +111,18 @@ export default function DashboardSettingsPage() {
     } finally {
       setSaving(false);
     }
+  }
+
+  async function revokeSessions() {
+    const res = await authFetch("/auth/sessions", { method: "DELETE" });
+    if (!res.ok) {
+      const payload = (await res.json().catch(() => null)) as { message?: string } | null;
+      pushToast(payload?.message ?? "Deconnexion impossible.", "error");
+      return;
+    }
+    clearToken();
+    pushToast("Vous avez ete deconnecte de tous les appareils.");
+    window.location.href = "/auth/login";
   }
 
   async function savePassword(e: React.FormEvent) {
@@ -304,6 +329,39 @@ export default function DashboardSettingsPage() {
                     {savingPassword ? "Mise a jour..." : "Changer le mot de passe"}
                   </Button>
                 </form>
+                <div className="pt-2">
+                  <label className="flex items-center gap-2 text-xs text-text/80">
+                    <input
+                      type="checkbox"
+                      className="accent-primary"
+                      checked={securityAlerts}
+                      onChange={e => setSecurityAlerts(e.target.checked)}
+                    />
+                    Recevoir un email en cas de connexion suspecte
+                  </label>
+                </div>
+              </section>
+
+              <section className="card p-4 space-y-3">
+                <h3 className="title-4">Sessions actives</h3>
+                {sessions.length === 0 ? (
+                  <p className="text-small">Aucune session active detectee.</p>
+                ) : (
+                  <div className="space-y-2 text-xs">
+                    {sessions.map(session => (
+                      <div key={session.id} className="rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
+                        <p className="font-medium">{session.device}</p>
+                        <p className="text-[11px] text-text/60">
+                          {session.ip ? `IP: ${session.ip}` : "IP inconnue"}
+                          {session.lastActive ? ` • ${new Date(session.lastActive).toLocaleString("fr-FR")}` : ""}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <Button type="button" variant="ghost" className="w-full" onClick={revokeSessions}>
+                  Se deconnecter de tous les appareils
+                </Button>
               </section>
 
               <section className="card p-4 space-y-3">
