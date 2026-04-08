@@ -244,6 +244,24 @@ async function ensureEventAccess(eventId: number, organizerId: number) {
   return { event, role: "CO_ORGANIZER" as const };
 }
 
+async function hasExportAccess(organizerId: number, eventId: number) {
+  const now = new Date();
+  const subscription = await prisma.organizerSubscription.findFirst({
+    where: {
+      organizerId,
+      status: "ACTIVE",
+      currentPeriodEnd: { gt: now }
+    }
+  });
+  if (subscription) return true;
+
+  const event = await prisma.event.findUnique({
+    where: { id: eventId },
+    select: { paidPlanCode: true }
+  });
+  return event?.paidPlanCode === "STANDARD" || event?.paidPlanCode === "PREMIUM";
+}
+
 // Liste des evenements de l'organisateur connecte
 eventsRouter.get("/", authMiddleware, async (req, res) => {
   try {
@@ -2747,6 +2765,11 @@ eventsRouter.get("/:id/guestbook/pdf", authMiddleware, async (req, res) => {
     const ownership = await ensureEventAccess(eventId, organizerId);
     if ("error" in ownership) {
       return res.status(ownership.error!.code).json({ message: ownership.error!.message });
+    }
+
+    const canExport = await hasExportAccess(organizerId, eventId);
+    if (!canExport) {
+      return res.status(403).json({ message: "Export disponible uniquement pour le plan Standard ou Premium." });
     }
 
     const messageWhere = visibleOnly ? { isHidden: false } : {};

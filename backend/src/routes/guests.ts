@@ -83,6 +83,31 @@ function renderReminderMessage(
     .replace(/\{link\}/g, vars.link);
 }
 
+async function resolveGuestLimit(organizerId: number, eventId: number) {
+  const now = new Date();
+  const subscription = await prisma.organizerSubscription.findFirst({
+    where: {
+      organizerId,
+      status: "ACTIVE",
+      currentPeriodEnd: { gt: now }
+    }
+  });
+  if (subscription) {
+    if (subscription.planCode === "ENTERPRISE") return 99999;
+    if (subscription.planCode === "AGENCY") return 500;
+    if (subscription.planCode === "PRO_ORGANIZER") return 300;
+  }
+
+  const event = await prisma.event.findUnique({
+    where: { id: eventId },
+    select: { paidPlanCode: true }
+  });
+  if (event?.paidPlanCode === "PREMIUM") return 700;
+  if (event?.paidPlanCode === "STANDARD") return 300;
+  if (event?.paidPlanCode === "BASIC") return 100;
+  return 100;
+}
+
 // Ajout d'un invite a un evenement
 guestsRouter.post("/", authMiddleware, async (req, res) => {
   try {
@@ -155,6 +180,14 @@ guestsRouter.post("/", authMiddleware, async (req, res) => {
       if (table.capacity > 0 && table._count.guests >= table.capacity) {
         return res.status(400).json({ message: "La table selectionnee est pleine." });
       }
+    }
+
+    const guestLimit = await resolveGuestLimit(organizerId, parsedEventId);
+    const existingCount = await prisma.guest.count({ where: { eventId: parsedEventId } });
+    if (existingCount + 1 > guestLimit) {
+      return res.status(403).json({
+        message: `Limite de ${guestLimit} invites atteinte pour votre plan.`
+      });
     }
 
     const guest = await prisma.guest.create({

@@ -32,6 +32,7 @@ model Organizer {
   defaultEventTime String @default("18:00")
   defaultQrEnabled Boolean @default(true)
   role String @default("user")
+  referralCode String? @unique
   companyName String?
   jobTitle  String?
   addressLine1 String?
@@ -53,6 +54,8 @@ model Organizer {
   payments Payment[]
   subscriptions OrganizerSubscription[]
   logins OrganizerLogin[]
+  commissions ReferralCommission[] @relation("PartnerCommissions")
+  referredCommissions ReferralCommission[] @relation("ReferredCommissions")
 }
 
 model OrganizerLogin {
@@ -65,6 +68,20 @@ model OrganizerLogin {
   createdAt   DateTime @default(now())
 
   @@index([organizerId, createdAt])
+}
+
+model ReferralCommission {
+  id Int @id @default(autoincrement())
+  partner Organizer @relation("PartnerCommissions", fields: [partnerId], references: [id])
+  partnerId Int
+  referred Organizer @relation("ReferredCommissions", fields: [referredId], references: [id])
+  referredId Int
+  amount Int
+  status PaymentStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  paidAt DateTime?
+
+  @@index([partnerId, createdAt])
 }
 
 // Événement géré dans l’application

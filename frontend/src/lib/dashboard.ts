@@ -154,6 +154,7 @@ export type OrganizerProfile = {
   avatarUrl?: string | null;
   securityAlerts?: boolean;
   role?: string | null;
+  referralCode?: string | null;
   companyName?: string | null;
   jobTitle?: string | null;
   addressLine1?: string | null;

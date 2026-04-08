@@ -10,6 +10,7 @@ type AdminStats = {
   revenue: number;
   payments: number;
   events: number;
+  monthly?: Array<{ month: string; amount: number }>;
 };
 
 type AdminPayment = {
@@ -26,10 +27,20 @@ type AdminPayment = {
   event?: { id: number; name: string };
 };
 
+type AdminCommission = {
+  id: number;
+  amount: number;
+  status: "PENDING" | "PAID" | "FAILED" | "CANCELED";
+  createdAt: string;
+  partner?: { id: number; email: string; name?: string | null };
+  referred?: { id: number; email: string; name?: string | null };
+};
+
 export default function AdminDashboardPage() {
   const [me, setMe] = useState<OrganizerProfile | null>(null);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [payments, setPayments] = useState<AdminPayment[]>([]);
+  const [commissions, setCommissions] = useState<AdminCommission[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -49,6 +60,11 @@ export default function AdminDashboardPage() {
           const payload = (await listRes.json()) as { payments: AdminPayment[] };
           setPayments(payload.payments ?? []);
         }
+        const commRes = await authFetch("/payments/admin/commissions");
+        if (commRes.ok) {
+          const payload = (await commRes.json()) as { commissions: AdminCommission[] };
+          setCommissions(payload.commissions ?? []);
+        }
       } finally {
         setLoading(false);
       }
@@ -67,6 +83,16 @@ export default function AdminDashboardPage() {
     const statsRes = await authFetch("/payments/admin/stats");
     if (statsRes.ok) {
       setStats((await statsRes.json()) as AdminStats);
+    }
+  }
+
+  async function markCommissionPaid(id: number) {
+    const res = await authFetch(`/payments/admin/commissions/${id}/paid`, { method: "PATCH" });
+    if (!res.ok) return;
+    const commRes = await authFetch("/payments/admin/commissions");
+    if (commRes.ok) {
+      const payload = (await commRes.json()) as { commissions: AdminCommission[] };
+      setCommissions(payload.commissions ?? []);
     }
   }
 
@@ -109,6 +135,20 @@ export default function AdminDashboardPage() {
         </div>
       </section>
 
+      {stats?.monthly && stats.monthly.length > 0 ? (
+        <section className="card p-4 space-y-2">
+          <h2 className="title-4">Revenus par mois</h2>
+          <div className="grid gap-2 text-xs">
+            {stats.monthly.map(item => (
+              <div key={item.month} className="flex items-center justify-between rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
+                <span>{item.month}</span>
+                <span className="font-semibold">${item.amount}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <section className="card p-4 space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="title-4">Paiements</h2>
@@ -142,6 +182,42 @@ export default function AdminDashboardPage() {
                   <div className="mt-2">
                     <Button className="px-3 py-1 text-xs" onClick={() => approvePayment(payment.id)}>
                       Valider paiement
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="card p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="title-4">Commissions partenaires</h2>
+          <span className="text-small text-textSecondary">{commissions.length} commission(s)</span>
+        </div>
+        {commissions.length === 0 ? (
+          <EmptyState title="Aucune commission" description="Aucune commission generee." />
+        ) : (
+          <div className="space-y-2 text-xs">
+            {commissions.map(item => (
+              <div key={item.id} className="rounded-xl border border-primary/10 bg-white/70 px-3 py-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{item.partner?.name || item.partner?.email || "Partenaire"}</p>
+                    <p className="text-[11px] text-text/60">
+                      Invite: {item.referred?.name || item.referred?.email || "Client"}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold">${item.amount}</p>
+                    <p className="text-[11px] text-text/60">{item.status}</p>
+                  </div>
+                </div>
+                {item.status !== "PAID" ? (
+                  <div className="mt-2">
+                    <Button className="px-3 py-1 text-xs" onClick={() => markCommissionPaid(item.id)}>
+                      Marquer payee
                     </Button>
                   </div>
                 ) : null}

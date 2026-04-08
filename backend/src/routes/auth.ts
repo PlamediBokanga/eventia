@@ -67,6 +67,10 @@ function cleanAvatarUrl(value: unknown) {
   return cleaned;
 }
 
+function generateReferralCode() {
+  return crypto.randomBytes(4).toString("hex").toUpperCase();
+}
+
 function parseImageDataUrl(dataUrl: unknown) {
   if (typeof dataUrl !== "string") return null;
   const match = dataUrl.match(/^data:(image\/(png|jpeg|jpg|webp));base64,(.+)$/i);
@@ -86,6 +90,7 @@ authRouter.post("/register", async (req, res) => {
     const password = normalizeString(req.body?.password);
     const name = normalizeString(req.body?.name);
     const phone = cleanPhone(req.body?.phone);
+    const referralCode = normalizeString(req.body?.referralCode);
 
     if (!email || !password) {
       return res
@@ -115,15 +120,33 @@ authRouter.post("/register", async (req, res) => {
         email,
         password: hashed,
         name: name || null,
-        phone
+        phone,
+        referralCode: generateReferralCode()
       },
       select: {
         id: true,
         email: true,
         name: true,
-        phone: true
+        phone: true,
+        referralCode: true
       }
     });
+
+    if (referralCode) {
+      const partner = await prisma.organizer.findUnique({
+        where: { referralCode }
+      });
+      if (partner && partner.id !== organizer.id) {
+        await prisma.referralCommission.create({
+          data: {
+            partnerId: partner.id,
+            referredId: organizer.id,
+            amount: 5,
+            status: "PENDING"
+          }
+        });
+      }
+    }
 
     const token = signToken({ id: organizer.id, email: organizer.email });
 
@@ -263,6 +286,7 @@ authRouter.get("/me", authMiddleware, async (req, res) => {
         avatarUrl: true,
         securityAlerts: true,
         role: true,
+        referralCode: true,
         language: true,
         timezone: true,
         dateFormat: true,
@@ -416,6 +440,7 @@ authRouter.put("/me", authMiddleware, async (req, res) => {
         avatarUrl: true,
         securityAlerts: true,
         role: true,
+        referralCode: true,
         language: true,
         timezone: true,
         dateFormat: true,

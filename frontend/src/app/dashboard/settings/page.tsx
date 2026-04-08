@@ -262,6 +262,9 @@ export default function DashboardSettingsPage() {
                 <p className="text-[11px] text-textMuted">
                   Membre depuis {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString("fr-FR") : "-"}
                 </p>
+                {profile.referralCode ? (
+                  <p className="text-[11px] text-textMuted">Code partenaire: {profile.referralCode}</p>
+                ) : null}
               </div>
             </div>
             <div className="flex flex-wrap gap-2">

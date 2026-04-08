@@ -356,10 +356,24 @@ paymentsRouter.get("/admin/stats", authMiddleware, async (req, res) => {
       _count: { _all: true }
     });
     const eventsCount = await prisma.event.count();
+    const since = new Date();
+    since.setMonth(since.getMonth() - 6);
+    const monthly = await prisma.payment.findMany({
+      where: { status: "PAID", createdAt: { gte: since } },
+      select: { amount: true, createdAt: true }
+    });
+    const byMonth = monthly.reduce<Record<string, number>>((acc, item) => {
+      const key = `${item.createdAt.getFullYear()}-${String(item.createdAt.getMonth() + 1).padStart(2, "0")}`;
+      acc[key] = (acc[key] ?? 0) + item.amount;
+      return acc;
+    }, {});
     return res.json({
       revenue: totals._sum.amount ?? 0,
       payments: totals._count._all ?? 0,
-      events: eventsCount
+      events: eventsCount,
+      monthly: Object.entries(byMonth)
+        .sort(([a], [b]) => (a < b ? -1 : 1))
+        .map(([month, amount]) => ({ month, amount }))
     });
   } catch (err) {
     console.error(err);
@@ -420,5 +434,49 @@ paymentsRouter.patch("/admin/:id/approve", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Erreur validation paiement." });
+  }
+});
+
+paymentsRouter.get("/admin/commissions", authMiddleware, async (req, res) => {
+  try {
+    const authReq = req as AuthRequest;
+    const organizerId = authReq.user?.id;
+    if (!organizerId) return res.status(401).json({ message: "Organisateur non authentifie." });
+    const isAdmin = await ensureSuperAdmin(organizerId);
+    if (!isAdmin) return res.status(403).json({ message: "Acces interdit." });
+    const commissions = await prisma.referralCommission.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 100,
+      include: {
+        partner: { select: { id: true, email: true, name: true } },
+        referred: { select: { id: true, email: true, name: true } }
+      }
+    });
+    return res.json({ commissions });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur chargement commissions." });
+  }
+});
+
+paymentsRouter.patch("/admin/commissions/:id/paid", authMiddleware, async (req, res) => {
+  try {
+    const authReq = req as AuthRequest;
+    const organizerId = authReq.user?.id;
+    if (!organizerId) return res.status(401).json({ message: "Organisateur non authentifie." });
+    const isAdmin = await ensureSuperAdmin(organizerId);
+    if (!isAdmin) return res.status(403).json({ message: "Acces interdit." });
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) return res.status(400).json({ message: "Id invalide." });
+    const commission = await prisma.referralCommission.findUnique({ where: { id } });
+    if (!commission) return res.status(404).json({ message: "Commission introuvable." });
+    await prisma.referralCommission.update({
+      where: { id },
+      data: { status: "PAID", paidAt: new Date() }
+    });
+    return res.json({ message: "Commission marquee comme payee." });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur mise a jour commission." });
   }
 });

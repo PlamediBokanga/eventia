@@ -132,6 +132,30 @@ function drawInfoRow(doc: any, label: string, value: string) {
   doc.font("Helvetica").fontSize(11).text(value);
 }
 
+async function hasExportAccessByOrganizer(organizerId: number) {
+  const now = new Date();
+  const subscription = await prisma.organizerSubscription.findFirst({
+    where: {
+      organizerId,
+      status: "ACTIVE",
+      currentPeriodEnd: { gt: now }
+    }
+  });
+  return Boolean(subscription);
+}
+
+async function hasPremiumAccessByOrganizer(organizerId: number) {
+  const now = new Date();
+  const subscription = await prisma.organizerSubscription.findFirst({
+    where: {
+      organizerId,
+      status: "ACTIVE",
+      currentPeriodEnd: { gt: now }
+    }
+  });
+  return Boolean(subscription);
+}
+
 async function convertWebpToJpg(buffer: Buffer) {
   return sharp(buffer).jpeg({ quality: 88 }).toBuffer();
 }
@@ -307,10 +331,16 @@ invitationsRouter.post("/:token/upload-media", async (req, res) => {
 
     const invitation = await prisma.guestInvitation.findUnique({
       where: { token },
-      include: { guest: true }
+      include: { guest: { include: { event: true } } }
     });
     if (!invitation) {
       return res.status(404).json({ message: "Invitation introuvable." });
+    }
+
+    const paidPlan = invitation.guest.event.paidPlanCode;
+    const hasPremium = await hasPremiumAccessByOrganizer(invitation.guest.event.organizerId);
+    if (!hasPremium && paidPlan !== "PREMIUM") {
+      return res.status(403).json({ message: "Souvenirs disponibles uniquement pour le plan Premium." });
     }
 
     const parsed = parseImageDataUrl(dataUrl);
@@ -679,6 +709,12 @@ invitationsRouter.get("/:token/pdf", async (req, res) => {
       return res.status(404).json({ message: "Invitation introuvable." });
     }
     const invitationData = invitation;
+
+    const paidPlan = invitationData.guest.event.paidPlanCode;
+    const hasSubscription = await hasExportAccessByOrganizer(invitationData.guest.event.organizerId);
+    if (!hasSubscription && paidPlan !== "STANDARD" && paidPlan !== "PREMIUM") {
+      return res.status(403).json({ message: "Export PDF disponible uniquement pour le plan Standard ou Premium." });
+    }
 
     const doc = new PDFDocument({ size: "A4", margin: 46 });
     res.setHeader("Content-Type", "application/pdf");
