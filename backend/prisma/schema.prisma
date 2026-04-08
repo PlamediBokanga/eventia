@@ -21,6 +21,16 @@ model Organizer {
   securityAlerts Boolean @default(true)
   failedLoginCount Int @default(0)
   lockUntil DateTime?
+  language String @default("fr")
+  timezone String @default("Africa/Kinshasa")
+  dateFormat String @default("DD/MM/YYYY")
+  emailNotifications Boolean @default(true)
+  messageNotifications Boolean @default(true)
+  eventAlerts Boolean @default(true)
+  marketingNotifications Boolean @default(false)
+  defaultEventType String @default("mariage")
+  defaultEventTime String @default("18:00")
+  defaultQrEnabled Boolean @default(true)
   companyName String?
   jobTitle  String?
   addressLine1 String?

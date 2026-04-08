@@ -51,6 +51,13 @@ function cleanDate(value: unknown) {
   return date;
 }
 
+function cleanTime(value: unknown) {
+  if (typeof value !== "string") return null;
+  const cleaned = value.trim();
+  if (!/^\d{2}:\d{2}$/.test(cleaned)) return null;
+  return cleaned;
+}
+
 function cleanAvatarUrl(value: unknown) {
   const cleaned = cleanNullableString(value, 500);
   if (!cleaned) return null;
@@ -255,6 +262,16 @@ authRouter.get("/me", authMiddleware, async (req, res) => {
         phone: true,
         avatarUrl: true,
         securityAlerts: true,
+        language: true,
+        timezone: true,
+        dateFormat: true,
+        emailNotifications: true,
+        messageNotifications: true,
+        eventAlerts: true,
+        marketingNotifications: true,
+        defaultEventType: true,
+        defaultEventTime: true,
+        defaultQrEnabled: true,
         companyName: true,
         jobTitle: true,
         addressLine1: true,
@@ -397,6 +414,16 @@ authRouter.put("/me", authMiddleware, async (req, res) => {
         phone: true,
         avatarUrl: true,
         securityAlerts: true,
+        language: true,
+        timezone: true,
+        dateFormat: true,
+        emailNotifications: true,
+        messageNotifications: true,
+        eventAlerts: true,
+        marketingNotifications: true,
+        defaultEventType: true,
+        defaultEventTime: true,
+        defaultQrEnabled: true,
         companyName: true,
         jobTitle: true,
         addressLine1: true,
@@ -414,6 +441,130 @@ authRouter.put("/me", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Erreur lors de la mise a jour du profil." });
+  }
+});
+
+// Parametres utilisateur
+authRouter.get("/settings", authMiddleware, async (req, res) => {
+  try {
+    const authReq = req as AuthRequest;
+    const organizerId = authReq.user?.id;
+    if (!organizerId) {
+      return res.status(401).json({ message: "Organisateur non authentifie." });
+    }
+
+    const organizer = await prisma.organizer.findUnique({
+      where: { id: organizerId },
+      select: {
+        id: true,
+        language: true,
+        timezone: true,
+        dateFormat: true,
+        emailNotifications: true,
+        messageNotifications: true,
+        eventAlerts: true,
+        marketingNotifications: true,
+        defaultEventType: true,
+        defaultEventTime: true,
+        defaultQrEnabled: true
+      }
+    });
+
+    if (!organizer) {
+      return res.status(404).json({ message: "Organisateur introuvable." });
+    }
+
+    return res.json({ settings: organizer });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur lors du chargement des parametres." });
+  }
+});
+
+authRouter.put("/settings", authMiddleware, async (req, res) => {
+  try {
+    const authReq = req as AuthRequest;
+    const organizerId = authReq.user?.id;
+    if (!organizerId) {
+      return res.status(401).json({ message: "Organisateur non authentifie." });
+    }
+
+    const {
+      language,
+      timezone,
+      dateFormat,
+      emailNotifications,
+      messageNotifications,
+      eventAlerts,
+      marketingNotifications,
+      defaultEventType,
+      defaultEventTime,
+      defaultQrEnabled
+    } = req.body as {
+      language?: string;
+      timezone?: string;
+      dateFormat?: string;
+      emailNotifications?: boolean;
+      messageNotifications?: boolean;
+      eventAlerts?: boolean;
+      marketingNotifications?: boolean;
+      defaultEventType?: string;
+      defaultEventTime?: string;
+      defaultQrEnabled?: boolean;
+    };
+
+    const data: {
+      language?: string;
+      timezone?: string;
+      dateFormat?: string;
+      emailNotifications?: boolean;
+      messageNotifications?: boolean;
+      eventAlerts?: boolean;
+      marketingNotifications?: boolean;
+      defaultEventType?: string;
+      defaultEventTime?: string;
+      defaultQrEnabled?: boolean;
+    } = {};
+
+    if (typeof language === "string") data.language = language.trim().slice(0, 20);
+    if (typeof timezone === "string") data.timezone = timezone.trim().slice(0, 60);
+    if (typeof dateFormat === "string") data.dateFormat = dateFormat.trim().slice(0, 20);
+    if (typeof emailNotifications === "boolean") data.emailNotifications = emailNotifications;
+    if (typeof messageNotifications === "boolean") data.messageNotifications = messageNotifications;
+    if (typeof eventAlerts === "boolean") data.eventAlerts = eventAlerts;
+    if (typeof marketingNotifications === "boolean") data.marketingNotifications = marketingNotifications;
+    if (typeof defaultEventType === "string") data.defaultEventType = defaultEventType.trim().slice(0, 30);
+    if (defaultEventTime !== undefined) {
+      const clean = cleanTime(defaultEventTime);
+      if (defaultEventTime && !clean) {
+        return res.status(400).json({ message: "Heure par defaut invalide (HH:MM)." });
+      }
+      data.defaultEventTime = clean ?? "18:00";
+    }
+    if (typeof defaultQrEnabled === "boolean") data.defaultQrEnabled = defaultQrEnabled;
+
+    const organizer = await prisma.organizer.update({
+      where: { id: organizerId },
+      data,
+      select: {
+        id: true,
+        language: true,
+        timezone: true,
+        dateFormat: true,
+        emailNotifications: true,
+        messageNotifications: true,
+        eventAlerts: true,
+        marketingNotifications: true,
+        defaultEventType: true,
+        defaultEventTime: true,
+        defaultQrEnabled: true
+      }
+    });
+
+    return res.json({ settings: organizer });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur lors de la mise a jour des parametres." });
   }
 });
 

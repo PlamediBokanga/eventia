@@ -5,13 +5,20 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
-import { authFetch, type OrganizerProfile, type OrganizerStats, type OrganizerSession } from "@/lib/dashboard";
+import {
+  authFetch,
+  type OrganizerProfile,
+  type OrganizerStats,
+  type OrganizerSession,
+  type OrganizerSettings
+} from "@/lib/dashboard";
 import { clearToken } from "@/lib/auth";
 
 export default function DashboardSettingsPage() {
   const [profile, setProfile] = useState<OrganizerProfile | null>(null);
   const [stats, setStats] = useState<OrganizerStats | null>(null);
   const [sessions, setSessions] = useState<OrganizerSession[]>([]);
+  const [settings, setSettings] = useState<OrganizerSettings | null>(null);
   const [securityAlerts, setSecurityAlerts] = useState(true);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -35,6 +42,7 @@ export default function DashboardSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
   const { pushToast } = useToast();
 
   useEffect(() => {
@@ -61,6 +69,7 @@ export default function DashboardSettingsPage() {
     void load();
     void loadStats();
     void loadSessions();
+    void loadSettings();
   }, []);
 
   async function loadStats() {
@@ -74,6 +83,13 @@ export default function DashboardSettingsPage() {
     if (!res.ok) return;
     const payload = (await res.json()) as { sessions: OrganizerSession[] };
     setSessions(payload.sessions || []);
+  }
+
+  async function loadSettings() {
+    const res = await authFetch("/auth/settings");
+    if (!res.ok) return;
+    const payload = (await res.json()) as { settings: OrganizerSettings };
+    setSettings(payload.settings);
   }
 
   async function save(e: React.FormEvent) {
@@ -123,6 +139,29 @@ export default function DashboardSettingsPage() {
     clearToken();
     pushToast("Vous avez ete deconnecte de tous les appareils.");
     window.location.href = "/auth/login";
+  }
+
+  async function saveSettings(e: React.FormEvent) {
+    e.preventDefault();
+    if (!settings) return;
+    setSavingSettings(true);
+    try {
+      const res = await authFetch("/auth/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settings)
+      });
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => null)) as { message?: string } | null;
+        pushToast(payload?.message ?? "Mise a jour impossible.", "error");
+        return;
+      }
+      const payload = (await res.json()) as { settings: OrganizerSettings };
+      setSettings(payload.settings);
+      pushToast("Parametres enregistres.");
+    } finally {
+      setSavingSettings(false);
+    }
   }
 
   async function savePassword(e: React.FormEvent) {
@@ -411,6 +450,132 @@ export default function DashboardSettingsPage() {
                 )}
               </section>
             </div>
+          </section>
+
+          <section className="card p-4 space-y-4">
+            <h3 className="title-4">Parametres</h3>
+            {!settings ? (
+              <p className="text-small">Chargement des parametres...</p>
+            ) : (
+              <form onSubmit={saveSettings} className="grid gap-4 text-xs">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <label className="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
+                    <span>Email rappel evenement</span>
+                    <input
+                      type="checkbox"
+                      className="accent-primary"
+                      checked={settings.emailNotifications}
+                      onChange={e => setSettings({ ...settings, emailNotifications: e.target.checked })}
+                    />
+                  </label>
+                  <label className="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
+                    <span>Notifications messages</span>
+                    <input
+                      type="checkbox"
+                      className="accent-primary"
+                      checked={settings.messageNotifications}
+                      onChange={e => setSettings({ ...settings, messageNotifications: e.target.checked })}
+                    />
+                  </label>
+                  <label className="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
+                    <span>Alertes evenements</span>
+                    <input
+                      type="checkbox"
+                      className="accent-primary"
+                      checked={settings.eventAlerts}
+                      onChange={e => setSettings({ ...settings, eventAlerts: e.target.checked })}
+                    />
+                  </label>
+                  <label className="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
+                    <span>Notifications marketing</span>
+                    <input
+                      type="checkbox"
+                      className="accent-primary"
+                      checked={settings.marketingNotifications}
+                      onChange={e => setSettings({ ...settings, marketingNotifications: e.target.checked })}
+                    />
+                  </label>
+                </div>
+
+                <div className="grid gap-2 md:grid-cols-3">
+                  <div className="space-y-1">
+                    <label className="text-small">Langue</label>
+                    <select
+                      className="w-full rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs"
+                      value={settings.language}
+                      onChange={e => setSettings({ ...settings, language: e.target.value })}
+                    >
+                      <option value="fr">Francais</option>
+                      <option value="en">Anglais</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-small">Fuseau horaire</label>
+                    <select
+                      className="w-full rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs"
+                      value={settings.timezone}
+                      onChange={e => setSettings({ ...settings, timezone: e.target.value })}
+                    >
+                      <option value="Africa/Kinshasa">Kinshasa (UTC+1)</option>
+                      <option value="Africa/Lagos">Lagos (UTC+1)</option>
+                      <option value="Africa/Abidjan">Abidjan (UTC+0)</option>
+                      <option value="Europe/Paris">Paris (UTC+1)</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-small">Format date</label>
+                    <select
+                      className="w-full rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs"
+                      value={settings.dateFormat}
+                      onChange={e => setSettings({ ...settings, dateFormat: e.target.value })}
+                    >
+                      <option value="DD/MM/YYYY">JJ/MM/AAAA</option>
+                      <option value="MM/DD/YYYY">MM/JJ/AAAA</option>
+                      <option value="YYYY-MM-DD">AAAA-MM-JJ</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid gap-2 md:grid-cols-3">
+                  <div className="space-y-1">
+                    <label className="text-small">Type evenement par defaut</label>
+                    <select
+                      className="w-full rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs"
+                      value={settings.defaultEventType}
+                      onChange={e => setSettings({ ...settings, defaultEventType: e.target.value })}
+                    >
+                      <option value="mariage">Mariage</option>
+                      <option value="anniversaire">Anniversaire</option>
+                      <option value="gala">Gala</option>
+                      <option value="corporate">Corporate</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-small">Heure par defaut</label>
+                    <Input
+                      type="time"
+                      value={settings.defaultEventTime}
+                      onChange={e => setSettings({ ...settings, defaultEventTime: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-small">QR code actif</label>
+                    <select
+                      className="w-full rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs"
+                      value={settings.defaultQrEnabled ? "yes" : "no"}
+                      onChange={e => setSettings({ ...settings, defaultQrEnabled: e.target.value === "yes" })}
+                    >
+                      <option value="yes">Oui</option>
+                      <option value="no">Non</option>
+                    </select>
+                  </div>
+                </div>
+
+                <Button className="w-full sm:w-fit" disabled={savingSettings}>
+                  {savingSettings ? "Sauvegarde..." : "Enregistrer les parametres"}
+                </Button>
+              </form>
+            )}
           </section>
         </>
       )}

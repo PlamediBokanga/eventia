@@ -183,6 +183,20 @@ export type OrganizerSession = {
   lastActive?: string | null;
 };
 
+export type OrganizerSettings = {
+  id: number;
+  language: string;
+  timezone: string;
+  dateFormat: string;
+  emailNotifications: boolean;
+  messageNotifications: boolean;
+  eventAlerts: boolean;
+  marketingNotifications: boolean;
+  defaultEventType: string;
+  defaultEventTime: string;
+  defaultQrEnabled: boolean;
+};
+
 const EVENT_STORAGE_KEY = "eventia_selected_event_id";
 
 export function getSelectedEventId(): number | null {
