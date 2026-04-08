@@ -199,6 +199,14 @@ export type OrganizerSettings = {
   defaultQrEnabled: boolean;
 };
 
+export type ReferralCommission = {
+  id: number;
+  amount: number;
+  status: "PENDING" | "PAID" | "FAILED" | "CANCELED";
+  createdAt: string;
+  referred?: { id: number; email: string; name?: string | null };
+};
+
 const EVENT_STORAGE_KEY = "eventia_selected_event_id";
 
 export function getSelectedEventId(): number | null {

@@ -10,7 +10,8 @@ import {
   type OrganizerProfile,
   type OrganizerStats,
   type OrganizerSession,
-  type OrganizerSettings
+  type OrganizerSettings,
+  type ReferralCommission
 } from "@/lib/dashboard";
 import { clearToken } from "@/lib/auth";
 
@@ -20,6 +21,9 @@ export default function DashboardSettingsPage() {
   const [sessions, setSessions] = useState<OrganizerSession[]>([]);
   const [settings, setSettings] = useState<OrganizerSettings | null>(null);
   const [securityAlerts, setSecurityAlerts] = useState(true);
+  const [commissions, setCommissions] = useState<ReferralCommission[]>([]);
+  const [commissionTotals, setCommissionTotals] = useState({ total: 0, paid: 0, pending: 0 });
+  const [activatingReferral, setActivatingReferral] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -70,6 +74,7 @@ export default function DashboardSettingsPage() {
     void loadStats();
     void loadSessions();
     void loadSettings();
+    void loadCommissions();
   }, []);
 
   async function loadStats() {
@@ -90,6 +95,17 @@ export default function DashboardSettingsPage() {
     if (!res.ok) return;
     const payload = (await res.json()) as { settings: OrganizerSettings };
     setSettings(payload.settings);
+  }
+
+  async function loadCommissions() {
+    const res = await authFetch("/auth/commissions");
+    if (!res.ok) return;
+    const payload = (await res.json()) as {
+      commissions: ReferralCommission[];
+      totals: { total: number; paid: number; pending: number };
+    };
+    setCommissions(payload.commissions || []);
+    setCommissionTotals(payload.totals || { total: 0, paid: 0, pending: 0 });
   }
 
   async function save(e: React.FormEvent) {
@@ -139,6 +155,23 @@ export default function DashboardSettingsPage() {
     clearToken();
     pushToast("Vous avez ete deconnecte de tous les appareils.");
     window.location.href = "/auth/login";
+  }
+
+  async function activateReferral() {
+    setActivatingReferral(true);
+    try {
+      const res = await authFetch("/auth/referral/activate", { method: "POST" });
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => null)) as { message?: string } | null;
+        pushToast(payload?.message ?? "Activation impossible.", "error");
+        return;
+      }
+      const payload = (await res.json()) as { referralCode: string };
+      setProfile(prev => (prev ? { ...prev, referralCode: payload.referralCode } : prev));
+      pushToast("Programme partenaire active.");
+    } finally {
+      setActivatingReferral(false);
+    }
   }
 
   async function saveSettings(e: React.FormEvent) {
@@ -578,6 +611,59 @@ export default function DashboardSettingsPage() {
                   {savingSettings ? "Sauvegarde..." : "Enregistrer les parametres"}
                 </Button>
               </form>
+            )}
+          </section>
+
+          <section className="card p-4 space-y-4">
+            <h3 className="title-4">Programme partenaire</h3>
+            <div className="rounded-xl border border-primary/10 bg-background/70 p-3 text-xs space-y-2">
+              <p>Invitez d'autres organisateurs et gagnez des commissions.</p>
+              {profile.referralCode ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] uppercase tracking-[0.2em] text-text/60">Votre code</span>
+                  <span className="rounded-full border border-primary/10 px-3 py-1 font-semibold">
+                    {profile.referralCode}
+                  </span>
+                </div>
+              ) : (
+                <Button type="button" className="w-full sm:w-fit" onClick={activateReferral} disabled={activatingReferral}>
+                  {activatingReferral ? "Activation..." : "Activer mon code partenaire"}
+                </Button>
+              )}
+            </div>
+
+            <div className="grid gap-2 md:grid-cols-3">
+              <div className="rounded-xl border border-primary/10 bg-background/70 p-3 text-center">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">Total</p>
+                <p className="mt-1 text-lg font-semibold">${commissionTotals.total}</p>
+              </div>
+              <div className="rounded-xl border border-primary/10 bg-background/70 p-3 text-center">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">Payees</p>
+                <p className="mt-1 text-lg font-semibold">${commissionTotals.paid}</p>
+              </div>
+              <div className="rounded-xl border border-primary/10 bg-background/70 p-3 text-center">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">En attente</p>
+                <p className="mt-1 text-lg font-semibold">${commissionTotals.pending}</p>
+              </div>
+            </div>
+
+            {commissions.length === 0 ? (
+              <EmptyState title="Aucune commission" description="Invitez un organisateur pour commencer." />
+            ) : (
+              <div className="space-y-2 text-xs">
+                {commissions.map(item => (
+                  <div key={item.id} className="rounded-xl border border-primary/10 bg-white/70 px-3 py-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{item.referred?.name || item.referred?.email || "Nouveau client"}</span>
+                      <span className="text-[11px] text-text/60">{item.status}</span>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between text-[11px] text-text/70">
+                      <span>{new Date(item.createdAt).toLocaleDateString("fr-FR")}</span>
+                      <span className="font-semibold">${item.amount}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </section>
         </>

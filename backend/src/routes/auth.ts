@@ -595,6 +595,81 @@ authRouter.put("/settings", authMiddleware, async (req, res) => {
   }
 });
 
+// Activer programme partenaire
+authRouter.post("/referral/activate", authMiddleware, async (req, res) => {
+  try {
+    const authReq = req as AuthRequest;
+    const organizerId = authReq.user?.id;
+    if (!organizerId) {
+      return res.status(401).json({ message: "Organisateur non authentifie." });
+    }
+    const current = await prisma.organizer.findUnique({
+      where: { id: organizerId },
+      select: { referralCode: true }
+    });
+    if (current?.referralCode) {
+      return res.json({ referralCode: current.referralCode });
+    }
+    let referralCode = "";
+    for (let i = 0; i < 5; i += 1) {
+      const candidate = generateReferralCode();
+      try {
+        const updated = await prisma.organizer.update({
+          where: { id: organizerId },
+          data: { referralCode: candidate },
+          select: { referralCode: true }
+        });
+        referralCode = updated.referralCode || candidate;
+        break;
+      } catch (err) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+          continue;
+        }
+        throw err;
+      }
+    }
+    if (!referralCode) {
+      return res.status(500).json({ message: "Impossible de generer un code partenaire." });
+    }
+    return res.json({ referralCode });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur activation programme partenaire." });
+  }
+});
+
+// Commissions partenaires
+authRouter.get("/commissions", authMiddleware, async (req, res) => {
+  try {
+    const authReq = req as AuthRequest;
+    const organizerId = authReq.user?.id;
+    if (!organizerId) {
+      return res.status(401).json({ message: "Organisateur non authentifie." });
+    }
+    const commissions = await prisma.referralCommission.findMany({
+      where: { partnerId: organizerId },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+      include: {
+        referred: { select: { id: true, email: true, name: true } }
+      }
+    });
+    const totals = commissions.reduce(
+      (acc, item) => {
+        acc.total += item.amount;
+        if (item.status === "PAID") acc.paid += item.amount;
+        if (item.status === "PENDING") acc.pending += item.amount;
+        return acc;
+      },
+      { total: 0, paid: 0, pending: 0 }
+    );
+    return res.json({ commissions, totals });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur chargement commissions." });
+  }
+});
+
 // Upload avatar (dataUrl) for organizer
 authRouter.post("/me/avatar", authMiddleware, async (req, res) => {
   try {
