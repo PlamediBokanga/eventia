@@ -294,6 +294,7 @@ authRouter.put("/me", authMiddleware, async (req, res) => {
       password,
       phone,
       avatarUrl,
+      securityAlerts,
       companyName,
       jobTitle,
       addressLine1,
