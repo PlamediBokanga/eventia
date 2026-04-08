@@ -105,6 +105,10 @@ export default function BillingPage() {
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState("Airtel Money");
+  const [manualStep, setManualStep] = useState<"FORM" | "INSTRUCTIONS">("FORM");
+  const [manualInfo, setManualInfo] = useState<{ paymentId: number; number: string; name: string } | null>(null);
   const { pushToast } = useToast();
 
   useEffect(() => {
@@ -157,6 +161,54 @@ export default function BillingPage() {
     }
   }
 
+  async function startManualPayment() {
+    if (!selectedPlan) return;
+    if (selectedPlan.type === "EVENT" && !selectedEvent) {
+      pushToast("Selectionnez un evenement.", "error");
+      return;
+    }
+    setPaying("manual");
+    try {
+      const res = await authFetch("/payments/manual/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planCode: selectedPlan.code,
+          planType: selectedPlan.type,
+          eventId: selectedPlan.type === "EVENT" ? selectedEvent?.id : undefined,
+          method: paymentMethod
+        })
+      });
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => null)) as { message?: string } | null;
+        pushToast(payload?.message ?? "Paiement impossible.", "error");
+        return;
+      }
+      const payload = (await res.json()) as { paymentId: number; number: string; name: string };
+      setManualInfo(payload);
+      setManualStep("INSTRUCTIONS");
+    } finally {
+      setPaying(null);
+    }
+  }
+
+  async function confirmManualPayment() {
+    if (!manualInfo) return;
+    const res = await authFetch("/payments/manual/confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ paymentId: manualInfo.paymentId })
+    });
+    if (!res.ok) {
+      const payload = (await res.json().catch(() => null)) as { message?: string } | null;
+      pushToast(payload?.message ?? "Confirmation impossible.", "error");
+      return;
+    }
+    pushToast("Paiement en attente de validation.");
+    setManualStep("FORM");
+    setManualInfo(null);
+  }
+
   return (
     <main className="space-y-4">
       <Header title="Paiement & Abonnements" />
@@ -183,7 +235,7 @@ export default function BillingPage() {
             <h2 className="title-4">Offres evenement unique</h2>
             <div className="mt-3 grid gap-3 md:grid-cols-3">
               {EVENT_PLANS.map(plan => (
-                <div key={plan.code} className="dashboard-card space-y-2">
+                <div key={plan.code} className={`dashboard-card space-y-2 ${selectedPlan?.code === plan.code ? "ring-2 ring-accent/40" : ""}`}>
                   <div>
                     <p className="text-small">{plan.description}</p>
                     <p className="text-lg font-semibold">{plan.name}</p>
@@ -197,10 +249,10 @@ export default function BillingPage() {
                   <Button
                     type="button"
                     className="w-full"
-                    onClick={() => startPayment(plan)}
+                    onClick={() => setSelectedPlan(plan)}
                     disabled={paying === plan.code}
                   >
-                    {paying === plan.code ? "Redirection..." : "Acheter"}
+                    {selectedPlan?.code === plan.code ? "Selectionne" : "Choisir"}
                   </Button>
                 </div>
               ))}
@@ -211,7 +263,7 @@ export default function BillingPage() {
             <h2 className="title-4">Abonnements</h2>
             <div className="mt-3 grid gap-3 md:grid-cols-3">
               {SUB_PLANS.map(plan => (
-                <div key={plan.code} className="dashboard-card space-y-2">
+                <div key={plan.code} className={`dashboard-card space-y-2 ${selectedPlan?.code === plan.code ? "ring-2 ring-accent/40" : ""}`}>
                   <div>
                     <p className="text-small">{plan.description}</p>
                     <p className="text-lg font-semibold">{plan.name}</p>
@@ -226,10 +278,10 @@ export default function BillingPage() {
                     type="button"
                     variant="ghost"
                     className="w-full"
-                    onClick={() => startPayment(plan)}
+                    onClick={() => setSelectedPlan(plan)}
                     disabled={paying === plan.code}
                   >
-                    {paying === plan.code ? "Redirection..." : "Souscrire"}
+                    {selectedPlan?.code === plan.code ? "Selectionne" : "Choisir"}
                   </Button>
                 </div>
               ))}
@@ -249,6 +301,54 @@ export default function BillingPage() {
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="border-t border-primary/10 pt-4 space-y-4">
+            <h2 className="title-4">Paiement Mobile Money (MVP)</h2>
+            {!selectedPlan ? (
+              <p className="text-small">Selectionnez un plan pour afficher le paiement.</p>
+            ) : manualStep === "FORM" ? (
+              <div className="space-y-3 text-xs">
+                <div className="rounded-xl border border-primary/10 bg-background/70 p-3">
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-text/60">Plan choisi</p>
+                  <p className="mt-1 text-base font-semibold">{selectedPlan.name}</p>
+                  <p className="text-small">${selectedPlan.price} USD</p>
+                  <p className="text-small text-text/70">
+                    {selectedPlan.type === "EVENT"
+                      ? `Evenement: ${selectedEvent?.name ?? "Non selectionne"}`
+                      : "Abonnement mensuel"}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-primary/10 bg-background/70 p-3">
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-text/60">Methode</p>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                    {["Airtel Money", "M-Pesa", "Orange Money"].map(method => (
+                      <label key={method} className="flex items-center gap-2 rounded-xl border border-primary/10 px-3 py-2">
+                        <input
+                          type="radio"
+                          name="method"
+                          checked={paymentMethod === method}
+                          onChange={() => setPaymentMethod(method)}
+                        />
+                        <span>{method}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <Button className="w-full sm:w-fit" disabled={paying === "manual"} onClick={startManualPayment}>
+                  {paying === "manual" ? "Creation..." : "Payer maintenant"}
+                </Button>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-primary/10 bg-background/70 p-4 text-xs space-y-3">
+                <p className="font-semibold">Envoyez {selectedPlan.price}$ au numero :</p>
+                <p className="text-lg font-semibold">{manualInfo?.number}</p>
+                <p className="text-small">Nom: {manualInfo?.name}</p>
+                <Button className="w-full sm:w-fit" onClick={confirmManualPayment}>
+                  J'ai paye
+                </Button>
+              </div>
+            )}
           </div>
         </section>
       </div>

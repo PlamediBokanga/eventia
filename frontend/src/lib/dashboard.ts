@@ -153,6 +153,7 @@ export type OrganizerProfile = {
   phone?: string | null;
   avatarUrl?: string | null;
   securityAlerts?: boolean;
+  role?: string | null;
   companyName?: string | null;
   jobTitle?: string | null;
   addressLine1?: string | null;

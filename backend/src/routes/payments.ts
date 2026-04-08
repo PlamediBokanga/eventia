@@ -30,6 +30,60 @@ function buildRedirectUrl() {
   return `${appUrl.replace(/\/+$/, "")}/dashboard/billing`;
 }
 
+async function ensureSuperAdmin(organizerId: number) {
+  const organizer = await prisma.organizer.findUnique({
+    where: { id: organizerId },
+    select: { role: true }
+  });
+  return organizer?.role === "superadmin";
+}
+
+async function activatePayment(payment: {
+  id: number;
+  planType: "EVENT" | "SUBSCRIPTION";
+  planCode: string;
+  eventId: number | null;
+  organizerId: number;
+}) {
+  if (payment.planType === "EVENT" && payment.eventId) {
+    await prisma.event.update({
+      where: { id: payment.eventId },
+      data: {
+        paidPlanCode: payment.planCode,
+        paidAt: new Date()
+      }
+    });
+  }
+  if (payment.planType === "SUBSCRIPTION") {
+    const now = new Date();
+    const next = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const existing = await prisma.organizerSubscription.findFirst({
+      where: { organizerId: payment.organizerId }
+    });
+    if (existing) {
+      await prisma.organizerSubscription.update({
+        where: { id: existing.id },
+        data: {
+          planCode: payment.planCode,
+          status: "ACTIVE",
+          currentPeriodStart: now,
+          currentPeriodEnd: next
+        }
+      });
+    } else {
+      await prisma.organizerSubscription.create({
+        data: {
+          organizerId: payment.organizerId,
+          planCode: payment.planCode,
+          status: "ACTIVE",
+          currentPeriodStart: now,
+          currentPeriodEnd: next
+        }
+      });
+    }
+  }
+}
+
 // Initier un paiement Flutterwave
 paymentsRouter.post("/flutterwave/initialize", authMiddleware, async (req, res) => {
   try {
@@ -171,48 +225,200 @@ paymentsRouter.post("/flutterwave/webhook", async (req, res) => {
     });
 
     if (status === "PAID") {
-      if (updated.planType === "EVENT" && updated.eventId) {
-        await prisma.event.update({
-          where: { id: updated.eventId },
-          data: {
-            paidPlanCode: updated.planCode,
-            paidAt: new Date()
-          }
-        });
-      }
-      if (updated.planType === "SUBSCRIPTION") {
-        const now = new Date();
-        const next = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-        const existing = await prisma.organizerSubscription.findFirst({
-          where: { organizerId: updated.organizerId }
-        });
-        if (existing) {
-          await prisma.organizerSubscription.update({
-            where: { id: existing.id },
-            data: {
-              planCode: updated.planCode,
-              status: "ACTIVE",
-              currentPeriodStart: now,
-              currentPeriodEnd: next
-            }
-          });
-        } else {
-          await prisma.organizerSubscription.create({
-            data: {
-              organizerId: updated.organizerId,
-              planCode: updated.planCode,
-              status: "ACTIVE",
-              currentPeriodStart: now,
-              currentPeriodEnd: next
-            }
-          });
-        }
-      }
+      await activatePayment({
+        id: updated.id,
+        planType: updated.planType,
+        planCode: updated.planCode,
+        eventId: updated.eventId ?? null,
+        organizerId: updated.organizerId
+      });
     }
 
     return res.json({ ok: true });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Erreur webhook." });
+  }
+});
+
+// Paiement manuel (mobile money)
+paymentsRouter.post("/manual/create", authMiddleware, async (req, res) => {
+  try {
+    const authReq = req as AuthRequest;
+    const organizerId = authReq.user?.id;
+    if (!organizerId) return res.status(401).json({ message: "Organisateur non authentifie." });
+
+    const { planCode, planType, eventId, method } = req.body as {
+      planCode?: string;
+      planType?: "EVENT" | "SUBSCRIPTION";
+      eventId?: number;
+      method?: string;
+    };
+
+    if (!planCode || !planType) return res.status(400).json({ message: "Plan invalide." });
+    const plan = getPlan(planCode, planType);
+    if (!plan) return res.status(404).json({ message: "Plan inconnu." });
+
+    let linkedEventId: number | null = null;
+    if (planType === "EVENT") {
+      const event = await prisma.event.findUnique({ where: { id: Number(eventId) } });
+      if (!event || event.organizerId !== organizerId) {
+        return res.status(403).json({ message: "Evenement invalide pour ce paiement." });
+      }
+      linkedEventId = event.id;
+    }
+
+    const txRef = `MANUAL-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`;
+    const payment = await prisma.payment.create({
+      data: {
+        organizerId,
+        eventId: linkedEventId,
+        planCode,
+        planType,
+        amount: plan.price,
+        currency: "USD",
+        provider: "MANUAL",
+        method: method ? String(method).slice(0, 40) : null,
+        txRef
+      }
+    });
+
+    const payNumber = process.env.MOBILE_MONEY_NUMBER || "+243000000000";
+    const payName = process.env.MOBILE_MONEY_NAME || "EVENTIA";
+
+    return res.json({
+      paymentId: payment.id,
+      amount: payment.amount,
+      currency: payment.currency,
+      number: payNumber,
+      name: payName
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur creation paiement." });
+  }
+});
+
+paymentsRouter.post("/manual/confirm", authMiddleware, async (req, res) => {
+  try {
+    const authReq = req as AuthRequest;
+    const organizerId = authReq.user?.id;
+    if (!organizerId) return res.status(401).json({ message: "Organisateur non authentifie." });
+    const { paymentId } = req.body as { paymentId?: number };
+    if (!paymentId) return res.status(400).json({ message: "Paiement invalide." });
+    const payment = await prisma.payment.findUnique({ where: { id: Number(paymentId) } });
+    if (!payment || payment.organizerId !== organizerId) {
+      return res.status(404).json({ message: "Paiement introuvable." });
+    }
+    if (payment.status !== "PENDING") {
+      return res.status(400).json({ message: "Paiement deja traite." });
+    }
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: { providerRef: "USER_CONFIRMED" }
+    });
+    return res.json({ message: "Paiement en attente de validation." });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur confirmation paiement." });
+  }
+});
+
+paymentsRouter.get("/user", authMiddleware, async (req, res) => {
+  try {
+    const authReq = req as AuthRequest;
+    const organizerId = authReq.user?.id;
+    if (!organizerId) return res.status(401).json({ message: "Organisateur non authentifie." });
+    const payments = await prisma.payment.findMany({
+      where: { organizerId },
+      orderBy: { createdAt: "desc" },
+      take: 50
+    });
+    return res.json({ payments });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur chargement paiements." });
+  }
+});
+
+// Admin stats
+paymentsRouter.get("/admin/stats", authMiddleware, async (req, res) => {
+  try {
+    const authReq = req as AuthRequest;
+    const organizerId = authReq.user?.id;
+    if (!organizerId) return res.status(401).json({ message: "Organisateur non authentifie." });
+    const isAdmin = await ensureSuperAdmin(organizerId);
+    if (!isAdmin) return res.status(403).json({ message: "Acces interdit." });
+
+    const totals = await prisma.payment.aggregate({
+      where: { status: "PAID" },
+      _sum: { amount: true },
+      _count: { _all: true }
+    });
+    const eventsCount = await prisma.event.count();
+    return res.json({
+      revenue: totals._sum.amount ?? 0,
+      payments: totals._count._all ?? 0,
+      events: eventsCount
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur stats admin." });
+  }
+});
+
+paymentsRouter.get("/admin/list", authMiddleware, async (req, res) => {
+  try {
+    const authReq = req as AuthRequest;
+    const organizerId = authReq.user?.id;
+    if (!organizerId) return res.status(401).json({ message: "Organisateur non authentifie." });
+    const isAdmin = await ensureSuperAdmin(organizerId);
+    if (!isAdmin) return res.status(403).json({ message: "Acces interdit." });
+    const status = req.query.status ? String(req.query.status) : undefined;
+    const payments = await prisma.payment.findMany({
+      where: status ? { status: status as any } : {},
+      orderBy: { createdAt: "desc" },
+      take: 100,
+      include: {
+        organizer: { select: { id: true, email: true, name: true } },
+        event: { select: { id: true, name: true } }
+      }
+    });
+    return res.json({ payments });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur liste paiements." });
+  }
+});
+
+paymentsRouter.patch("/admin/:id/approve", authMiddleware, async (req, res) => {
+  try {
+    const authReq = req as AuthRequest;
+    const organizerId = authReq.user?.id;
+    if (!organizerId) return res.status(401).json({ message: "Organisateur non authentifie." });
+    const isAdmin = await ensureSuperAdmin(organizerId);
+    if (!isAdmin) return res.status(403).json({ message: "Acces interdit." });
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) return res.status(400).json({ message: "Id invalide." });
+    const payment = await prisma.payment.findUnique({ where: { id } });
+    if (!payment) return res.status(404).json({ message: "Paiement introuvable." });
+    if (payment.status === "PAID") {
+      return res.json({ message: "Paiement deja valide." });
+    }
+    const updated = await prisma.payment.update({
+      where: { id },
+      data: { status: "PAID", providerRef: payment.providerRef ?? "ADMIN_APPROVED" }
+    });
+    await activatePayment({
+      id: updated.id,
+      planType: updated.planType,
+      planCode: updated.planCode,
+      eventId: updated.eventId ?? null,
+      organizerId: updated.organizerId
+    });
+    return res.json({ message: "Paiement valide." });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur validation paiement." });
   }
 });

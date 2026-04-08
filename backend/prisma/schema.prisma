@@ -31,6 +31,7 @@ model Organizer {
   defaultEventType String @default("mariage")
   defaultEventTime String @default("18:00")
   defaultQrEnabled Boolean @default(true)
+  role String @default("user")
   companyName String?
   jobTitle  String?
   addressLine1 String?
@@ -140,6 +141,7 @@ model Payment {
   amount    Int
   currency  String
   provider  String
+  method    String?
   status    PaymentStatus @default(PENDING)
   txRef     String   @unique
   providerRef String?
