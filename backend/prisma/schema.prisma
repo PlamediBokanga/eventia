@@ -19,6 +19,8 @@ model Organizer {
   phone     String?
   avatarUrl String?
   securityAlerts Boolean @default(true)
+  failedLoginCount Int @default(0)
+  lockUntil DateTime?
   companyName String?
   jobTitle  String?
   addressLine1 String?
@@ -39,6 +41,19 @@ model Organizer {
   coOrganizerInvitesAccepted EventCoOrganizerInvite[] @relation("EventCoHostInviteAcceptor")
   payments Payment[]
   subscriptions OrganizerSubscription[]
+  logins OrganizerLogin[]
+}
+
+model OrganizerLogin {
+  id          Int      @id @default(autoincrement())
+  organizer   Organizer? @relation(fields: [organizerId], references: [id])
+  organizerId Int?
+  ip          String?
+  userAgent   String?
+  success     Boolean
+  createdAt   DateTime @default(now())
+
+  @@index([organizerId, createdAt])
 }
 
 // Événement géré dans l’application

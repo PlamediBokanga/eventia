@@ -160,13 +160,63 @@ authRouter.post("/login", async (req, res) => {
     });
 
     if (!organizer) {
+      await prisma.organizerLogin
+        .create({
+          data: {
+            organizerId: null,
+            ip: ipKey,
+            userAgent: req.get("user-agent") || null,
+            success: false
+          }
+        })
+        .catch(() => undefined);
       return res.status(401).json({ message: "Identifiants invalides." });
+    }
+
+    if (organizer.lockUntil && organizer.lockUntil.getTime() > Date.now()) {
+      return res.status(429).json({
+        message: "Compte temporairement bloque. Reessayez plus tard."
+      });
     }
 
     const valid = await bcrypt.compare(password, organizer.password);
     if (!valid) {
+      const nextFailed = (organizer.failedLoginCount ?? 0) + 1;
+      const shouldLock = nextFailed >= 5;
+      await prisma.organizer.update({
+        where: { id: organizer.id },
+        data: {
+          failedLoginCount: shouldLock ? 0 : nextFailed,
+          lockUntil: shouldLock ? new Date(Date.now() + 15 * 60 * 1000) : null
+        }
+      });
+      await prisma.organizerLogin.create({
+        data: {
+          organizerId: organizer.id,
+          ip: ipKey,
+          userAgent: req.get("user-agent") || null,
+          success: false
+        }
+      });
       return res.status(401).json({ message: "Identifiants invalides." });
     }
+
+    await prisma.organizer.update({
+      where: { id: organizer.id },
+      data: {
+        failedLoginCount: 0,
+        lockUntil: null
+      }
+    });
+
+    await prisma.organizerLogin.create({
+      data: {
+        organizerId: organizer.id,
+        ip: ipKey,
+        userAgent: req.get("user-agent") || null,
+        success: true
+      }
+    });
 
     const token = signToken({ id: organizer.id, email: organizer.email });
 
@@ -460,18 +510,19 @@ authRouter.get("/sessions", authMiddleware, async (req, res) => {
     if (!organizerId) {
       return res.status(401).json({ message: "Organisateur non authentifie." });
     }
-    const userAgent = req.get("user-agent") || "Navigateur";
-    const ip = (req.headers["x-forwarded-for"] as string | undefined)?.split(",")[0]?.trim() || req.ip;
+    const sessions = await prisma.organizerLogin.findMany({
+      where: { organizerId, success: true },
+      orderBy: { createdAt: "desc" },
+      take: 5
+    });
     return res.json({
-      sessions: [
-        {
-          id: `current-${organizerId}`,
-          device: userAgent,
-          ip,
-          location: null,
-          lastActive: new Date().toISOString()
-        }
-      ]
+      sessions: sessions.map(item => ({
+        id: String(item.id),
+        device: item.userAgent || "Navigateur",
+        ip: item.ip,
+        location: null,
+        lastActive: item.createdAt.toISOString()
+      }))
     });
   } catch (err) {
     console.error(err);
