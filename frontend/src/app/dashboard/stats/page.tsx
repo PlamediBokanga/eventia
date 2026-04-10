@@ -67,8 +67,9 @@ export default function DashboardStatsPage() {
 
   useEffect(() => {
     if (!selectedEvent) return;
+    const eventId = selectedEvent.id;
     async function loadStats() {
-      const res = await authFetch(`/events/${selectedEvent.id}/stats`);
+      const res = await authFetch(`/events/${eventId}/stats`);
       if (!res.ok) {
         setStats(null);
         return;
