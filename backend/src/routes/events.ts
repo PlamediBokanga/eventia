@@ -2420,7 +2420,21 @@ eventsRouter.get("/:id/stats", authMiddleware, async (req, res) => {
       return res.status(ownership.error!.code).json({ message: ownership.error!.message });
     }
 
-    const [totalGuests, confirmed, canceled, tables, drinkChoices, invitationsSent] = await Promise.all([
+    const [
+      totalGuests,
+      confirmed,
+      canceled,
+      tables,
+      drinkChoices,
+      invitationsSent,
+      presentCount,
+      chatCount,
+      memories,
+      guestbookCount,
+      eventInfo,
+      respondedInvitations,
+      paymentsSum
+    ] = await Promise.all([
       prisma.guest.count({ where: { eventId } }),
       prisma.guest.count({
         where: { eventId, status: "CONFIRMED" }
@@ -2446,10 +2460,39 @@ eventsRouter.get("/:id/stats", authMiddleware, async (req, res) => {
           sentAt: { not: null },
           guest: { eventId }
         }
+      }),
+      prisma.guestInvitation.count({
+        where: {
+          checkedInAt: { not: null },
+          guest: { eventId }
+        }
+      }),
+      prisma.eventChatMessage.count({ where: { eventId } }),
+      prisma.eventMemory.groupBy({
+        by: ["mediaType"],
+        where: { eventId },
+        _count: { _all: true }
+      }),
+      prisma.guestBookMessage.count({ where: { eventId } }),
+      prisma.event.findUnique({
+        where: { id: eventId },
+        select: { paidPlanCode: true, paidAt: true }
+      }),
+      prisma.guestInvitation.findMany({
+        where: {
+          respondedAt: { not: null },
+          guest: { eventId }
+        },
+        select: { respondedAt: true }
+      }),
+      prisma.payment.aggregate({
+        where: { eventId, status: "PAID" },
+        _sum: { amount: true }
       })
     ]);
 
     const pending = totalGuests - confirmed - canceled;
+    const attendanceRate = totalGuests > 0 ? Math.round((presentCount / totalGuests) * 100) : 0;
 
     const tableStats = tables.map(t => ({
       id: t.id,
@@ -2472,19 +2515,59 @@ eventsRouter.get("/:id/stats", authMiddleware, async (req, res) => {
       };
     });
 
+    const memoriesCount = memories.reduce(
+      (acc, item) => {
+        if (item.mediaType === "IMAGE") acc.photos += item._count._all;
+        if (item.mediaType === "VIDEO") acc.videos += item._count._all;
+        acc.total += item._count._all;
+        return acc;
+      },
+      { total: 0, photos: 0, videos: 0 }
+    );
+
+    const confirmationByDay = respondedInvitations.reduce<Record<string, number>>((acc, item) => {
+      if (!item.respondedAt) return acc;
+      const day = item.respondedAt.toISOString().slice(0, 10);
+      acc[day] = (acc[day] ?? 0) + 1;
+      return acc;
+    }, {});
+
+    const confirmationsSeries = Object.entries(confirmationByDay)
+      .sort(([a], [b]) => (a < b ? -1 : 1))
+      .map(([day, count]) => ({ day, count }));
+
     res.json({
       guests: {
         total: totalGuests,
         confirmed,
         canceled,
-        pending
+        pending,
+        present: presentCount,
+        attendanceRate
+      },
+      qr: {
+        scanned: presentCount,
+        refused: 0,
+        pending: Math.max(0, totalGuests - presentCount)
       },
       invitations: {
         total: totalGuests,
         sent: invitationsSent
       },
       tables: tableStats,
-      drinks: drinkStats
+      drinks: drinkStats,
+      activity: {
+        messages: chatCount,
+        guestbookMessages: guestbookCount,
+        memories: memoriesCount.total,
+        photos: memoriesCount.photos,
+        videos: memoriesCount.videos
+      },
+      confirmationsSeries,
+      revenue: {
+        amount: paymentsSum._sum.amount ?? 0,
+        plan: eventInfo?.paidPlanCode ?? "FREE"
+      }
     });
   } catch (err) {
     console.error(err);
