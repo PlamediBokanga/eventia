@@ -30,6 +30,10 @@ function buildRedirectUrl() {
   return `${appUrl.replace(/\/+$/, "")}/dashboard/billing`;
 }
 
+function getSubscriptionPlanMeta(planCode: string) {
+  return SUB_PLANS.find(plan => plan.code === planCode) ?? null;
+}
+
 async function ensureSuperAdmin(organizerId: number) {
   const organizer = await prisma.organizer.findUnique({
     where: { id: organizerId },
@@ -338,6 +342,72 @@ paymentsRouter.get("/user", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Erreur chargement paiements." });
+  }
+});
+
+paymentsRouter.get("/overview", authMiddleware, async (req, res) => {
+  try {
+    const authReq = req as AuthRequest;
+    const organizerId = authReq.user?.id;
+    if (!organizerId) return res.status(401).json({ message: "Organisateur non authentifie." });
+
+    const now = new Date();
+    const [subscription, payments] = await Promise.all([
+      prisma.organizerSubscription.findFirst({
+        where: {
+          organizerId,
+          status: "ACTIVE",
+          currentPeriodEnd: { gt: now }
+        },
+        orderBy: { currentPeriodEnd: "desc" }
+      }),
+      prisma.payment.findMany({
+        where: { organizerId },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+        include: {
+          event: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        }
+      })
+    ]);
+
+    let usage: { eventsUsed: number; eventLimit: number | null; guestLimit: number | null } | null = null;
+    if (subscription) {
+      const planMeta = getSubscriptionPlanMeta(subscription.planCode);
+      const eventsUsed = await prisma.event.count({
+        where: {
+          organizerId,
+          createdAt: {
+            gte: subscription.currentPeriodStart,
+            lte: subscription.currentPeriodEnd
+          }
+        }
+      });
+      usage = {
+        eventsUsed,
+        eventLimit: planMeta?.eventLimit ?? null,
+        guestLimit: planMeta?.guestLimit ?? null
+      };
+    }
+
+    return res.json({
+      subscription: subscription
+        ? {
+            ...subscription,
+            plan: getSubscriptionPlanMeta(subscription.planCode)
+          }
+        : null,
+      usage,
+      payments
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Erreur chargement apercu facturation." });
   }
 });
 

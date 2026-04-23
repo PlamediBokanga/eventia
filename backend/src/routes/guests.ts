@@ -669,7 +669,13 @@ guestsRouter.delete("/:id", authMiddleware, async (req, res) => {
       return res.status(ownership.code).json({ message: ownership.message });
     }
 
-    await prisma.guest.delete({ where: { id } });
+    await prisma.$transaction([
+      prisma.guestDrinkChoice.deleteMany({ where: { guestId: id } }),
+      prisma.guestBookMessage.deleteMany({ where: { guestId: id } }),
+      prisma.eventChatMessage.deleteMany({ where: { guestId: id } }),
+      prisma.guestInvitation.deleteMany({ where: { guestId: id } }),
+      prisma.guest.delete({ where: { id } })
+    ]);
     return res.json({ success: true });
   } catch (err) {
     console.error(err);

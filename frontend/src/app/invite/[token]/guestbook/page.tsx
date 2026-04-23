@@ -6,6 +6,7 @@ import { API_URL } from "@/lib/config";
 import { InviteSteps } from "@/components/layout/InviteSteps";
 import type { InvitationData } from "@/components/InvitationClient";
 import { getInvitationAnimationClass, getInvitationThemeStyle } from "@/lib/invitationTheme";
+import { normalizePublicUrl } from "@/lib/url";
 
 export default function InviteGuestbookPage({ params }: { params: { token: string } }) {
   const [data, setData] = useState<InvitationData | null>(null);
@@ -46,11 +47,12 @@ export default function InviteGuestbookPage({ params }: { params: { token: strin
         body: JSON.stringify({ message: text })
       });
       if (!res.ok) {
-        setMessage("Envoi impossible.");
+        const payload = (await res.json().catch(() => null)) as { message?: string } | null;
+        setMessage(payload?.message ?? "Envoi impossible.");
         return;
       }
       setText("");
-      setMessage("Merci pour votre message ❤️");
+      setMessage("Merci pour votre message.");
       await refreshInvitation();
     } finally {
       setLoading(false);
@@ -72,7 +74,8 @@ export default function InviteGuestbookPage({ params }: { params: { token: strin
         body: JSON.stringify({ fileName: file.name, dataUrl })
       });
       if (!res.ok) {
-        setMessage("Upload photo impossible.");
+        const payload = (await res.json().catch(() => null)) as { message?: string } | null;
+        setMessage(payload?.message ?? "Upload photo impossible.");
         return;
       }
       const payload = (await res.json()) as { url: string };
@@ -102,7 +105,8 @@ export default function InviteGuestbookPage({ params }: { params: { token: strin
         })
       });
       if (!res.ok) {
-        setMessage("Publication du souvenir impossible.");
+        const payload = (await res.json().catch(() => null)) as { message?: string } | null;
+        setMessage(payload?.message ?? "Publication du souvenir impossible.");
         return;
       }
       setMediaUrl("");
@@ -224,9 +228,18 @@ export default function InviteGuestbookPage({ params }: { params: { token: strin
               {data.memories.map(item => (
                 <div key={item.id} className="rounded-lg border border-primary/10 bg-white/70 p-2">
                   {item.mediaType === "IMAGE" ? (
-                    <img src={item.mediaUrl} alt={item.caption || "Souvenir"} className="h-28 w-full rounded object-cover" />
+                    <img
+                      src={normalizePublicUrl(item.mediaUrl)}
+                      alt={item.caption || "Souvenir"}
+                      className="h-28 w-full rounded object-cover"
+                    />
                   ) : (
-                    <a href={item.mediaUrl} target="_blank" rel="noreferrer" className="underline text-small">
+                    <a
+                      href={normalizePublicUrl(item.mediaUrl)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline text-small"
+                    >
                       Ouvrir la video
                     </a>
                   )}
@@ -236,7 +249,7 @@ export default function InviteGuestbookPage({ params }: { params: { token: strin
             </div>
           ) : null}
         </div>
-        {message && <p className="text-small">{message}</p>}
+        {message ? <p className="text-small">{message}</p> : null}
       </div>
     </main>
   );

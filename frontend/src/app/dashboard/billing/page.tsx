@@ -6,7 +6,13 @@ import { EventPicker } from "@/components/layout/EventPicker";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
-import { authFetch, getSelectedEventId, setSelectedEventId, type EventItem } from "@/lib/dashboard";
+import {
+  authFetch,
+  getSelectedEventId,
+  setSelectedEventId,
+  type BillingOverview,
+  type EventItem
+} from "@/lib/dashboard";
 
 type Plan = {
   code: string;
@@ -103,6 +109,7 @@ const ADDONS = [
 export default function BillingPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
+  const [overview, setOverview] = useState<BillingOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
@@ -114,15 +121,22 @@ export default function BillingPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await authFetch("/events");
-        if (!res.ok) return;
-        const data = (await res.json()) as EventItem[];
-        setEvents(data);
-        if (data.length > 0) {
-          const savedId = getSelectedEventId();
-          const chosen = (savedId && data.find(e => e.id === savedId)) || data[0];
-          setSelectedEvent(chosen);
-          setSelectedEventId(chosen.id);
+        const [eventsRes, overviewRes] = await Promise.all([authFetch("/events"), authFetch("/payments/overview")]);
+
+        if (eventsRes.ok) {
+          const data = (await eventsRes.json()) as EventItem[];
+          setEvents(data);
+          if (data.length > 0) {
+            const savedId = getSelectedEventId();
+            const chosen = (savedId && data.find(e => e.id === savedId)) || data[0];
+            setSelectedEvent(chosen);
+            setSelectedEventId(chosen.id);
+          }
+        }
+
+        if (overviewRes.ok) {
+          const payload = (await overviewRes.json()) as BillingOverview;
+          setOverview(payload);
         }
       } finally {
         setLoading(false);
@@ -207,29 +221,138 @@ export default function BillingPage() {
     pushToast("Paiement en attente de validation.");
     setManualStep("FORM");
     setManualInfo(null);
+    const overviewRes = await authFetch("/payments/overview");
+    if (overviewRes.ok) {
+      const payload = (await overviewRes.json()) as BillingOverview;
+      setOverview(payload);
+    }
   }
+
+  const activeSubscription = overview?.subscription;
+  const paymentHistory = overview?.payments ?? [];
+  const selectedEventPlan = selectedEvent?.paidPlanCode ?? null;
 
   return (
     <main className="space-y-4">
       <Header title="Paiement & Abonnements" />
-      <div className="grid gap-4 lg:grid-cols-[1.1fr,1.9fr]">
-        <section className="card p-4 space-y-3">
-          <h2 className="title-4">Evenement cible</h2>
-          {loading ? (
-            <p className="text-small">Chargement...</p>
-          ) : events.length === 0 ? (
-            <EmptyState title="Aucun evenement" description="Creez un evenement pour acheter un pack." />
-          ) : eventRequired ? (
-            <EventPicker
-              events={events}
-              selectedEventId={selectedEvent?.id}
-              onSelect={event => {
-                setSelectedEvent(event);
-                setSelectedEventId(event.id);
-              }}
-            />
-          ) : null}
-        </section>
+      <div className="grid gap-4 xl:grid-cols-[1.05fr,1.95fr]">
+        <div className="space-y-4">
+          <section className="card p-4 space-y-3">
+            <h2 className="title-4">Evenement cible</h2>
+            {loading ? (
+              <p className="text-small">Chargement...</p>
+            ) : events.length === 0 ? (
+              <EmptyState title="Aucun evenement" description="Creez un evenement pour acheter un pack." />
+            ) : eventRequired ? (
+              <>
+                <EventPicker
+                  events={events}
+                  selectedEventId={selectedEvent?.id}
+                  onSelect={event => {
+                    setSelectedEvent(event);
+                    setSelectedEventId(event.id);
+                  }}
+                />
+                {selectedEvent ? (
+                  <div className="rounded-2xl border border-primary/10 bg-background/70 p-3 text-xs">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-text/55">Plan evenement actuel</p>
+                    <p className="mt-1 text-sm font-semibold">
+                      {selectedEventPlan ? selectedEventPlan : "Aucun pack actif"}
+                    </p>
+                    <p className="text-small text-textSecondary">
+                      {selectedEventPlan
+                        ? "Cet evenement dispose deja d'un plan paye."
+                        : "Selectionnez un pack si vous voulez debloquer plus de capacite ou d'options."}
+                    </p>
+                  </div>
+                ) : null}
+              </>
+            ) : null}
+          </section>
+
+          <section className="card p-4 space-y-3">
+            <h2 className="title-4">Abonnement actif</h2>
+            {!activeSubscription ? (
+              <EmptyState
+                title="Aucun abonnement actif"
+                description="Vous pouvez continuer avec des packs evenement ou activer un abonnement mensuel."
+              />
+            ) : (
+              <div className="space-y-3 text-xs">
+                <div className="rounded-2xl border border-primary/10 bg-background/70 p-4">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-text/55">Plan courant</p>
+                  <p className="mt-1 text-lg font-semibold">
+                    {activeSubscription.plan?.name ?? activeSubscription.planCode}
+                  </p>
+                  <p className="text-small text-textSecondary">
+                    Actif jusqu'au {new Date(activeSubscription.currentPeriodEnd).toLocaleDateString("fr-FR")}
+                  </p>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-primary/10 bg-background/70 p-3">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-text/55">Evenements utilises</p>
+                    <p className="mt-1 text-xl font-semibold">
+                      {overview?.usage?.eventsUsed ?? 0}
+                      {overview?.usage?.eventLimit ? ` / ${overview.usage.eventLimit}` : ""}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-primary/10 bg-background/70 p-3">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-text/55">Capacite invites / evenement</p>
+                    <p className="mt-1 text-xl font-semibold">
+                      {overview?.usage?.guestLimit ? overview.usage.guestLimit : "Selon plan"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+
+          <section className="card p-4 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="title-4">Historique recent</h2>
+              <span className="text-small">{paymentHistory.length} paiement(s)</span>
+            </div>
+            {paymentHistory.length === 0 ? (
+              <EmptyState title="Aucun paiement" description="Vos transactions apparaitront ici." />
+            ) : (
+              <div className="space-y-2">
+                {paymentHistory.map(payment => (
+                  <div
+                    key={payment.id}
+                    className="flex flex-col gap-2 rounded-2xl border border-primary/10 bg-background/70 p-3 text-xs sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div>
+                      <p className="font-medium">
+                        {payment.planCode} · {payment.planType === "EVENT" ? "Evenement" : "Abonnement"}
+                      </p>
+                      <p className="text-small text-textSecondary">
+                        {payment.event?.name ?? payment.method ?? payment.provider}
+                      </p>
+                    </div>
+                    <div className="text-left sm:text-right">
+                      <p className="font-semibold">
+                        ${payment.amount} {payment.currency}
+                      </p>
+                      <p
+                        className={`text-small ${
+                          payment.status === "PAID"
+                            ? "text-emerald-600"
+                            : payment.status === "PENDING"
+                              ? "text-amber-600"
+                              : "text-rose-600"
+                        }`}
+                      >
+                        {payment.status}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+
         <section className="card p-4 space-y-5">
           <div>
             <h2 className="title-4">Offres evenement unique</h2>

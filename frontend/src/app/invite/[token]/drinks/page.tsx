@@ -32,7 +32,12 @@ export default function InviteDrinksPage({ params }: { params: { token: string }
         choices: selected.map(id => ({ drinkOptionId: id, quantity: 1 }))
       })
     });
-    setMessage(res.ok ? "Choix enregistre." : "Enregistrement impossible.");
+    if (!res.ok) {
+      const payload = (await res.json().catch(() => null)) as { message?: string } | null;
+      setMessage(payload?.message ?? "Enregistrement impossible.");
+      return;
+    }
+    setMessage("Choix enregistre.");
   }
 
   if (!data) {
@@ -40,6 +45,7 @@ export default function InviteDrinksPage({ params }: { params: { token: string }
   }
 
   const selectedCount = selected.length;
+  const drinksDisabled = data.drinks.length === 0;
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4 py-6">
@@ -54,33 +60,39 @@ export default function InviteDrinksPage({ params }: { params: { token: string }
           {selectedCount} boisson{selectedCount > 1 ? "s" : ""} selectionnee{selectedCount > 1 ? "s" : ""}
         </p>
 
-        <div className="grid grid-cols-2 gap-2">
-          {data.drinks.map(drink => {
-            const active = selected.includes(drink.id);
-            return (
-              <button
-                key={drink.id}
-                type="button"
-                onClick={() =>
-                  setSelected(prev =>
-                    prev.includes(drink.id) ? prev.filter(id => id !== drink.id) : [...prev, drink.id]
-                  )
-                }
-                className={`rounded-xl border px-3 py-2 text-left text-xs ${
-                  active ? "border-accent bg-background/90" : "border-primary/15 bg-background/60"
-                }`}
-              >
-                <p className="font-medium">{drink.name}</p>
-                <p className="text-small">
-                  {drink.category === "ALCOHOLIC" ? "Alcoolisee" : "Soft"}
-                </p>
-              </button>
-            );
-          })}
-        </div>
+        {drinksDisabled ? (
+          <div className="rounded-xl border border-primary/10 bg-background/70 px-4 py-3 text-small text-text/70">
+            Le choix des boissons n'est pas active pour cette invitation.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            {data.drinks.map(drink => {
+              const active = selected.includes(drink.id);
+              return (
+                <button
+                  key={drink.id}
+                  type="button"
+                  onClick={() =>
+                    setSelected(prev =>
+                      prev.includes(drink.id) ? prev.filter(id => id !== drink.id) : [...prev, drink.id]
+                    )
+                  }
+                  className={`rounded-xl border px-3 py-2 text-left text-xs ${
+                    active ? "border-accent bg-background/90" : "border-primary/15 bg-background/60"
+                  }`}
+                >
+                  <p className="font-medium">{drink.name}</p>
+                  <p className="text-small">
+                    {drink.category === "ALCOHOLIC" ? "Alcoolisee" : "Soft"}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         <div className="flex gap-2">
-          <button className="btn-primary" onClick={save} disabled={selectedCount === 0}>
+          <button className="btn-primary" onClick={save} disabled={selectedCount === 0 || drinksDisabled}>
             Enregistrer mon choix
           </button>
           <Link href={`/invite/${params.token}/invitation`} className="btn-ghost">

@@ -391,10 +391,15 @@ invitationsRouter.post("/:token/memories", async (req, res) => {
 
     const invitation = await prisma.guestInvitation.findUnique({
       where: { token },
-      include: { guest: true }
+      include: { guest: { include: { event: true } } }
     });
     if (!invitation) {
       return res.status(404).json({ message: "Invitation introuvable." });
+    }
+    const paidPlan = invitation.guest.event.paidPlanCode;
+    const hasPremium = await hasPremiumAccessByOrganizer(invitation.guest.event.organizerId);
+    if (!hasPremium && paidPlan !== "PREMIUM") {
+      return res.status(403).json({ message: "Souvenirs disponibles uniquement pour le plan Premium." });
     }
 
     const memory = await prisma.eventMemory.create({

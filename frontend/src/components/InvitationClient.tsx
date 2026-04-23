@@ -4,6 +4,7 @@ import { useState } from "react";
 import { API_URL } from "@/lib/config";
 import { SafeHtml } from "@/components/ui/SafeHtml";
 import { getInvitationAnimationClass, getInvitationThemeStyle } from "@/lib/invitationTheme";
+import { normalizePublicUrl } from "@/lib/url";
 
 type DrinkOption = {
   id: number;
@@ -117,6 +118,8 @@ export function InvitationClient({
     "confirm" | "cancel" | "guestbook" | "drinks" | null
   >(null);
   const [showCover, setShowCover] = useState(false);
+  const coverImageUrl = normalizePublicUrl(initial.event.coverImageUrl);
+  const logoUrl = normalizePublicUrl(initial.event.logoUrl);
 
   const eventDate = new Date(initial.event.dateTime);
   const programItems = initial.programItems ?? [];
@@ -141,7 +144,8 @@ export function InvitationClient({
       body: body ? JSON.stringify(body) : undefined
     });
     if (!res.ok) {
-      throw new Error(`Erreur API ${res.status}`);
+      const payload = (await res.json().catch(() => null)) as { message?: string } | null;
+      throw new Error(payload?.message ?? `Erreur API ${res.status}`);
     }
     return res.json();
   }
@@ -157,8 +161,8 @@ export function InvitationClient({
       });
       setGuestStatus("CONFIRMED");
       setFeedback("Merci, votre presence est confirmee.");
-    } catch {
-      setFeedback("Impossible de confirmer pour le moment. Reessayez plus tard.");
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Impossible de confirmer pour le moment. Reessayez plus tard.");
     } finally {
       setLoadingAction(null);
     }
@@ -175,8 +179,8 @@ export function InvitationClient({
       });
       setGuestStatus("CANCELED");
       setFeedback("Votre absence a bien ete enregistree.");
-    } catch {
-      setFeedback("Impossible d'enregistrer l'annulation. Reessayez plus tard.");
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Impossible d'enregistrer l'annulation. Reessayez plus tard.");
     } finally {
       setLoadingAction(null);
     }
@@ -196,8 +200,8 @@ export function InvitationClient({
       });
       setFeedback("Merci pour votre message.");
       setMessage("");
-    } catch {
-      setFeedback("Impossible d'enregistrer votre message. Reessayez plus tard.");
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Impossible d'enregistrer votre message. Reessayez plus tard.");
     } finally {
       setLoadingAction(null);
     }
@@ -220,8 +224,8 @@ export function InvitationClient({
         }))
       });
       setFeedback("Vos preferences de boissons ont ete enregistrees.");
-    } catch {
-      setFeedback("Impossible d'enregistrer vos boissons. Reessayez plus tard.");
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Impossible d'enregistrer vos boissons. Reessayez plus tard.");
     } finally {
       setLoadingAction(null);
     }
@@ -243,8 +247,8 @@ export function InvitationClient({
       setMemoryUrl(payload.url);
       setMemoryType("IMAGE");
       setFeedback("Image telechargee. Ajoutez une legende puis publiez.");
-    } catch {
-      setFeedback("Upload photo souvenir impossible.");
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Upload photo souvenir impossible.");
     } finally {
       setLoadingAction(null);
     }
@@ -266,8 +270,8 @@ export function InvitationClient({
       setMemoryUrl("");
       setMemoryCaption("");
       setFeedback("Souvenir ajoute.");
-    } catch {
-      setFeedback("Impossible d'ajouter ce souvenir.");
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "Impossible d'ajouter ce souvenir.");
     } finally {
       setLoadingAction(null);
     }
@@ -281,16 +285,16 @@ export function InvitationClient({
       <div className="rounded-3xl border border-primary/10 bg-white/90 shadow-sm overflow-hidden">
         <div className="relative">
           <div className="relative h-72 w-full bg-gradient-to-br from-primary/15 via-accent/10 to-white">
-            {initial.event.coverImageUrl ? (
+            {coverImageUrl ? (
               <img
-                src={initial.event.coverImageUrl}
+                src={coverImageUrl}
                 alt={`Photo de ${initial.event.name}`}
                 className="h-full w-full object-contain"
               />
             ) : null}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
           </div>
-          {initial.event.coverImageUrl ? (
+          {coverImageUrl ? (
             <div className="absolute right-4 top-4">
               <button
                 type="button"
@@ -311,10 +315,10 @@ export function InvitationClient({
               {timeLabel ? <span className="rounded-full bg-white/15 px-3 py-1">{timeLabel}</span> : null}
             </div>
           </div>
-          {initial.event.logoUrl ? (
+          {logoUrl ? (
             <div className="absolute left-4 top-4 rounded-full bg-white/80 px-3 py-2">
               <img
-                src={initial.event.logoUrl}
+                src={logoUrl}
                 alt="Logo evenement"
                 className="h-8 w-auto max-w-[140px] object-contain"
               />
@@ -629,12 +633,17 @@ export function InvitationClient({
                   <div key={item.id} className="rounded-xl border border-primary/15 bg-background/70 p-2">
                     {item.mediaType === "IMAGE" ? (
                       <img
-                        src={item.mediaUrl}
+                        src={normalizePublicUrl(item.mediaUrl)}
                         alt={item.caption || "Souvenir"}
                         className="h-28 w-full rounded-lg object-cover border border-primary/10"
                       />
                     ) : (
-                      <a href={item.mediaUrl} target="_blank" rel="noreferrer" className="underline text-xs">
+                      <a
+                        href={normalizePublicUrl(item.mediaUrl)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline text-xs"
+                      >
                         Ouvrir la video
                       </a>
                     )}
@@ -676,7 +685,7 @@ export function InvitationClient({
         )}
       </div>
 
-      {showCover && initial.event.coverImageUrl ? (
+      {showCover && coverImageUrl ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
           <button
             type="button"
@@ -686,7 +695,7 @@ export function InvitationClient({
           />
           <div className="relative z-10 w-full max-w-4xl">
             <img
-              src={initial.event.coverImageUrl}
+              src={coverImageUrl}
               alt={`Photo de ${initial.event.name}`}
               className="max-h-[85vh] w-full rounded-2xl object-contain bg-black"
             />

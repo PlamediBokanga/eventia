@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { Header } from "@/components/layout/Header";
 import { EventItem, authFetch, getSelectedEventId, setSelectedEventId } from "@/lib/dashboard";
@@ -73,7 +73,8 @@ export default function DashboardCheckinPage() {
   const [fullscreen, setFullscreen] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
-  const lastScanAtRef = useRef(0);
+  const lastScanRef = useRef<{ token: string; action: "IN" | "OUT"; at: number } | null>(null);
+  const cameraToastAtRef = useRef(0);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const { pushToast } = useToast();
 
@@ -140,7 +141,7 @@ export default function DashboardCheckinPage() {
   }
 
   useEffect(() => {
-    if (!scanning) {
+    if (!scanning || mode === "MANUAL" || showResultModal) {
       stopScanner(readerRef.current);
       readerRef.current = null;
       return;
@@ -175,16 +176,16 @@ export default function DashboardCheckinPage() {
           }
           if (err && err.name !== "NotFoundException" && err.name !== "ChecksumException" && err.name !== "FormatException") {
             if (err.name === "NotAllowedError") {
-              pushToast("Autorisation camera refusee. Autorisez la camera dans le navigateur.", "error");
+              safeCameraToast("Autorisation camera refusee. Autorisez la camera dans le navigateur.");
             } else if (err.name === "NotReadableError") {
-              pushToast("Camera utilisee par une autre application.", "error");
+              safeCameraToast("Camera utilisee par une autre application.");
             } else {
-              pushToast("Camera indisponible.", "error");
+              safeCameraToast("Camera indisponible.");
             }
           }
         });
       } catch {
-        pushToast("Impossible d'acceder a la camera.", "error");
+        safeCameraToast("Impossible d'acceder a la camera.");
       }
     }
 
@@ -193,7 +194,7 @@ export default function DashboardCheckinPage() {
       cancelled = true;
       stopScanner(reader);
     };
-  }, [scanning]);
+  }, [scanning, mode, showResultModal]);
 
   useEffect(() => {
     if (mode === "MANUAL") {
@@ -217,8 +218,6 @@ export default function DashboardCheckinPage() {
       document.body.style.overflow = original;
     };
   }, [fullscreen]);
-
-  const recentTokens = useMemo(() => new Set(results.map(r => r.token)), [results]);
 
   function playBeep(kind: "success" | "error" | "warning") {
     try {
@@ -257,12 +256,25 @@ export default function DashboardCheckinPage() {
   }
 
   async function handleScan(token: string, actionOverride?: "IN" | "OUT") {
-    if (!token || recentTokens.has(token)) return;
     const now = Date.now();
     const minGap = rapidMode ? 1500 : 2000;
-    if (now - lastScanAtRef.current < minGap) return;
-    lastScanAtRef.current = now;
     const actionToSend = actionOverride ?? direction;
+    const lastScan = lastScanRef.current;
+    if (
+      !token ||
+      (lastScan &&
+        lastScan.token === token &&
+        lastScan.action === actionToSend &&
+        now - lastScan.at < minGap)
+    ) {
+      return;
+    }
+    lastScanRef.current = { token, action: actionToSend, at: now };
+
+    if (!rapidMode) {
+      setScanning(false);
+    }
+
     if (!navigator.onLine) {
       enqueueOffline(token, actionToSend);
       const offlineResult = {
@@ -352,6 +364,15 @@ export default function DashboardCheckinPage() {
       window.setTimeout(() => {
         setCurrentResult(prev => (prev?.token === token ? null : prev));
       }, 2000);
+    }
+  }
+
+  function closeResultModal(restartScanner: boolean) {
+    setShowResultModal(false);
+    setCurrentResult(null);
+    if (restartScanner && mode === "SCAN") {
+      setScanning(true);
+      setScanHint("En attente d'un QR code...");
     }
   }
 
@@ -880,17 +901,14 @@ export default function DashboardCheckinPage() {
                 type="button"
                 variant="ghost"
                 className="px-4 py-2 text-xs"
-                onClick={() => setShowResultModal(false)}
+                onClick={() => closeResultModal(false)}
               >
                 Fermer
               </Button>
               <Button
                 type="button"
                 className="px-4 py-2 text-xs"
-                onClick={() => {
-                  setShowResultModal(false);
-                  setCurrentResult(null);
-                }}
+                onClick={() => closeResultModal(true)}
               >
                 Scan suivant
               </Button>
@@ -953,3 +971,9 @@ export default function DashboardCheckinPage() {
     </main>
   );
 }
+  function safeCameraToast(message: string) {
+    const now = Date.now();
+    if (now - cameraToastAtRef.current < 2500) return;
+    cameraToastAtRef.current = now;
+    pushToast(message, "error");
+  }

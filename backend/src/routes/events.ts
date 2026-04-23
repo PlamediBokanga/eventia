@@ -190,6 +190,55 @@ function cleanChatMessage(value: unknown) {
   return value.trim().slice(0, 1000);
 }
 
+async function resolveEventCreationAllowance(organizerId: number) {
+  const now = new Date();
+  const subscription = await prisma.organizerSubscription.findFirst({
+    where: {
+      organizerId,
+      status: "ACTIVE",
+      currentPeriodEnd: { gt: now }
+    },
+    orderBy: { currentPeriodEnd: "desc" }
+  });
+
+  if (!subscription) {
+    return {
+      activeSubscription: null,
+      eventLimit: null,
+      eventsUsed: null
+    };
+  }
+
+  let eventLimit: number | null = null;
+  if (subscription.planCode === "PRO_ORGANIZER") eventLimit = 5;
+  if (subscription.planCode === "AGENCY") eventLimit = 999;
+  if (subscription.planCode === "ENTERPRISE") eventLimit = 9999;
+
+  if (eventLimit == null) {
+    return {
+      activeSubscription: subscription,
+      eventLimit: null,
+      eventsUsed: null
+    };
+  }
+
+  const eventsUsed = await prisma.event.count({
+    where: {
+      organizerId,
+      createdAt: {
+        gte: subscription.currentPeriodStart,
+        lte: subscription.currentPeriodEnd
+      }
+    }
+  });
+
+  return {
+    activeSubscription: subscription,
+    eventLimit,
+    eventsUsed
+  };
+}
+
 async function convertWebpToJpg(buffer: Buffer): Promise<Buffer> {
   const converted = await sharp(buffer).jpeg({ quality: 88 }).toBuffer();
   return converted as Buffer;
@@ -244,22 +293,51 @@ async function ensureEventAccess(eventId: number, organizerId: number) {
   return { event, role: "CO_ORGANIZER" as const };
 }
 
-async function hasExportAccess(organizerId: number, eventId: number) {
+async function getActiveSubscriptionPlanCode(organizerId: number) {
   const now = new Date();
   const subscription = await prisma.organizerSubscription.findFirst({
     where: {
       organizerId,
       status: "ACTIVE",
       currentPeriodEnd: { gt: now }
-    }
+    },
+    orderBy: { currentPeriodEnd: "desc" }
   });
-  if (subscription) return true;
+  return subscription?.planCode ?? null;
+}
 
+async function resolveEventFeatureAccess(organizerId: number, paidPlanCode?: string | null) {
+  const subscriptionPlanCode = await getActiveSubscriptionPlanCode(organizerId);
+  const hasSubscription = Boolean(subscriptionPlanCode);
+  const eventPlan = paidPlanCode ?? "FREE";
+
+  return {
+    eventPlan,
+    subscriptionPlanCode,
+    hasSubscription,
+    exports: hasSubscription || eventPlan === "STANDARD" || eventPlan === "PREMIUM",
+    memories: hasSubscription || eventPlan === "PREMIUM",
+    scanner: hasSubscription || eventPlan === "PREMIUM",
+    advancedStats: hasSubscription || eventPlan === "STANDARD" || eventPlan === "PREMIUM"
+  };
+}
+
+async function hasExportAccess(organizerId: number, eventId: number) {
   const event = await prisma.event.findUnique({
     where: { id: eventId },
     select: { paidPlanCode: true }
   });
-  return event?.paidPlanCode === "STANDARD" || event?.paidPlanCode === "PREMIUM";
+  const featureAccess = await resolveEventFeatureAccess(organizerId, event?.paidPlanCode);
+  return featureAccess.exports;
+}
+
+async function hasPremiumEventAccess(organizerId: number, eventId: number) {
+  const event = await prisma.event.findUnique({
+    where: { id: eventId },
+    select: { paidPlanCode: true }
+  });
+  const featureAccess = await resolveEventFeatureAccess(organizerId, event?.paidPlanCode);
+  return featureAccess.memories;
 }
 
 // Liste des evenements de l'organisateur connecte
@@ -291,13 +369,15 @@ eventsRouter.get("/", authMiddleware, async (req, res) => {
       },
       orderBy: { createdAt: "desc" }
     });
-    res.json(
-      events.map(event => ({
+    const enrichedEvents = await Promise.all(
+      events.map(async event => ({
         ...event,
         isOwner: event.organizerId === organizerId,
-        coOrganizerCount: event.coOrganizers.length
+        coOrganizerCount: event.coOrganizers.length,
+        featureAccess: await resolveEventFeatureAccess(event.organizerId, event.paidPlanCode)
       }))
     );
+    res.json(enrichedEvents);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Erreur lors de la recuperation des evenements." });
@@ -344,6 +424,18 @@ eventsRouter.post("/", authMiddleware, async (req, res) => {
       return res.status(401).json({ message: "Organisateur non authentifie." });
     }
     if (!isValidDate(dateTime)) return res.status(400).json({ message: "Date invalide." });
+
+    const allowance = await resolveEventCreationAllowance(organizerId);
+    if (
+      allowance.activeSubscription &&
+      allowance.eventLimit != null &&
+      allowance.eventsUsed != null &&
+      allowance.eventsUsed >= allowance.eventLimit
+    ) {
+      return res.status(403).json({
+        message: `Limite atteinte pour votre abonnement ${allowance.activeSubscription.planCode}. Vous avez utilise ${allowance.eventsUsed}/${allowance.eventLimit} evenements sur la periode en cours.`
+      });
+    }
 
     const seatingModeFinal = cleanSeatingMode(seatingMode);
     const tableCountFinal = seatingModeFinal === "NONE" ? 0 : toNonNegativeInt(tableCount, 0);
@@ -1201,6 +1293,11 @@ eventsRouter.get("/:id/memories", authMiddleware, async (req, res) => {
       return res.status(ownership.error!.code).json({ message: ownership.error!.message });
     }
 
+    const canAccessMemories = await hasPremiumEventAccess(ownership.event.id, eventId);
+    if (!canAccessMemories) {
+      return res.status(403).json({ message: "Souvenirs disponibles uniquement pour le plan Premium." });
+    }
+
     const memories = await prisma.eventMemory.findMany({
       where: { eventId },
       orderBy: { createdAt: "desc" }
@@ -1228,6 +1325,11 @@ eventsRouter.delete("/:id/memories/:memoryId", authMiddleware, async (req, res) 
     const ownership = await ensureEventAccess(eventId, organizerId);
     if ("error" in ownership) {
       return res.status(ownership.error!.code).json({ message: ownership.error!.message });
+    }
+
+    const canAccessMemories = await hasPremiumEventAccess(ownership.event.id, eventId);
+    if (!canAccessMemories) {
+      return res.status(403).json({ message: "Souvenirs disponibles uniquement pour le plan Premium." });
     }
 
     const memory = await prisma.eventMemory.findUnique({ where: { id: memoryId } });
@@ -1566,6 +1668,11 @@ eventsRouter.get("/:id/checkin/stats", authMiddleware, async (req, res) => {
       return res.status(ownership.error!.code).json({ message: ownership.error!.message });
     }
 
+    const canUseScanner = await hasPremiumEventAccess(ownership.event.id, eventId);
+    if (!canUseScanner) {
+      return res.status(403).json({ message: "Scanner QR disponible uniquement pour le plan Premium." });
+    }
+
     const totalGuests = await prisma.guest.count({ where: { eventId } });
     const present = await prisma.guestInvitation.count({
       where: {
@@ -1599,6 +1706,11 @@ eventsRouter.get("/:id/checkin/search", authMiddleware, async (req, res) => {
     const ownership = await ensureEventAccess(eventId, organizerId);
     if ("error" in ownership) {
       return res.status(ownership.error!.code).json({ message: ownership.error!.message });
+    }
+
+    const canUseScanner = await hasPremiumEventAccess(ownership.event.id, eventId);
+    if (!canUseScanner) {
+      return res.status(403).json({ message: "Scanner QR disponible uniquement pour le plan Premium." });
     }
 
     const query = String(req.query?.q ?? "").trim();
@@ -1687,6 +1799,11 @@ eventsRouter.post("/checkin/scan", authMiddleware, async (req, res) => {
     const ownership = await ensureEventAccess(invitation.guest.eventId, organizerId);
     if ("error" in ownership) {
       return res.status(ownership.error!.code).json({ message: ownership.error!.message });
+    }
+
+    const canUseScanner = await hasPremiumEventAccess(invitation.guest.event.organizerId, invitation.guest.eventId);
+    if (!canUseScanner) {
+      return res.status(403).json({ message: "Scanner QR disponible uniquement pour le plan Premium." });
     }
 
     const alreadyCheckedIn = Boolean(invitation.checkedInAt);

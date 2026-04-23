@@ -83,6 +83,12 @@ function parseImageDataUrl(dataUrl: unknown) {
   return { buffer, ext };
 }
 
+function uploadBaseUrl(req: AuthRequest) {
+  const appUrl = process.env.APP_URL?.replace(/\/+$/, "");
+  if (appUrl) return appUrl;
+  return `${req.protocol}://${req.get("host")}`;
+}
+
 // Inscription organisateur
 authRouter.post("/register", async (req, res) => {
   try {
@@ -694,8 +700,7 @@ authRouter.post("/me/avatar", authMiddleware, async (req, res) => {
     const uploadDir = path.join(process.cwd(), "uploads", "avatars");
     await fs.mkdir(uploadDir, { recursive: true });
     await fs.writeFile(path.join(uploadDir, filename), parsed.buffer);
-    const baseUrl = process.env.APP_URL || process.env.FRONTEND_URL || "http://localhost:3000";
-    const url = `${baseUrl.replace(/\/+$/, "")}/uploads/avatars/${filename}`;
+    const url = `${uploadBaseUrl(authReq)}/uploads/avatars/${filename}`;
     const organizer = await prisma.organizer.update({
       where: { id: organizerId },
       data: { avatarUrl: url },

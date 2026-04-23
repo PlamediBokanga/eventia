@@ -37,15 +37,26 @@ export default function InviteChatPage({ params }: { params: { token: string } }
   const [info, setInfo] = useState<string | null>(null);
 
   async function loadMeta() {
-    const res = await fetch(`${API_URL}/invitations/${params.token}`);
-    if (!res.ok) return;
-    setMeta((await res.json()) as InvitationData);
+    try {
+      const res = await fetch(`${API_URL}/invitations/${params.token}`);
+      if (!res.ok) return;
+      setMeta((await res.json()) as InvitationData);
+    } catch {
+      setInfo("Impossible de charger les informations de l'invitation.");
+    }
   }
 
   async function loadChat() {
-    const res = await fetch(`${API_URL}/invitations/${params.token}/chat`);
-    if (!res.ok) return;
-    setMessages((await res.json()) as ChatMessage[]);
+    try {
+      const res = await fetch(`${API_URL}/invitations/${params.token}/chat`);
+      if (!res.ok) {
+        setInfo("Chargement du chat impossible.");
+        return;
+      }
+      setMessages((await res.json()) as ChatMessage[]);
+    } catch {
+      setInfo("Connexion au chat impossible pour le moment.");
+    }
   }
 
   useEffect(() => {

@@ -35,6 +35,8 @@ export type EventItem = {
   coOrganizerCount?: number;
   tableCount?: number;
   capacityPerTable?: number;
+  paidPlanCode?: string | null;
+  paidAt?: string | null;
 };
 
 export type EventCoOrganizer = {
@@ -205,6 +207,46 @@ export type ReferralCommission = {
   status: "PENDING" | "PAID" | "FAILED" | "CANCELED";
   createdAt: string;
   referred?: { id: number; email: string; name?: string | null };
+};
+
+export type PaymentItem = {
+  id: number;
+  amount: number;
+  currency: string;
+  provider: string;
+  method?: string | null;
+  status: "PENDING" | "PAID" | "FAILED" | "CANCELED";
+  txRef: string;
+  planCode: string;
+  planType: "EVENT" | "SUBSCRIPTION";
+  createdAt: string;
+  event?: {
+    id: number;
+    name: string;
+  } | null;
+};
+
+export type BillingOverview = {
+  subscription: {
+    id: number;
+    planCode: string;
+    status: string;
+    currentPeriodStart: string;
+    currentPeriodEnd: string;
+    plan?: {
+      code: string;
+      name: string;
+      price: number;
+      eventLimit: number;
+      guestLimit: number;
+    } | null;
+  } | null;
+  usage: {
+    eventsUsed: number;
+    eventLimit: number | null;
+    guestLimit: number | null;
+  } | null;
+  payments: PaymentItem[];
 };
 
 const EVENT_STORAGE_KEY = "eventia_selected_event_id";

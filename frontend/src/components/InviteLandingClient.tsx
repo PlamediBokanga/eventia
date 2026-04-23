@@ -6,9 +6,12 @@ import type { InvitationData } from "@/components/InvitationClient";
 import { InviteSteps } from "@/components/layout/InviteSteps";
 import { SafeHtml } from "@/components/ui/SafeHtml";
 import { getInvitationAnimationClass, getInvitationThemeStyle } from "@/lib/invitationTheme";
+import { normalizePublicUrl } from "@/lib/url";
 
 export function InviteLandingClient({ data, token }: { data: InvitationData; token: string }) {
   const [showCover, setShowCover] = useState(false);
+  const coverImageUrl = normalizePublicUrl(data.event.coverImageUrl);
+  const logoUrl = normalizePublicUrl(data.event.logoUrl);
 
   return (
     <div className="max-w-xl w-full card p-6 md:p-8 space-y-5">
@@ -19,9 +22,9 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
         <InviteSteps token={token} current="landing" />
         <div className="rounded-3xl overflow-hidden border border-primary/10 bg-white/90 shadow-sm">
           <div className="relative h-72 w-full bg-gradient-to-br from-primary/10 via-accent/10 to-white">
-            {data.event.coverImageUrl ? (
+            {coverImageUrl ? (
               <img
-                src={data.event.coverImageUrl}
+                src={coverImageUrl}
                 alt={`Photo de ${data.event.name}`}
                 className="h-full w-full object-contain"
               />
@@ -36,16 +39,16 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
                 {new Date(data.event.dateTime).toLocaleString("fr-FR")} . {data.event.location}
               </p>
             </div>
-            {data.event.logoUrl ? (
+            {logoUrl ? (
               <div className="absolute left-4 top-4 rounded-full bg-white/80 px-3 py-2">
                 <img
-                  src={data.event.logoUrl}
+                  src={logoUrl}
                   alt="Logo evenement"
                   className="h-8 w-auto max-w-[140px] object-contain"
                 />
               </div>
             ) : null}
-            {data.event.coverImageUrl ? (
+            {coverImageUrl ? (
               <div className="absolute right-4 top-4">
                 <button
                   type="button"
@@ -73,7 +76,7 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
         </div>
       </div>
 
-      {showCover && data.event.coverImageUrl ? (
+      {showCover && coverImageUrl ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
           <button
             type="button"
@@ -83,7 +86,7 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
           />
           <div className="relative z-10 w-full max-w-4xl">
             <img
-              src={data.event.coverImageUrl}
+              src={coverImageUrl}
               alt={`Photo de ${data.event.name}`}
               className="max-h-[85vh] w-full rounded-2xl object-contain bg-black"
             />
