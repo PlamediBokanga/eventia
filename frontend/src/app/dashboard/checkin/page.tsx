@@ -255,6 +255,13 @@ export default function DashboardCheckinPage() {
     return "bg-primary/5 text-text/60";
   }
 
+  function safeCameraToast(message: string) {
+    const now = Date.now();
+    if (now - cameraToastAtRef.current < 2500) return;
+    cameraToastAtRef.current = now;
+    pushToast(message, "error");
+  }
+
   async function handleScan(token: string, actionOverride?: "IN" | "OUT") {
     const now = Date.now();
     const minGap = rapidMode ? 1500 : 2000;
@@ -971,9 +978,3 @@ export default function DashboardCheckinPage() {
     </main>
   );
 }
-  function safeCameraToast(message: string) {
-    const now = Date.now();
-    if (now - cameraToastAtRef.current < 2500) return;
-    cameraToastAtRef.current = now;
-    pushToast(message, "error");
-  }
