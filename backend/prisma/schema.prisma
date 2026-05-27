@@ -56,6 +56,8 @@ model Organizer {
   logins OrganizerLogin[]
   commissions ReferralCommission[] @relation("PartnerCommissions")
   referredCommissions ReferralCommission[] @relation("ReferredCommissions")
+
+  @@map("organizer")
 }
 
 model OrganizerLogin {
@@ -68,6 +70,7 @@ model OrganizerLogin {
   createdAt   DateTime @default(now())
 
   @@index([organizerId, createdAt])
+  @@map("organizerlogin")
 }
 
 model ReferralCommission {
@@ -82,6 +85,7 @@ model ReferralCommission {
   paidAt DateTime?
 
   @@index([partnerId, createdAt])
+  @@map("referralcommission")
 }
 
 // Événement géré dans l’application
@@ -131,6 +135,8 @@ model Event {
   payments Payment[]
   paidPlanCode String?
   paidAt DateTime?
+
+  @@map("event")
 }
 
 model EventProgramItem {
@@ -145,6 +151,7 @@ model EventProgramItem {
   eventId Int
 
   @@index([eventId, order])
+  @@map("eventprogramitem")
 }
 
 model Payment {
@@ -165,6 +172,8 @@ model Payment {
   paymentLink String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("payment")
 }
 
 model OrganizerSubscription {
@@ -177,6 +186,8 @@ model OrganizerSubscription {
   currentPeriodEnd   DateTime
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@map("organizersubscription")
 }
 
 enum PaymentPlanType {
@@ -211,6 +222,7 @@ model EventCoOrganizer {
   invitedById Int
 
   @@unique([eventId, organizerId])
+  @@map("eventcoorganizer")
 }
 
 model EventCoOrganizerInvite {
@@ -230,6 +242,7 @@ model EventCoOrganizerInvite {
   acceptedById Int?
 
   @@unique([eventId, email])
+  @@map("eventcoorganizerinvite")
 }
 
 // Table physique à l’événement
@@ -245,6 +258,8 @@ model Table {
 
   guests Guest[]
   layoutPositions TableLayoutPosition[]
+
+  @@map("table")
 }
 
 model TableLayout {
@@ -259,6 +274,7 @@ model TableLayout {
   activeForEvent Event? @relation("EventActiveLayout")
 
   @@unique([eventId, name])
+  @@map("tablelayout")
 }
 
 model TableLayoutPosition {
@@ -273,6 +289,7 @@ model TableLayoutPosition {
   updatedAt DateTime @updatedAt
 
   @@unique([layoutId, tableId])
+  @@map("tablelayoutposition")
 }
 
 // Invité
@@ -304,6 +321,8 @@ model Guest {
   choices    GuestDrinkChoice[]
   messages   GuestBookMessage[]
   chatMessages EventChatMessage[]
+
+  @@map("guest")
 }
 
 // Invitation numérique (token + QR code)
@@ -321,6 +340,8 @@ model GuestInvitation {
 
   guest   Guest @relation(fields: [guestId], references: [id])
   guestId Int   @unique
+
+  @@map("guestinvitation")
 }
 
 // Options de boissons pour un événement
@@ -334,6 +355,8 @@ model DrinkOption {
   eventId   Int
 
   choices GuestDrinkChoice[]
+
+  @@map("drinkoption")
 }
 
 // Choix de boissons d’un invité
@@ -346,6 +369,8 @@ model GuestDrinkChoice {
 
   drinkOption  DrinkOption  @relation(fields: [drinkOptionId], references: [id])
   drinkOptionId Int
+
+  @@map("guestdrinkchoice")
 }
 
 // Livre d’or
@@ -360,6 +385,8 @@ model GuestBookMessage {
 
   event   Event @relation(fields: [eventId], references: [id])
   eventId Int
+
+  @@map("guestbookmessage")
 }
 
 model GiftItem {
@@ -372,6 +399,8 @@ model GiftItem {
 
   event   Event @relation(fields: [eventId], references: [id])
   eventId Int
+
+  @@map("giftitem")
 }
 
 model EventMemory {
@@ -384,6 +413,8 @@ model EventMemory {
 
   event   Event @relation(fields: [eventId], references: [id])
   eventId Int
+
+  @@map("eventmemory")
 }
 
 model EventChatMessage {
@@ -399,6 +430,8 @@ model EventChatMessage {
 
   guest   Guest? @relation(fields: [guestId], references: [id])
   guestId Int?
+
+  @@map("eventchatmessage")
 }
 
 model EventQuickReply {
@@ -408,6 +441,8 @@ model EventQuickReply {
 
   event   Event @relation(fields: [eventId], references: [id])
   eventId Int
+
+  @@map("eventquickreply")
 }
 
 enum GuestStatus {
