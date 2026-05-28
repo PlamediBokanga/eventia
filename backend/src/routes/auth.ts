@@ -51,6 +51,26 @@ function cleanDate(value: unknown) {
   return date;
 }
 
+function validateStrongPassword(password: string) {
+  const trimmed = password.trim();
+  if (trimmed.length < 10) {
+    return "Le mot de passe doit contenir au moins 10 caracteres.";
+  }
+  if (!/[a-z]/.test(trimmed)) {
+    return "Le mot de passe doit contenir au moins une minuscule.";
+  }
+  if (!/[A-Z]/.test(trimmed)) {
+    return "Le mot de passe doit contenir au moins une majuscule.";
+  }
+  if (!/[0-9]/.test(trimmed)) {
+    return "Le mot de passe doit contenir au moins un chiffre.";
+  }
+  if (!/[^A-Za-z0-9]/.test(trimmed)) {
+    return "Le mot de passe doit contenir au moins un caractere special.";
+  }
+  return null;
+}
+
 function cleanTime(value: unknown) {
   if (typeof value !== "string") return null;
   const cleaned = value.trim();
@@ -291,6 +311,15 @@ authRouter.post("/register", async (req, res) => {
     const password = normalizeString(req.body?.password);
     const name = normalizeString(req.body?.name);
     const phone = cleanPhone(req.body?.phone);
+    const companyName = cleanNullableString(req.body?.companyName, 120);
+    const jobTitle = cleanNullableString(req.body?.jobTitle, 120);
+    const city = cleanNullableString(req.body?.city, 80);
+    const country = cleanNullableString(req.body?.country, 80);
+    const websiteRaw = req.body?.website;
+    const website =
+      websiteRaw === undefined || websiteRaw === null || websiteRaw === ""
+        ? null
+        : cleanWebsite(websiteRaw);
     const referralCode = normalizeString(req.body?.referralCode);
 
     if (!email || !password) {
@@ -298,13 +327,27 @@ authRouter.post("/register", async (req, res) => {
         .status(400)
         .json({ message: "Email et mot de passe sont obligatoires." });
     }
+    if (!name) {
+      return res.status(400).json({ message: "Le nom complet est obligatoire." });
+    }
+    if (!phone) {
+      return res.status(400).json({ message: "Le numero de telephone est obligatoire." });
+    }
+    if (!companyName) {
+      return res.status(400).json({ message: "Le nom de votre organisation est obligatoire." });
+    }
+    if (!country) {
+      return res.status(400).json({ message: "Le pays est obligatoire." });
+    }
+    if (websiteRaw && !website) {
+      return res.status(400).json({ message: "Le site web est invalide. Utilisez http:// ou https://." });
+    }
     if (!email.includes("@") || email.length > 190) {
       return res.status(400).json({ message: "Email invalide." });
     }
-    if (password.length < 6 || password.length > 72) {
-      return res
-        .status(400)
-        .json({ message: "Le mot de passe doit contenir entre 6 et 72 caracteres." });
+    const passwordError = validateStrongPassword(password);
+    if (passwordError) {
+      return res.status(400).json({ message: passwordError });
     }
 
     const existing = await prisma.organizer.findUnique({ where: { email } });
@@ -322,6 +365,11 @@ authRouter.post("/register", async (req, res) => {
         password: hashed,
         name: name || null,
         phone,
+        companyName,
+        jobTitle,
+        city,
+        country,
+        website,
         referralCode: generateReferralCode()
       },
       select: {
@@ -329,6 +377,11 @@ authRouter.post("/register", async (req, res) => {
         email: true,
         name: true,
         phone: true,
+        companyName: true,
+        jobTitle: true,
+        city: true,
+        country: true,
+        website: true,
         referralCode: true
       }
     });
