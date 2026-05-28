@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { API_URL } from "@/lib/config";
-import { AuthShell } from "@/components/auth/AuthShell";
+import { AuthNotice, AuthShell } from "@/components/auth/AuthShell";
 
 export function ForgotPasswordClient() {
   const [email, setEmail] = useState("");
@@ -72,19 +72,18 @@ export function ForgotPasswordClient() {
           />
         </div>
 
-        {message ? (
-          <div className="rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-            {message}
-          </div>
-        ) : null}
+        {message ? <AuthNotice variant="info" title="Demande prise en compte" message={message} /> : null}
 
         {resetUrl ? (
-          <div className="rounded-[18px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-            <p className="font-medium">Lien de reinitialisation disponible</p>
-            <a href={resetUrl} className="mt-2 block break-all font-medium text-emerald-700 underline">
-              {resetUrl}
-            </a>
-          </div>
+          <AuthNotice
+            variant="success"
+            title="Lien de reinitialisation disponible"
+            message={
+              <a href={resetUrl} className="break-all font-medium text-emerald-700 underline">
+                {resetUrl}
+              </a>
+            }
+          />
         ) : null}
 
         <button className="btn-primary w-full justify-center py-3 text-sm" type="submit" disabled={loading}>

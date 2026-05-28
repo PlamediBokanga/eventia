@@ -111,6 +111,58 @@ export function AuthDivider({ label }: { label: string }) {
   );
 }
 
+type AuthNoticeProps = {
+  variant?: "info" | "success" | "warning" | "error";
+  title?: string;
+  message: React.ReactNode;
+  action?: React.ReactNode;
+};
+
+const NOTICE_STYLES: Record<
+  NonNullable<AuthNoticeProps["variant"]>,
+  { shell: string; badge: string; title: string }
+> = {
+  info: {
+    shell: "border-slate-200 bg-slate-50 text-slate-700",
+    badge: "border-slate-200 bg-white text-slate-700",
+    title: "text-slate-900"
+  },
+  success: {
+    shell: "border-emerald-200 bg-emerald-50 text-emerald-900",
+    badge: "border-emerald-200 bg-white text-emerald-800",
+    title: "text-emerald-950"
+  },
+  warning: {
+    shell: "border-amber-200 bg-amber-50 text-amber-900",
+    badge: "border-amber-200 bg-white text-amber-900",
+    title: "text-amber-950"
+  },
+  error: {
+    shell: "border-rose-200 bg-rose-50 text-rose-900",
+    badge: "border-rose-200 bg-white text-rose-900",
+    title: "text-rose-950"
+  }
+};
+
+export function AuthNotice({ variant = "info", title, message, action }: AuthNoticeProps) {
+  const styles = NOTICE_STYLES[variant];
+
+  return (
+    <div className={`rounded-[22px] border px-4 py-4 shadow-[0_14px_30px_rgba(15,23,42,0.04)] ${styles.shell}`}>
+      <div className="flex items-start gap-3">
+        <div className={`mt-0.5 inline-flex rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.28em] ${styles.badge}`}>
+          {variant}
+        </div>
+        <div className="min-w-0 flex-1">
+          {title ? <p className={`text-sm font-semibold ${styles.title}`}>{title}</p> : null}
+          <div className="mt-1 text-sm leading-6">{message}</div>
+          {action ? <div className="mt-3 flex flex-wrap gap-2">{action}</div> : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function GoogleButton({
   href,
   disabled,

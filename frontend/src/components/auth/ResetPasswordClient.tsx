@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { API_URL } from "@/lib/config";
-import { AuthShell } from "@/components/auth/AuthShell";
+import { AuthNotice, AuthShell } from "@/components/auth/AuthShell";
 
 function passwordStrength(password: string) {
   return {
@@ -23,6 +23,7 @@ export function ResetPasswordClient() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [status, setStatus] = useState<"info" | "success" | "warning" | "error">("info");
 
   const strength = passwordStrength(password);
   const strong = Object.values(strength).every(Boolean);
@@ -30,17 +31,21 @@ export function ResetPasswordClient() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setMessage(null);
+    setStatus("info");
 
     if (!token) {
       setMessage("Token de reinitialisation manquant.");
+      setStatus("error");
       return;
     }
     if (!strong) {
       setMessage("Le nouveau mot de passe doit contenir au moins 6 caracteres, une majuscule, une minuscule, un chiffre et un caractere special.");
+      setStatus("warning");
       return;
     }
     if (password !== confirmPassword) {
       setMessage("La confirmation ne correspond pas.");
+      setStatus("warning");
       return;
     }
 
@@ -56,12 +61,15 @@ export function ResetPasswordClient() {
       const data = (await res.json().catch(() => null)) as { message?: string } | null;
       if (!res.ok) {
         setMessage(data?.message || "Impossible de reinitialiser le mot de passe.");
+        setStatus("error");
         return;
       }
       setMessage(data?.message || "Mot de passe mis a jour.");
+      setStatus("success");
     } catch (err) {
       console.error(err);
       setMessage("Impossible de finaliser la reinitialisation.");
+      setStatus("error");
     } finally {
       setLoading(false);
     }
@@ -124,11 +132,7 @@ export function ResetPasswordClient() {
           />
         </div>
 
-        {message ? (
-          <div className="rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-            {message}
-          </div>
-        ) : null}
+        {message ? <AuthNotice variant={status} title="Etat de la reinitialisation" message={message} /> : null}
 
         <button className="btn-primary w-full justify-center py-3 text-sm" type="submit" disabled={loading}>
           {loading ? "Mise a jour..." : "Mettre a jour"}

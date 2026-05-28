@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { saveToken, getToken } from "@/lib/auth";
 import { API_URL } from "@/lib/config";
-import { AuthDivider, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
+import { AuthDivider, AuthNotice, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
 
 type ProvidersResponse = {
   google?: {
@@ -352,26 +352,23 @@ export function RegisterClient() {
               .
             </span>
           </label>
-          {message ? (
-            <div className="rounded-[18px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              {message}
-            </div>
-          ) : null}
+          {message ? <AuthNotice variant="warning" message={message} /> : null}
           {verificationUrl ? (
-            <div className="rounded-[18px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-              <p className="font-medium">Verification email disponible</p>
-              <p className="mt-1 leading-6">
-                Ouvrez le lien pour confirmer votre adresse et finaliser l'activation du compte.
-              </p>
-              <a href={verificationUrl} className="mt-3 inline-flex font-medium text-emerald-700 underline">
-                Ouvrir le lien de verification
-              </a>
-              <div className="mt-2">
-                <Link href="/auth/verify-email" className="font-medium text-emerald-700 underline">
-                  Page de verification
-                </Link>
-              </div>
-            </div>
+            <AuthNotice
+              variant="success"
+              title="Verification email disponible"
+              message="Ouvrez le lien pour confirmer votre adresse et finaliser l'activation du compte."
+              action={
+                <>
+                  <a href={verificationUrl} className="font-medium text-emerald-700 underline">
+                    Ouvrir le lien de verification
+                  </a>
+                  <Link href="/auth/verify-email" className="font-medium text-emerald-700 underline">
+                    Page de verification
+                  </Link>
+                </>
+              }
+            />
           ) : null}
           <button className="btn-primary w-full justify-center py-3 text-sm" type="submit" disabled={loading}>
             {loading ? "Creation du compte..." : "Creer mon espace"}

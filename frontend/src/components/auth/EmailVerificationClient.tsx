@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { API_URL } from "@/lib/config";
-import { AuthShell } from "@/components/auth/AuthShell";
+import { AuthNotice, AuthShell } from "@/components/auth/AuthShell";
 
 type VerificationResponse = {
   message?: string;
@@ -123,10 +123,11 @@ export function EmailVerificationClient() {
     >
       <div className="space-y-4">
         {token ? (
-          <div className={`rounded-[18px] border px-4 py-3 text-sm ${verified ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-slate-200 bg-slate-50 text-slate-700"}`}>
-            <p className="font-medium">{verified ? "Adresse verifiee" : "Verification en cours"}</p>
-            <p className="mt-1 leading-6">{message}</p>
-          </div>
+          <AuthNotice
+            variant={verified ? "success" : "info"}
+            title={verified ? "Adresse verifiee" : "Verification en cours"}
+            message={message || "Traitement en cours..."}
+          />
         ) : (
           <form onSubmit={handleRequest} className="space-y-4">
             <div className="space-y-2">
@@ -142,19 +143,18 @@ export function EmailVerificationClient() {
               />
             </div>
 
-            {message ? (
-              <div className="rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-                {message}
-              </div>
-            ) : null}
+            {message ? <AuthNotice variant="info" message={message} /> : null}
 
             {verificationUrl ? (
-              <div className="rounded-[18px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-                <p className="font-medium">Lien de verification disponible</p>
-                <a href={verificationUrl} className="mt-2 block break-all font-medium text-emerald-700 underline">
-                  {verificationUrl}
-                </a>
-              </div>
+              <AuthNotice
+                variant="success"
+                title="Lien de verification disponible"
+                message={
+                  <a href={verificationUrl} className="break-all font-medium text-emerald-700 underline">
+                    {verificationUrl}
+                  </a>
+                }
+              />
             ) : null}
 
             <button className="btn-primary w-full justify-center py-3 text-sm" type="submit" disabled={loading}>
@@ -164,15 +164,16 @@ export function EmailVerificationClient() {
         )}
 
         {token ? (
-          <div className="rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-            <p className="font-medium text-slate-900">Et ensuite ?</p>
-            <p className="mt-1 leading-6">
-              Une fois l'email confirme, vous pouvez ouvrir la connexion et acceder au dashboard.
-            </p>
-            <Link href="/auth/login" className="mt-3 inline-flex font-medium text-slate-900 underline">
-              Aller a la connexion
-            </Link>
-          </div>
+          <AuthNotice
+            variant="info"
+            title="Et ensuite ?"
+            message="Une fois l'email confirme, vous pouvez ouvrir la connexion et acceder au dashboard."
+            action={
+              <Link href="/auth/login" className="font-medium text-slate-900 underline">
+                Aller a la connexion
+              </Link>
+            }
+          />
         ) : null}
       </div>
     </AuthShell>

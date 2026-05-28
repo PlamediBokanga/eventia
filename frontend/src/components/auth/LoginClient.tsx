@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { saveToken, getToken } from "@/lib/auth";
 import { API_URL } from "@/lib/config";
-import { AuthDivider, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
+import { AuthDivider, AuthNotice, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
 
 type ProvidersResponse = {
   google?: {
@@ -189,11 +189,7 @@ export function LoginClient() {
             </div>
           </div>
 
-          {message ? (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              {message}
-            </div>
-          ) : null}
+          {message ? <AuthNotice variant="warning" message={message} /> : null}
 
           <button className="btn-primary w-full justify-center py-3 text-sm" type="submit" disabled={loading}>
             {loading ? "Connexion en cours..." : "Se connecter"}
@@ -207,27 +203,30 @@ export function LoginClient() {
             paiement.
           </p>
           {verificationEmail ? (
-            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900">
-              <p className="font-medium">Email non verifie</p>
-              <p className="mt-1 text-sm leading-6">
-                Votre compte est cree, mais l'adresse email doit etre verifiee avant la connexion.
-              </p>
-              <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                <Link
-                  href={`/auth/verify-email?email=${encodeURIComponent(verificationEmail)}`}
-                  className="inline-flex items-center justify-center rounded-full border border-amber-300 bg-white px-4 py-2 text-sm font-medium text-amber-900 transition hover:bg-amber-100"
-                >
-                  Ouvrir la verification
-                </Link>
-                {verificationUrl ? (
-                  <a
-                    href={verificationUrl}
-                    className="inline-flex items-center justify-center rounded-full border border-amber-300 bg-white px-4 py-2 text-sm font-medium text-amber-900 transition hover:bg-amber-100"
-                  >
-                    Ouvrir le lien direct
-                  </a>
-                ) : null}
-              </div>
+            <div className="mt-4">
+              <AuthNotice
+                variant="warning"
+                title="Email non verifie"
+                message="Votre compte est cree, mais l'adresse email doit etre confirmee avant la connexion."
+                action={
+                  <>
+                    <Link
+                      href={`/auth/verify-email?email=${encodeURIComponent(verificationEmail)}`}
+                      className="inline-flex items-center justify-center rounded-full border border-amber-300 bg-white px-4 py-2 text-sm font-medium text-amber-900 transition hover:bg-amber-100"
+                    >
+                      Ouvrir la verification
+                    </Link>
+                    {verificationUrl ? (
+                      <a
+                        href={verificationUrl}
+                        className="inline-flex items-center justify-center rounded-full border border-amber-300 bg-white px-4 py-2 text-sm font-medium text-amber-900 transition hover:bg-amber-100"
+                      >
+                        Ouvrir le lien direct
+                      </a>
+                    ) : null}
+                  </>
+                }
+              />
             </div>
           ) : null}
           <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
