@@ -8,7 +8,7 @@ import { AuthShell } from "@/components/auth/AuthShell";
 
 function passwordStrength(password: string) {
   return {
-    length: password.trim().length >= 10,
+    length: password.trim().length >= 6,
     lower: /[a-z]/.test(password),
     upper: /[A-Z]/.test(password),
     digit: /[0-9]/.test(password),
@@ -36,7 +36,7 @@ export function ResetPasswordClient() {
       return;
     }
     if (!strong) {
-      setMessage("Le nouveau mot de passe doit etre fort et respecter toutes les regles.");
+      setMessage("Le nouveau mot de passe doit contenir au moins 6 caracteres, une majuscule, une minuscule, un chiffre et un caractere special.");
       return;
     }
     if (password !== confirmPassword) {
@@ -75,7 +75,7 @@ export function ResetPasswordClient() {
       sideTitle="Reprenez l'accès avec un nouveau secret solide."
       sideCopy="Le token de reinitialisation est temporaire. Une fois le mot de passe change, l'ancien acces doit etre considere comme invalide."
       sideStats={[
-        { value: "10+", label: "Caracteres minimum" },
+        { value: "6+", label: "Caracteres minimum" },
         { value: "JWT", label: "Jeton temporaire et signé" },
         { value: "Secure", label: "Mise a jour propre du mot de passe" }
       ]}
@@ -98,12 +98,12 @@ export function ResetPasswordClient() {
             className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            placeholder="Au moins 10 caracteres"
+            placeholder="Au moins 6 caracteres"
             required
           />
         </div>
         <div className="grid gap-2 text-[11px] text-slate-500 md:grid-cols-2">
-          <span className={strength.length ? "text-emerald-700" : ""}>10+ caracteres</span>
+          <span className={strength.length ? "text-emerald-700" : ""}>6+ caracteres</span>
           <span className={strength.upper ? "text-emerald-700" : ""}>1 majuscule</span>
           <span className={strength.lower ? "text-emerald-700" : ""}>1 minuscule</span>
           <span className={strength.digit ? "text-emerald-700" : ""}>1 chiffre</span>

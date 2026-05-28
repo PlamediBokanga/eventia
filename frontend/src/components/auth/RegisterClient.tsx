@@ -37,7 +37,7 @@ export function RegisterClient() {
   const googleHref = useMemo(() => `${API_URL}/auth/google?mode=register`, []);
   const passwordChecks = useMemo(
     () => ({
-      length: password.trim().length >= 10,
+      length: password.trim().length >= 6,
       lower: /[a-z]/.test(password),
       upper: /[A-Z]/.test(password),
       digit: /[0-9]/.test(password),
@@ -97,7 +97,7 @@ export function RegisterClient() {
       return;
     }
     if (!passwordIsStrong) {
-      setMessage("Le mot de passe doit contenir au moins 10 caracteres, une majuscule, une minuscule, un chiffre et un caractere special.");
+      setMessage("Le mot de passe doit contenir au moins 6 caracteres, une majuscule, une minuscule, un chiffre et un caractere special.");
       return;
     }
     if (password !== confirmPassword) {
@@ -299,7 +299,7 @@ export function RegisterClient() {
                   className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 pr-16 text-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="Au moins 10 caracteres"
+                  placeholder="Au moins 6 caracteres"
                   required
                 />
                 <button
@@ -311,7 +311,7 @@ export function RegisterClient() {
                 </button>
               </div>
               <div className="grid gap-2 pt-1 text-[11px] text-slate-500 md:grid-cols-2">
-                <span className={passwordChecks.length ? "text-emerald-700" : ""}>10+ caracteres</span>
+                <span className={passwordChecks.length ? "text-emerald-700" : ""}>6+ caracteres</span>
                 <span className={passwordChecks.upper ? "text-emerald-700" : ""}>1 majuscule</span>
                 <span className={passwordChecks.lower ? "text-emerald-700" : ""}>1 minuscule</span>
                 <span className={passwordChecks.digit ? "text-emerald-700" : ""}>1 chiffre</span>

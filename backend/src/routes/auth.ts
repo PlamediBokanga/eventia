@@ -54,8 +54,8 @@ function cleanDate(value: unknown) {
 
 function validateStrongPassword(password: string) {
   const trimmed = password.trim();
-  if (trimmed.length < 10) {
-    return "Le mot de passe doit contenir au moins 10 caracteres.";
+  if (trimmed.length < 6) {
+    return "Le mot de passe doit contenir au moins 6 caracteres.";
   }
   if (!/[a-z]/.test(trimmed)) {
     return "Le mot de passe doit contenir au moins une minuscule.";
