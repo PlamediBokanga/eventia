@@ -5,6 +5,7 @@ import { prisma } from "../prisma";
 import type { AuthRequest } from "../middleware/auth";
 import { authMiddleware, signToken } from "../middleware/auth";
 import { createSimpleRateLimiter } from "../middleware/rateLimit";
+import jwt from "jsonwebtoken";
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
@@ -161,6 +162,21 @@ function generateRandomPassword() {
   return crypto.randomBytes(24).toString("hex");
 }
 
+const PASSWORD_RESET_SECRET =
+  process.env.PASSWORD_RESET_SECRET || process.env.JWT_SECRET || "dev-secret-change-me";
+
+function signPasswordResetToken(payload: { id: number; email: string }) {
+  return jwt.sign(payload, PASSWORD_RESET_SECRET, { expiresIn: "30m" });
+}
+
+function verifyPasswordResetToken(token: string) {
+  return jwt.verify(token, PASSWORD_RESET_SECRET) as { id: number; email: string };
+}
+
+function passwordResetLink(token: string) {
+  return `${frontendBaseUrl()}/auth/reset-password?token=${encodeURIComponent(token)}`;
+}
+
 type GoogleUserInfo = {
   sub?: string;
   email?: string;
@@ -214,6 +230,80 @@ authRouter.get("/providers", (_req, res) => {
       enabled: isGoogleAuthConfigured()
     }
   });
+});
+
+authRouter.post("/password/forgot", async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body?.email);
+    if (!email) {
+      return res.status(400).json({ message: "Email invalide." });
+    }
+
+    const organizer = await prisma.organizer.findUnique({
+      where: { email },
+      select: { id: true, email: true }
+    });
+
+    if (!organizer) {
+      return res.json({
+        message: "Si un compte existe, un lien de reinitialisation sera envoye."
+      });
+    }
+
+    const token = signPasswordResetToken({ id: organizer.id, email: organizer.email });
+    const resetUrl = passwordResetLink(token);
+    const shouldReturnLink =
+      process.env.PASSWORD_RESET_RETURN_LINK === "true" || process.env.NODE_ENV !== "production";
+
+    return res.json({
+      message: "Si un compte existe, un lien de reinitialisation a ete prepare.",
+      ...(shouldReturnLink ? { resetUrl } : {})
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Impossible de preparer la reinitialisation." });
+  }
+});
+
+authRouter.post("/password/reset", async (req, res) => {
+  try {
+    const token = normalizeString(req.body?.token);
+    const password = normalizeString(req.body?.password);
+
+    if (!token || !password) {
+      return res.status(400).json({ message: "Token et mot de passe sont obligatoires." });
+    }
+
+    const passwordError = validateStrongPassword(password);
+    if (passwordError) {
+      return res.status(400).json({ message: passwordError });
+    }
+
+    const payload = verifyPasswordResetToken(token);
+    const organizer = await prisma.organizer.findUnique({
+      where: { id: payload.id },
+      select: { id: true, email: true }
+    });
+
+    if (!organizer || organizer.email !== payload.email) {
+      return res.status(400).json({ message: "Lien de reinitialisation invalide." });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+    await prisma.organizer.update({
+      where: { id: organizer.id },
+      data: {
+        password: hashed,
+        failedLoginCount: 0,
+        lockUntil: null
+      }
+    });
+
+    return res.json({ message: "Mot de passe mis a jour avec succes." });
+  } catch (err) {
+    console.error(err);
+    return res.status(400).json({ message: "Lien de reinitialisation invalide ou expire." });
+  }
 });
 
 authRouter.get("/google", (req, res) => {

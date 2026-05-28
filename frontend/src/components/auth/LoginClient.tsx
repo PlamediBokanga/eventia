@@ -189,6 +189,15 @@ export function LoginClient() {
             Votre session donne acces au dashboard organisateur, aux statistiques, au check-in et aux operations de
             paiement.
           </p>
+          <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+            <Link href="/auth/forgot-password" className="font-medium text-slate-900 hover:text-accent">
+              Mot de passe oublié
+            </Link>
+            <span className="text-slate-300">•</span>
+            <Link href="/auth/register" className="font-medium text-slate-900 hover:text-accent">
+              Ouvrir un nouveau compte
+            </Link>
+          </div>
         </div>
       </div>
     </AuthShell>
