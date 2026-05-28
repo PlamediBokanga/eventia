@@ -183,8 +183,8 @@ export function LoginClient() {
           </button>
         </form>
 
-        <div className="rounded-2xl border border-primary/10 bg-primary/[0.03] px-4 py-4 text-sm text-text/65">
-          <p className="font-medium text-text">Connexion professionnelle</p>
+        <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+          <p className="font-medium text-slate-900">Connexion professionnelle</p>
           <p className="mt-1 leading-6">
             Votre session donne acces au dashboard organisateur, aux statistiques, au check-in et aux operations de
             paiement.

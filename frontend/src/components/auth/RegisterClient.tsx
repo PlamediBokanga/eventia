@@ -112,13 +112,13 @@ export function RegisterClient() {
   return (
     <AuthShell
       eyebrow="Lancement de compte"
-      title="Creez un compte organisateur moderne."
-      description="Mettez votre espace EVENTIA en place en quelques minutes, avec un parcours d'inscription plus propre, plus clair et pret pour un usage commercial."
-      sideTitle="Passez d'une simple inscription a une vraie experience produit."
-      sideCopy="Vos organisateurs doivent se sentir en confiance des le premier ecran. Nous posons ici une base plus professionnelle pour l'acquisition, l'activation et bientot le social sign-in."
+      title="Creez un compte organisateur."
+      description="Une inscription claire, sobre et structuree pour les utilisateurs qui se connectent a un vrai produit, pas a une demo."
+      sideTitle="Un onboarding plus serieux, plus lisible, plus aligné avec une plateforme premium."
+      sideCopy="Nous gardons un parcours direct, mais le traitement visuel et les interactions doivent inspirer confiance des la premiere seconde."
       sideStats={[
         { value: "1", label: "Compte, dashboard et session actives en un seul flux" },
-        { value: "Pro", label: "Validation claire et message d'erreur plus propres" },
+        { value: "Pro", label: "Messages d'erreur et validation plus propres" },
         { value: "SSO", label: "Base prete pour Google Sign-In et extensions futures" }
       ]}
       footer={

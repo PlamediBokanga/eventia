@@ -24,57 +24,76 @@ export function AuthShell({
   footer
 }: AuthShellProps) {
   return (
-    <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(188,221,255,0.65),_transparent_28%),linear-gradient(135deg,_#f7f4ec_0%,_#e7efe9_48%,_#d7e5f4_100%)] px-4 py-8 md:px-6 md:py-10">
-      <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-6xl overflow-hidden rounded-[32px] border border-white/60 bg-white/70 shadow-[0_30px_100px_rgba(15,23,42,0.12)] backdrop-blur xl:grid-cols-[1.06fr,0.94fr]">
-        <section className="relative hidden overflow-hidden bg-[linear-gradient(160deg,_rgba(10,37,64,0.98)_0%,_rgba(16,83,127,0.94)_48%,_rgba(42,122,126,0.92)_100%)] px-10 py-12 text-white xl:flex xl:flex-col">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,_rgba(255,255,255,0.16),_transparent_24%),radial-gradient(circle_at_85%_18%,_rgba(255,220,150,0.2),_transparent_18%),radial-gradient(circle_at_55%_72%,_rgba(105,210,231,0.18),_transparent_25%)]" />
+    <main className="relative min-h-screen overflow-hidden bg-[#f4f5f7] px-4 py-6 md:px-6 md:py-8">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.035)_1px,transparent_1px)] bg-[size:34px_34px] opacity-40" />
+      <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-7xl overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] xl:grid-cols-[1.08fr,0.92fr]">
+        <section className="relative hidden overflow-hidden bg-[linear-gradient(165deg,_#0f172a_0%,_#111c2d_40%,_#15293e_100%)] px-10 py-10 text-white xl:flex xl:flex-col">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_24%),radial-gradient(circle_at_85%_15%,rgba(255,255,255,0.05),transparent_18%),radial-gradient(circle_at_50%_80%,rgba(148,163,184,0.08),transparent_26%)]" />
           <div className="relative z-10 flex items-center justify-between">
-            <Link href="/" className="font-heading text-lg tracking-[0.24em] text-white/90">
+            <Link href="/" className="font-heading text-lg tracking-[0.28em] text-white/90">
               EVENTIA
             </Link>
-            <span className="rounded-full border border-white/20 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-white/70">
-              Suite organisateur
+            <span className="rounded-full border border-white/15 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-white/65">
+              Organisateur
             </span>
           </div>
 
-          <div className="relative z-10 mt-20 max-w-xl space-y-6">
-            <p className="text-[11px] uppercase tracking-[0.32em] text-white/60">{eyebrow}</p>
+          <div className="relative z-10 mt-20 max-w-xl space-y-5">
+            <p className="text-[11px] uppercase tracking-[0.35em] text-white/50">{eyebrow}</p>
             <h1 className="font-heading text-5xl leading-[1.02] text-white">{sideTitle}</h1>
-            <p className="max-w-lg text-base leading-7 text-white/78">{sideCopy}</p>
+            <p className="max-w-lg text-[15px] leading-7 text-slate-300">{sideCopy}</p>
           </div>
 
-          <div className="relative z-10 mt-auto grid gap-4 md:grid-cols-3">
+          <div className="relative z-10 mt-12 grid gap-3">
+            <div className="rounded-[24px] border border-white/10 bg-white/5 p-5">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-white/45">Ce que vos utilisateurs voient</p>
+              <div className="mt-4 grid gap-3 text-sm text-slate-200 md:grid-cols-2">
+                <div className="rounded-2xl border border-white/10 bg-black/10 px-4 py-3">
+                  Parcours clair
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-black/10 px-4 py-3">
+                  Sessions securisees
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-black/10 px-4 py-3">
+                  Google Sign-In
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-black/10 px-4 py-3">
+                  Redirection propre
+                </div>
+              </div>
+            </div>
+
             {sideStats.map(item => (
               <div
                 key={item.label}
-                className="rounded-3xl border border-white/14 bg-white/8 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+                className="rounded-[22px] border border-white/10 bg-white/5 p-5"
               >
-                <p className="text-3xl font-semibold text-white">{item.value}</p>
-                <p className="mt-2 text-sm leading-6 text-white/65">{item.label}</p>
+                <p className="text-[22px] font-semibold tracking-tight text-white">{item.value}</p>
+                <p className="mt-1 text-sm leading-6 text-slate-300">{item.label}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="flex items-center justify-center px-4 py-8 md:px-8 xl:px-12">
-          <div className="w-full max-w-xl">
+        <section className="flex items-center justify-center bg-[#fbfbfc] px-4 py-8 md:px-8 xl:px-12">
+          <div className="w-full max-w-[560px]">
             <div className="mb-8 xl:hidden">
-              <Link href="/" className="font-heading text-lg tracking-[0.22em] text-text">
+              <Link href="/" className="font-heading text-lg tracking-[0.28em] text-slate-900">
                 EVENTIA
               </Link>
             </div>
 
-            <div className="mb-8 space-y-3">
-              <p className="text-[11px] uppercase tracking-[0.28em] text-primary/55">{eyebrow}</p>
-              <h2 className="font-heading text-4xl leading-tight text-text md:text-5xl">{title}</h2>
-              <p className="max-w-lg text-sm leading-7 text-text/68 md:text-base">{description}</p>
+            <div className="mb-8 space-y-4">
+              <p className="text-[11px] uppercase tracking-[0.35em] text-slate-500">{eyebrow}</p>
+              <h2 className="font-heading text-4xl leading-tight text-slate-900 md:text-[3.35rem]">{title}</h2>
+              <p className="max-w-xl text-[15px] leading-7 text-slate-600">{description}</p>
             </div>
 
-            <div className="rounded-[28px] border border-primary/10 bg-white/88 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)] md:p-7">
+            <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_16px_35px_rgba(15,23,42,0.05)] md:p-7">
               {children}
             </div>
 
-            <div className="mt-5 text-sm text-text/68">{footer}</div>
+            <div className="mt-5 text-sm text-slate-600">{footer}</div>
           </div>
         </section>
       </div>
@@ -85,9 +104,9 @@ export function AuthShell({
 export function AuthDivider({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3 py-1">
-      <div className="h-px flex-1 bg-primary/10" />
-      <span className="text-[11px] uppercase tracking-[0.24em] text-text/45">{label}</span>
-      <div className="h-px flex-1 bg-primary/10" />
+      <div className="h-px flex-1 bg-slate-200" />
+      <span className="text-[11px] uppercase tracking-[0.26em] text-slate-500">{label}</span>
+      <div className="h-px flex-1 bg-slate-200" />
     </div>
   );
 }
@@ -102,11 +121,11 @@ export function GoogleButton({
   label: string;
 }) {
   const commonClassName =
-    "flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm";
+    "flex w-full items-center justify-center gap-3 rounded-[18px] border border-slate-200 bg-white px-4 py-3.5 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50";
 
   const content = (
     <>
-      <span className="grid h-8 w-8 place-items-center rounded-full bg-slate-50">
+      <span className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white">
         <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
           <path
             fill="#EA4335"
