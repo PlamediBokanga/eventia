@@ -13,6 +13,14 @@ type ProvidersResponse = {
   };
 };
 
+type LoginResponse = {
+  message?: string;
+  token?: string;
+  code?: string;
+  verificationRequired?: boolean;
+  verificationUrl?: string;
+};
+
 function resolveLoginError(errorCode: string | null) {
   switch (errorCode) {
     case "google_not_configured":
@@ -37,6 +45,8 @@ export function LoginClient() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(resolveLoginError(searchParams.get("error")));
   const [googleEnabled, setGoogleEnabled] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
 
   const googleHref = useMemo(() => `${API_URL}/auth/google?mode=login`, []);
 
@@ -81,10 +91,17 @@ export function LoginClient() {
         })
       });
 
-      const data = (await res.json().catch(() => null)) as { message?: string; token?: string } | null;
+      const data = (await res.json().catch(() => null)) as LoginResponse | null;
 
       if (!res.ok) {
         setMessage(data?.message || "Connexion impossible pour le moment.");
+        if (data?.code === "EMAIL_NOT_VERIFIED" || data?.verificationRequired) {
+          setVerificationEmail(email.trim());
+          setVerificationUrl(data?.verificationUrl || null);
+        } else {
+          setVerificationEmail("");
+          setVerificationUrl(null);
+        }
         return;
       }
 
@@ -189,9 +206,33 @@ export function LoginClient() {
             Votre session donne acces au dashboard organisateur, aux statistiques, au check-in et aux operations de
             paiement.
           </p>
+          {verificationEmail ? (
+            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900">
+              <p className="font-medium">Email non verifie</p>
+              <p className="mt-1 text-sm leading-6">
+                Votre compte est cree, mais l'adresse email doit etre verifiee avant la connexion.
+              </p>
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                <Link
+                  href={`/auth/verify-email?email=${encodeURIComponent(verificationEmail)}`}
+                  className="inline-flex items-center justify-center rounded-full border border-amber-300 bg-white px-4 py-2 text-sm font-medium text-amber-900 transition hover:bg-amber-100"
+                >
+                  Ouvrir la verification
+                </Link>
+                {verificationUrl ? (
+                  <a
+                    href={verificationUrl}
+                    className="inline-flex items-center justify-center rounded-full border border-amber-300 bg-white px-4 py-2 text-sm font-medium text-amber-900 transition hover:bg-amber-100"
+                  >
+                    Ouvrir le lien direct
+                  </a>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
           <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
             <Link href="/auth/forgot-password" className="font-medium text-slate-900 hover:text-accent">
-              Mot de passe oublié
+              Mot de passe oublie
             </Link>
             <span className="text-slate-300">•</span>
             <Link href="/auth/register" className="font-medium text-slate-900 hover:text-accent">

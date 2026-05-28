@@ -17,6 +17,7 @@ model Organizer {
   password  String
   name      String?
   phone     String?
+  emailVerifiedAt DateTime?
   avatarUrl String?
   securityAlerts Boolean @default(true)
   failedLoginCount Int @default(0)

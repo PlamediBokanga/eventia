@@ -79,6 +79,14 @@ function cleanTime(value: unknown) {
   return cleaned;
 }
 
+function shouldRequireEmailVerification() {
+  return process.env.AUTH_REQUIRE_EMAIL_VERIFICATION === "true";
+}
+
+function shouldReturnVerificationLink() {
+  return process.env.EMAIL_VERIFICATION_RETURN_LINK === "true" || process.env.NODE_ENV !== "production";
+}
+
 function cleanAvatarUrl(value: unknown) {
   const cleaned = cleanNullableString(value, 500);
   if (!cleaned) return null;
@@ -175,6 +183,21 @@ function verifyPasswordResetToken(token: string) {
 
 function passwordResetLink(token: string) {
   return `${frontendBaseUrl()}/auth/reset-password?token=${encodeURIComponent(token)}`;
+}
+
+const EMAIL_VERIFICATION_SECRET =
+  process.env.EMAIL_VERIFICATION_SECRET || process.env.JWT_SECRET || "dev-secret-change-me";
+
+function signEmailVerificationToken(payload: { id: number; email: string }) {
+  return jwt.sign(payload, EMAIL_VERIFICATION_SECRET, { expiresIn: "24h" });
+}
+
+function verifyEmailVerificationToken(token: string) {
+  return jwt.verify(token, EMAIL_VERIFICATION_SECRET) as { id: number; email: string };
+}
+
+function emailVerificationLink(token: string) {
+  return `${frontendBaseUrl()}/auth/verify-email?token=${encodeURIComponent(token)}`;
 }
 
 type GoogleUserInfo = {
@@ -306,6 +329,68 @@ authRouter.post("/password/reset", async (req, res) => {
   }
 });
 
+authRouter.post("/email/verification/request", async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body?.email);
+    if (!email) {
+      return res.status(400).json({ message: "Email invalide." });
+    }
+
+    const organizer = await prisma.organizer.findUnique({
+      where: { email },
+      select: { id: true, email: true, emailVerifiedAt: true }
+    });
+
+    if (!organizer || organizer.emailVerifiedAt) {
+      return res.json({
+        message: "Si un compte existe, un lien de verification sera prepare."
+      });
+    }
+
+    const token = signEmailVerificationToken({ id: organizer.id, email: organizer.email });
+    const verificationUrl = emailVerificationLink(token);
+
+    return res.json({
+      message: "Si un compte existe, un lien de verification a ete prepare.",
+      ...(shouldReturnVerificationLink() ? { verificationUrl } : {})
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Impossible de preparer la verification email." });
+  }
+});
+
+authRouter.post("/email/verify", async (req, res) => {
+  try {
+    const token = normalizeString(req.body?.token);
+    if (!token) {
+      return res.status(400).json({ message: "Token de verification manquant." });
+    }
+
+    const payload = verifyEmailVerificationToken(token);
+    const organizer = await prisma.organizer.findUnique({
+      where: { id: payload.id },
+      select: { id: true, email: true, emailVerifiedAt: true }
+    });
+
+    if (!organizer || organizer.email !== payload.email) {
+      return res.status(400).json({ message: "Lien de verification invalide." });
+    }
+
+    if (!organizer.emailVerifiedAt) {
+      await prisma.organizer.update({
+        where: { id: organizer.id },
+        data: { emailVerifiedAt: new Date() }
+      });
+    }
+
+    return res.json({ message: "Adresse email verifiee avec succes." });
+  } catch (err) {
+    console.error(err);
+    return res.status(400).json({ message: "Lien de verification invalide ou expire." });
+  }
+});
+
 authRouter.get("/google", (req, res) => {
   if (!isGoogleAuthConfigured()) {
     return res.redirect(
@@ -354,7 +439,8 @@ authRouter.get("/google/callback", async (req, res) => {
         id: true,
         email: true,
         name: true,
-        phone: true
+        phone: true,
+        emailVerifiedAt: true
       }
     });
 
@@ -366,18 +452,32 @@ authRouter.get("/google/callback", async (req, res) => {
           password: hashed,
           name: cleanNullableString(googleUser.name, 120),
           avatarUrl: cleanAvatarUrl(googleUser.picture),
-          referralCode: generateReferralCode()
+          referralCode: generateReferralCode(),
+          emailVerifiedAt: new Date()
         },
         select: {
           id: true,
           email: true,
           name: true,
-          phone: true
+          phone: true,
+          emailVerifiedAt: true
+        }
+      });
+    } else if (!organizer.emailVerifiedAt) {
+      await prisma.organizer.update({
+        where: { id: organizer.id },
+        data: {
+          emailVerifiedAt: new Date()
         }
       });
     }
 
-    const token = signToken({ id: organizer.id, email: organizer.email });
+    const activeOrganizer = organizer;
+    if (!activeOrganizer) {
+      throw new Error("Google organizer creation failed.");
+    }
+
+    const token = signToken({ id: activeOrganizer.id, email: activeOrganizer.email });
     return res.redirect(
       authRedirectUrl("/auth/callback", {
         token,
@@ -448,6 +548,7 @@ authRouter.post("/register", async (req, res) => {
     }
 
     const hashed = await bcrypt.hash(password, 10);
+    const requireVerification = shouldRequireEmailVerification();
 
     const organizer = await prisma.organizer.create({
       data: {
@@ -460,7 +561,8 @@ authRouter.post("/register", async (req, res) => {
         city,
         country,
         website,
-        referralCode: generateReferralCode()
+        referralCode: generateReferralCode(),
+        emailVerifiedAt: requireVerification ? null : new Date()
       },
       select: {
         id: true,
@@ -472,7 +574,8 @@ authRouter.post("/register", async (req, res) => {
         city: true,
         country: true,
         website: true,
-        referralCode: true
+        referralCode: true,
+        emailVerifiedAt: true
       }
     });
 
@@ -490,6 +593,22 @@ authRouter.post("/register", async (req, res) => {
           }
         });
       }
+    }
+
+    if (requireVerification) {
+      const verificationToken = signEmailVerificationToken({
+        id: organizer.id,
+        email: organizer.email
+      });
+
+      return res.status(201).json({
+        organizer,
+        verificationRequired: true,
+        message: "Compte cree. Verifiez votre email pour activer l'acces.",
+        ...(shouldReturnVerificationLink()
+          ? { verificationUrl: emailVerificationLink(verificationToken) }
+          : {})
+      });
     }
 
     const token = signToken({ id: organizer.id, email: organizer.email });
@@ -545,6 +664,21 @@ authRouter.post("/login", async (req, res) => {
         })
         .catch(() => undefined);
       return res.status(401).json({ message: "Identifiants invalides." });
+    }
+
+    if (shouldRequireEmailVerification() && !organizer.emailVerifiedAt) {
+      const verificationToken = signEmailVerificationToken({
+        id: organizer.id,
+        email: organizer.email
+      });
+      return res.status(403).json({
+        message: "Votre email doit etre verifie avant la connexion.",
+        code: "EMAIL_NOT_VERIFIED",
+        verificationRequired: true,
+        ...(shouldReturnVerificationLink()
+          ? { verificationUrl: emailVerificationLink(verificationToken) }
+          : {})
+      });
     }
 
     if (organizer.lockUntil && organizer.lockUntil.getTime() > Date.now()) {

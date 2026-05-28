@@ -32,6 +32,7 @@ export function RegisterClient() {
   const [loading, setLoading] = useState(false);
   const [googleEnabled, setGoogleEnabled] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
 
   const googleHref = useMemo(() => `${API_URL}/auth/google?mode=register`, []);
   const passwordChecks = useMemo(
@@ -73,6 +74,7 @@ export function RegisterClient() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setMessage(null);
+    setVerificationUrl(null);
 
     if (!acceptTerms) {
       setMessage("Vous devez accepter les conditions d'utilisation pour creer un compte.");
@@ -124,7 +126,12 @@ export function RegisterClient() {
         })
       });
 
-      const data = (await res.json().catch(() => null)) as { message?: string; token?: string } | null;
+      const data = (await res.json().catch(() => null)) as {
+        message?: string;
+        token?: string;
+        verificationRequired?: boolean;
+        verificationUrl?: string;
+      } | null;
 
       if (!res.ok) {
         setMessage(data?.message || "Erreur lors de la creation du compte.");
@@ -132,7 +139,10 @@ export function RegisterClient() {
       }
 
       if (!data?.token) {
-        setMessage("Compte cree, mais la session n'a pas pu etre initialisee.");
+        setMessage(data?.message || "Compte cree. Verifiez votre email pour activer l'acces.");
+        if (data?.verificationRequired) {
+          setVerificationUrl(data?.verificationUrl || null);
+        }
         return;
       }
 
@@ -345,6 +355,22 @@ export function RegisterClient() {
           {message ? (
             <div className="rounded-[18px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
               {message}
+            </div>
+          ) : null}
+          {verificationUrl ? (
+            <div className="rounded-[18px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+              <p className="font-medium">Verification email disponible</p>
+              <p className="mt-1 leading-6">
+                Ouvrez le lien pour confirmer votre adresse et finaliser l'activation du compte.
+              </p>
+              <a href={verificationUrl} className="mt-3 inline-flex font-medium text-emerald-700 underline">
+                Ouvrir le lien de verification
+              </a>
+              <div className="mt-2">
+                <Link href="/auth/verify-email" className="font-medium text-emerald-700 underline">
+                  Page de verification
+                </Link>
+              </div>
             </div>
           ) : null}
           <button className="btn-primary w-full justify-center py-3 text-sm" type="submit" disabled={loading}>
