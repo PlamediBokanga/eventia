@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { API_URL } from "@/lib/config";
-import { AuthNotice, AuthShell } from "@/components/auth/AuthShell";
+import { AuthActionBox, AuthNotice, AuthShell } from "@/components/auth/AuthShell";
 
 export function ForgotPasswordClient() {
   const [email, setEmail] = useState("");
@@ -75,14 +75,14 @@ export function ForgotPasswordClient() {
         {message ? <AuthNotice variant="info" title="Demande prise en compte" message={message} /> : null}
 
         {resetUrl ? (
-          <AuthNotice
+          <AuthActionBox
             variant="success"
             title="Lien de reinitialisation disponible"
-            message={
-              <a href={resetUrl} className="break-all font-medium text-emerald-700 underline">
-                {resetUrl}
-              </a>
-            }
+            message="Utilisez ce lien pour ouvrir la page de changement de mot de passe."
+            primaryLabel="Ouvrir la reinitialisation"
+            primaryHref={resetUrl}
+            secondaryLabel="Retour a la connexion"
+            secondaryHref="/auth/login"
           />
         ) : null}
 

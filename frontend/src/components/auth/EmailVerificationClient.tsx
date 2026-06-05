@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { API_URL } from "@/lib/config";
-import { AuthNotice, AuthShell } from "@/components/auth/AuthShell";
+import { AuthActionBox, AuthNotice, AuthShell } from "@/components/auth/AuthShell";
 
 type VerificationResponse = {
   message?: string;
@@ -123,10 +123,14 @@ export function EmailVerificationClient() {
     >
       <div className="space-y-4">
         {token ? (
-          <AuthNotice
+          <AuthActionBox
             variant={verified ? "success" : "info"}
             title={verified ? "Adresse verifiee" : "Verification en cours"}
             message={message || "Traitement en cours..."}
+            primaryLabel={verified ? "Ouvrir la connexion" : "Retour a la connexion"}
+            primaryHref="/auth/login"
+            secondaryLabel="Actualiser"
+            onSecondaryClick={() => window.location.reload()}
           />
         ) : (
           <form onSubmit={handleRequest} className="space-y-4">
@@ -146,14 +150,14 @@ export function EmailVerificationClient() {
             {message ? <AuthNotice variant="info" message={message} /> : null}
 
             {verificationUrl ? (
-              <AuthNotice
+              <AuthActionBox
                 variant="success"
                 title="Lien de verification disponible"
-                message={
-                  <a href={verificationUrl} className="break-all font-medium text-emerald-700 underline">
-                    {verificationUrl}
-                  </a>
-                }
+                message="Ouvrez le lien pour confirmer votre email."
+                primaryLabel="Ouvrir le lien"
+                primaryHref={verificationUrl}
+                secondaryLabel="Retour au login"
+                secondaryHref="/auth/login"
               />
             ) : null}
 
@@ -163,16 +167,13 @@ export function EmailVerificationClient() {
           </form>
         )}
 
-        {token ? (
-          <AuthNotice
+        {token && !verified ? (
+          <AuthActionBox
             variant="info"
             title="Et ensuite ?"
             message="Une fois l'email confirme, vous pouvez ouvrir la connexion et acceder au dashboard."
-            action={
-              <Link href="/auth/login" className="font-medium text-slate-900 underline">
-                Aller a la connexion
-              </Link>
-            }
+            primaryLabel="Aller a la connexion"
+            primaryHref="/auth/login"
           />
         ) : null}
       </div>

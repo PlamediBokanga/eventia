@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { saveToken, getToken } from "@/lib/auth";
 import { API_URL } from "@/lib/config";
-import { AuthDivider, AuthNotice, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
+import { AuthActionBox, AuthDivider, AuthNotice, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
 
 type ProvidersResponse = {
   google?: {
@@ -354,20 +354,14 @@ export function RegisterClient() {
           </label>
           {message ? <AuthNotice variant="warning" message={message} /> : null}
           {verificationUrl ? (
-            <AuthNotice
+            <AuthActionBox
               variant="success"
               title="Verification email disponible"
               message="Ouvrez le lien pour confirmer votre adresse et finaliser l'activation du compte."
-              action={
-                <>
-                  <a href={verificationUrl} className="font-medium text-emerald-700 underline">
-                    Ouvrir le lien de verification
-                  </a>
-                  <Link href="/auth/verify-email" className="font-medium text-emerald-700 underline">
-                    Page de verification
-                  </Link>
-                </>
-              }
+              primaryLabel="Ouvrir le lien de verification"
+              primaryHref={verificationUrl}
+              secondaryLabel="Page de verification"
+              secondaryHref="/auth/verify-email"
             />
           ) : null}
           <button className="btn-primary w-full justify-center py-3 text-sm" type="submit" disabled={loading}>

@@ -163,6 +163,84 @@ export function AuthNotice({ variant = "info", title, message, action }: AuthNot
   );
 }
 
+type AuthActionBoxProps = {
+  variant?: "info" | "success" | "warning" | "error";
+  title: string;
+  message: React.ReactNode;
+  primaryLabel: string;
+  onPrimaryClick?: () => void;
+  primaryHref?: string;
+  secondaryLabel?: string;
+  secondaryHref?: string;
+  onSecondaryClick?: () => void;
+};
+
+export function AuthActionBox({
+  variant = "info",
+  title,
+  message,
+  primaryLabel,
+  onPrimaryClick,
+  primaryHref,
+  secondaryLabel,
+  secondaryHref,
+  onSecondaryClick
+}: AuthActionBoxProps) {
+  const styles = NOTICE_STYLES[variant];
+  const buttonClass =
+    "inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-4";
+
+  return (
+    <div className={`overflow-hidden rounded-[24px] border shadow-[0_18px_40px_rgba(15,23,42,0.06)] ${styles.shell}`}>
+      <div className="flex items-start gap-4 px-4 py-4 sm:px-5">
+        <div className={`mt-0.5 grid h-11 w-11 place-items-center rounded-2xl border ${styles.badge}`}>
+          <span className="text-sm font-bold uppercase tracking-[0.18em]">{variant.slice(0, 1)}</span>
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className={`text-sm font-semibold ${styles.title}`}>{title}</p>
+          <div className="mt-1 text-sm leading-6">{message}</div>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            {primaryHref ? (
+              <a
+                href={primaryHref}
+                className={`${buttonClass} bg-slate-900 text-white hover:bg-slate-800 focus:ring-slate-300`}
+              >
+                {primaryLabel}
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={onPrimaryClick}
+                className={`${buttonClass} bg-slate-900 text-white hover:bg-slate-800 focus:ring-slate-300`}
+              >
+                {primaryLabel}
+              </button>
+            )}
+            {secondaryLabel ? (
+              secondaryHref ? (
+                <a
+                  href={secondaryHref}
+                  className={`${buttonClass} border border-white/60 bg-white/70 text-slate-900 hover:bg-white focus:ring-slate-200`}
+                >
+                  {secondaryLabel}
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onSecondaryClick}
+                  className={`${buttonClass} border border-white/60 bg-white/70 text-slate-900 hover:bg-white focus:ring-slate-200`}
+                >
+                  {secondaryLabel}
+                </button>
+              )
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function GoogleButton({
   href,
   disabled,

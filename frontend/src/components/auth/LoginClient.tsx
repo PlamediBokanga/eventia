@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { saveToken, getToken } from "@/lib/auth";
 import { API_URL } from "@/lib/config";
-import { AuthDivider, AuthNotice, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
+import { AuthActionBox, AuthDivider, AuthNotice, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
 
 type ProvidersResponse = {
   google?: {
@@ -204,28 +204,14 @@ export function LoginClient() {
           </p>
           {verificationEmail ? (
             <div className="mt-4">
-              <AuthNotice
+              <AuthActionBox
                 variant="warning"
                 title="Email non verifie"
                 message="Votre compte est cree, mais l'adresse email doit etre confirmee avant la connexion."
-                action={
-                  <>
-                    <Link
-                      href={`/auth/verify-email?email=${encodeURIComponent(verificationEmail)}`}
-                      className="inline-flex items-center justify-center rounded-full border border-amber-300 bg-white px-4 py-2 text-sm font-medium text-amber-900 transition hover:bg-amber-100"
-                    >
-                      Ouvrir la verification
-                    </Link>
-                    {verificationUrl ? (
-                      <a
-                        href={verificationUrl}
-                        className="inline-flex items-center justify-center rounded-full border border-amber-300 bg-white px-4 py-2 text-sm font-medium text-amber-900 transition hover:bg-amber-100"
-                      >
-                        Ouvrir le lien direct
-                      </a>
-                    ) : null}
-                  </>
-                }
+                primaryLabel="Ouvrir la verification"
+                primaryHref={`/auth/verify-email?email=${encodeURIComponent(verificationEmail)}`}
+                secondaryLabel={verificationUrl ? "Ouvrir le lien direct" : undefined}
+                secondaryHref={verificationUrl || undefined}
               />
             </div>
           ) : null}
