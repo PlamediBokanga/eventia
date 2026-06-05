@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { saveToken, getToken } from "@/lib/auth";
 import { API_URL } from "@/lib/config";
-import { AuthActionBox, AuthDivider, AuthNotice, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
+import { AuthDivider, AuthPopup, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
 
 type ProvidersResponse = {
   google?: {
@@ -189,8 +189,6 @@ export function LoginClient() {
             </div>
           </div>
 
-          {message ? <AuthNotice variant="warning" message={message} /> : null}
-
           <button className="btn-primary w-full justify-center py-3 text-sm" type="submit" disabled={loading}>
             {loading ? "Connexion en cours..." : "Se connecter"}
           </button>
@@ -202,19 +200,6 @@ export function LoginClient() {
             Votre session donne acces au dashboard organisateur, aux statistiques, au check-in et aux operations de
             paiement.
           </p>
-          {verificationEmail ? (
-            <div className="mt-4">
-              <AuthActionBox
-                variant="warning"
-                title="Email non verifie"
-                message="Votre compte est cree, mais l'adresse email doit etre confirmee avant la connexion."
-                primaryLabel="Ouvrir la verification"
-                primaryHref={`/auth/verify-email?email=${encodeURIComponent(verificationEmail)}`}
-                secondaryLabel={verificationUrl ? "Ouvrir le lien direct" : undefined}
-                secondaryHref={verificationUrl || undefined}
-              />
-            </div>
-          ) : null}
           <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
             <Link href="/auth/forgot-password" className="font-medium text-slate-900 hover:text-accent">
               Mot de passe oublie
@@ -225,6 +210,27 @@ export function LoginClient() {
             </Link>
           </div>
         </div>
+
+        <AuthPopup
+          open={Boolean(message)}
+          variant={verificationEmail ? "warning" : "error"}
+          title={verificationEmail ? "Email non verifie" : "Connexion impossible"}
+          message={
+            verificationEmail
+              ? "Votre compte est cree, mais l'adresse email doit etre confirmee avant la connexion."
+              : message || "Une erreur est survenue."
+          }
+          primaryLabel={verificationEmail ? "Ouvrir la verification" : "Fermer"}
+          primaryHref={verificationEmail ? `/auth/verify-email?email=${encodeURIComponent(verificationEmail)}` : undefined}
+          onPrimaryClick={verificationEmail ? undefined : () => setMessage(null)}
+          secondaryLabel={verificationEmail ? "Ouvrir le lien direct" : undefined}
+          secondaryHref={verificationUrl || undefined}
+          onClose={() => {
+            setMessage(null);
+            setVerificationEmail("");
+            setVerificationUrl(null);
+          }}
+        />
       </div>
     </AuthShell>
   );

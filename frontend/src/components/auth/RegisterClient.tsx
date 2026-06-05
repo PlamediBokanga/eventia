@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { saveToken, getToken } from "@/lib/auth";
 import { API_URL } from "@/lib/config";
-import { AuthActionBox, AuthDivider, AuthNotice, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
+import { AuthDivider, AuthPopup, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
 
 type ProvidersResponse = {
   google?: {
@@ -352,22 +352,30 @@ export function RegisterClient() {
               .
             </span>
           </label>
-          {message ? <AuthNotice variant="warning" message={message} /> : null}
-          {verificationUrl ? (
-            <AuthActionBox
-              variant="success"
-              title="Verification email disponible"
-              message="Ouvrez le lien pour confirmer votre adresse et finaliser l'activation du compte."
-              primaryLabel="Ouvrir le lien de verification"
-              primaryHref={verificationUrl}
-              secondaryLabel="Page de verification"
-              secondaryHref="/auth/verify-email"
-            />
-          ) : null}
           <button className="btn-primary w-full justify-center py-3 text-sm" type="submit" disabled={loading}>
             {loading ? "Creation du compte..." : "Creer mon espace"}
           </button>
         </form>
+
+        <AuthPopup
+          open={Boolean(message)}
+          variant={verificationUrl ? "success" : "warning"}
+          title={verificationUrl ? "Compte créé" : "Création impossible"}
+          message={
+            verificationUrl
+              ? "Ouvrez le lien pour confirmer votre adresse et finaliser l'activation du compte."
+              : message || "Une erreur est survenue."
+          }
+          primaryLabel={verificationUrl ? "Ouvrir le lien de verification" : "Fermer"}
+          primaryHref={verificationUrl || undefined}
+          onPrimaryClick={verificationUrl ? undefined : () => setMessage(null)}
+          secondaryLabel={verificationUrl ? "Page de verification" : undefined}
+          secondaryHref={verificationUrl ? "/auth/verify-email" : undefined}
+          onClose={() => {
+            setMessage(null);
+            setVerificationUrl(null);
+          }}
+        />
       </div>
     </AuthShell>
   );

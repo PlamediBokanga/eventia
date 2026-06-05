@@ -241,6 +241,112 @@ export function AuthActionBox({
   );
 }
 
+type AuthPopupProps = {
+  open: boolean;
+  variant?: "info" | "success" | "warning" | "error";
+  title: string;
+  message: React.ReactNode;
+  primaryLabel: string;
+  primaryHref?: string;
+  onPrimaryClick?: () => void;
+  secondaryLabel?: string;
+  secondaryHref?: string;
+  onSecondaryClick?: () => void;
+  onClose: () => void;
+};
+
+export function AuthPopup({
+  open,
+  variant = "info",
+  title,
+  message,
+  primaryLabel,
+  primaryHref,
+  onPrimaryClick,
+  secondaryLabel,
+  secondaryHref,
+  onSecondaryClick,
+  onClose
+}: AuthPopupProps) {
+  const styles = NOTICE_STYLES[variant];
+  const buttonClass =
+    "inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-4";
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center px-4 py-6">
+      <button
+        type="button"
+        aria-label="Fermer le popup"
+        className="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px]"
+        onClick={onClose}
+      />
+      <div className={`relative w-full max-w-lg overflow-hidden rounded-[28px] border bg-white shadow-[0_28px_90px_rgba(15,23,42,0.22)] ${styles.shell}`}>
+        <div className="flex items-start justify-between gap-4 px-5 py-5">
+          <div className="flex items-start gap-3">
+            <div className={`mt-0.5 grid h-11 w-11 place-items-center rounded-2xl border ${styles.badge}`}>
+              <span className="text-sm font-bold uppercase tracking-[0.18em]">{variant.slice(0, 1)}</span>
+            </div>
+            <div className="min-w-0">
+              <p className={`text-base font-semibold ${styles.title}`}>{title}</p>
+              <div className="mt-1 text-sm leading-6">{message}</div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+          >
+            Fermer
+          </button>
+        </div>
+
+        <div className="border-t border-slate-200/70 px-5 py-4">
+          <div className="flex flex-col gap-2 sm:flex-row">
+            {primaryHref ? (
+              <a
+                href={primaryHref}
+                className={`${buttonClass} bg-slate-900 text-white hover:bg-slate-800 focus:ring-slate-300`}
+              >
+                {primaryLabel}
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={onPrimaryClick}
+                className={`${buttonClass} bg-slate-900 text-white hover:bg-slate-800 focus:ring-slate-300`}
+              >
+                {primaryLabel}
+              </button>
+            )}
+
+            {secondaryLabel ? (
+              secondaryHref ? (
+                <a
+                  href={secondaryHref}
+                  className={`${buttonClass} border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 focus:ring-slate-200`}
+                >
+                  {secondaryLabel}
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onSecondaryClick}
+                  className={`${buttonClass} border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 focus:ring-slate-200`}
+                >
+                  {secondaryLabel}
+                </button>
+              )
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function GoogleButton({
   href,
   disabled,

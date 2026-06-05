@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { API_URL } from "@/lib/config";
-import { AuthActionBox, AuthNotice, AuthShell } from "@/components/auth/AuthShell";
+import { AuthPopup, AuthShell } from "@/components/auth/AuthShell";
 
 type VerificationResponse = {
   message?: string;
@@ -122,17 +122,7 @@ export function EmailVerificationClient() {
       }
     >
       <div className="space-y-4">
-        {token ? (
-          <AuthActionBox
-            variant={verified ? "success" : "info"}
-            title={verified ? "Adresse verifiee" : "Verification en cours"}
-            message={message || "Traitement en cours..."}
-            primaryLabel={verified ? "Ouvrir la connexion" : "Retour a la connexion"}
-            primaryHref="/auth/login"
-            secondaryLabel="Actualiser"
-            onSecondaryClick={() => window.location.reload()}
-          />
-        ) : (
+        {!token ? (
           <form onSubmit={handleRequest} className="space-y-4">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-slate-800">Adresse email</label>
@@ -147,35 +137,42 @@ export function EmailVerificationClient() {
               />
             </div>
 
-            {message ? <AuthNotice variant="info" message={message} /> : null}
-
-            {verificationUrl ? (
-              <AuthActionBox
-                variant="success"
-                title="Lien de verification disponible"
-                message="Ouvrez le lien pour confirmer votre email."
-                primaryLabel="Ouvrir le lien"
-                primaryHref={verificationUrl}
-                secondaryLabel="Retour au login"
-                secondaryHref="/auth/login"
-              />
-            ) : null}
-
             <button className="btn-primary w-full justify-center py-3 text-sm" type="submit" disabled={loading}>
               {loading ? "Preparation..." : "Envoyer le lien"}
             </button>
           </form>
-        )}
-
-        {token && !verified ? (
-          <AuthActionBox
-            variant="info"
-            title="Et ensuite ?"
-            message="Une fois l'email confirme, vous pouvez ouvrir la connexion et acceder au dashboard."
-            primaryLabel="Aller a la connexion"
-            primaryHref="/auth/login"
-          />
         ) : null}
+
+        <AuthPopup
+          open={Boolean(message)}
+          variant={token ? (verified ? "success" : "info") : verificationUrl ? "success" : "info"}
+          title={
+            token
+              ? verified
+                ? "Adresse verifiee"
+                : "Verification en cours"
+              : verificationUrl
+                ? "Lien de verification disponible"
+                : "Verification du compte"
+          }
+          message={
+            token
+              ? message || "Traitement en cours..."
+              : verificationUrl
+                ? "Ouvrez le lien pour confirmer votre email."
+                : message || "Votre demande a ete prise en compte."
+          }
+          primaryLabel={token ? (verified ? "Ouvrir la connexion" : "Fermer") : verificationUrl ? "Ouvrir le lien" : "Fermer"}
+          primaryHref={token ? "/auth/login" : verificationUrl || undefined}
+          onPrimaryClick={token || verificationUrl ? undefined : () => setMessage(null)}
+          secondaryLabel={token ? "Actualiser" : verificationUrl ? "Retour au login" : undefined}
+          secondaryHref={token ? undefined : verificationUrl ? "/auth/login" : undefined}
+          onSecondaryClick={token ? () => window.location.reload() : undefined}
+          onClose={() => {
+            setMessage(null);
+            setVerificationUrl(null);
+          }}
+        />
       </div>
     </AuthShell>
   );

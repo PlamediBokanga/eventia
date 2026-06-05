@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { API_URL } from "@/lib/config";
-import { AuthActionBox, AuthNotice, AuthShell } from "@/components/auth/AuthShell";
+import { AuthPopup, AuthShell } from "@/components/auth/AuthShell";
 
 function passwordStrength(password: string) {
   return {
@@ -132,26 +132,23 @@ export function ResetPasswordClient() {
           />
         </div>
 
-        {message ? (
-          status === "success" ? (
-            <AuthActionBox
-              variant="success"
-              title="Mot de passe mis a jour"
-              message={message}
-              primaryLabel="Ouvrir la connexion"
-              primaryHref="/auth/login"
-              secondaryLabel="Retour a l'accueil"
-              secondaryHref="/"
-            />
-          ) : (
-            <AuthNotice variant={status} title="Etat de la reinitialisation" message={message} />
-          )
-        ) : null}
-
         <button className="btn-primary w-full justify-center py-3 text-sm" type="submit" disabled={loading}>
           {loading ? "Mise a jour..." : "Mettre a jour"}
         </button>
       </form>
+
+      <AuthPopup
+        open={Boolean(message)}
+        variant={status}
+        title={status === "success" ? "Mot de passe mis a jour" : "Etat de la reinitialisation"}
+        message={message || "Operation terminee."}
+        primaryLabel={status === "success" ? "Ouvrir la connexion" : "Fermer"}
+        primaryHref={status === "success" ? "/auth/login" : undefined}
+        onPrimaryClick={status !== "success" ? () => setMessage(null) : undefined}
+        secondaryLabel={status === "success" ? "Retour a l'accueil" : undefined}
+        secondaryHref={status === "success" ? "/" : undefined}
+        onClose={() => setMessage(null)}
+      />
     </AuthShell>
   );
 }

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { API_URL } from "@/lib/config";
-import { AuthActionBox, AuthNotice, AuthShell } from "@/components/auth/AuthShell";
+import { AuthPopup, AuthShell } from "@/components/auth/AuthShell";
 
 export function ForgotPasswordClient() {
   const [email, setEmail] = useState("");
@@ -72,24 +72,30 @@ export function ForgotPasswordClient() {
           />
         </div>
 
-        {message ? <AuthNotice variant="info" title="Demande prise en compte" message={message} /> : null}
-
-        {resetUrl ? (
-          <AuthActionBox
-            variant="success"
-            title="Lien de reinitialisation disponible"
-            message="Utilisez ce lien pour ouvrir la page de changement de mot de passe."
-            primaryLabel="Ouvrir la reinitialisation"
-            primaryHref={resetUrl}
-            secondaryLabel="Retour a la connexion"
-            secondaryHref="/auth/login"
-          />
-        ) : null}
-
         <button className="btn-primary w-full justify-center py-3 text-sm" type="submit" disabled={loading}>
           {loading ? "Preparation..." : "Envoyer le lien"}
         </button>
       </form>
+
+      <AuthPopup
+        open={Boolean(message)}
+        variant={resetUrl ? "success" : "info"}
+        title={resetUrl ? "Lien de reinitialisation disponible" : "Demande prise en compte"}
+        message={
+          resetUrl
+            ? "Utilisez ce lien pour ouvrir la page de changement de mot de passe."
+            : message || "Votre demande a ete prise en compte."
+        }
+        primaryLabel={resetUrl ? "Ouvrir la reinitialisation" : "Fermer"}
+        primaryHref={resetUrl || undefined}
+        onPrimaryClick={resetUrl ? undefined : () => setMessage(null)}
+        secondaryLabel={resetUrl ? "Retour a la connexion" : undefined}
+        secondaryHref={resetUrl ? "/auth/login" : undefined}
+        onClose={() => {
+          setMessage(null);
+          setResetUrl(null);
+        }}
+      />
     </AuthShell>
   );
 }
