@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/Input";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/Toast";
 import { authFetch, getSelectedEventId, setSelectedEventId, type EventItem } from "@/lib/dashboard";
 
@@ -29,6 +30,8 @@ export default function DashboardGuestBookPage() {
   const [pageSize, setPageSize] = useState(8);
   const [page, setPage] = useState(1);
   const [requiresApproval, setRequiresApproval] = useState(false);
+  const [messageToDelete, setMessageToDelete] = useState<GuestBookMessage | null>(null);
+  const [deletingMessage, setDeletingMessage] = useState(false);
   const { pushToast } = useToast();
 
   useEffect(() => {
@@ -138,15 +141,28 @@ export default function DashboardGuestBookPage() {
 
   async function deleteMessage(message: GuestBookMessage) {
     if (!selectedEvent) return;
-    if (!window.confirm("Supprimer ce message ?")) return;
+    setDeletingMessage(true);
     const res = await authFetch(`/events/${selectedEvent.id}/guestbook/${message.id}`, {
       method: "DELETE"
     });
     if (!res.ok) {
       pushToast("Suppression impossible.", "error");
+      setDeletingMessage(false);
       return;
     }
+    setDeletingMessage(false);
     await loadMessages(selectedEvent.id);
+  }
+
+  function openDeleteMessage(message: GuestBookMessage) {
+    setMessageToDelete(message);
+  }
+
+  async function confirmDeleteMessage() {
+    if (!messageToDelete) return;
+    const next = messageToDelete;
+    setMessageToDelete(null);
+    await deleteMessage(next);
   }
 
   async function toggleApproval(nextValue: boolean) {
@@ -340,7 +356,7 @@ export default function DashboardGuestBookPage() {
                         type="button"
                         variant="ghost"
                         className="px-3 py-1 text-[11px] text-red-600"
-                        onClick={() => deleteMessage(item)}
+                        onClick={() => openDeleteMessage(item)}
                       >
                         Supprimer
                       </Button>
@@ -396,6 +412,26 @@ export default function DashboardGuestBookPage() {
           </>
         )}
       </section>
+
+      <ConfirmDialog
+        open={Boolean(messageToDelete)}
+        title="Supprimer le message"
+        description={
+          messageToDelete ? (
+            <>
+              Le message de <span className="font-semibold text-slate-950">{messageToDelete.guest?.fullName || "l'invite"}</span>{" "}
+              sera supprime du livre d'or. Cette action est irreversible.
+            </>
+          ) : (
+            "Cette action est irreversible."
+          )
+        }
+        confirmLabel="Supprimer"
+        variant="danger"
+        loading={deletingMessage}
+        onClose={() => setMessageToDelete(null)}
+        onConfirm={confirmDeleteMessage}
+      />
     </main>
   );
 }

@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Modal } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import {
@@ -75,6 +76,9 @@ export default function DashboardTablesPage() {
   const [renameLayoutOpen, setRenameLayoutOpen] = useState(false);
   const [renameLayoutName, setRenameLayoutName] = useState("");
   const dragGuardRef = useRef(false);
+  const [tableToDelete, setTableToDelete] = useState<TableItem | null>(null);
+  const [layoutToDelete, setLayoutToDelete] = useState<TableLayout | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const { pushToast } = useToast();
 
@@ -246,13 +250,14 @@ export default function DashboardTablesPage() {
 
   async function deleteTable(id: number) {
     if (!selectedEvent) return;
-    if (!window.confirm("Supprimer cette table ?")) return;
+    setDeleting(true);
     setSaving(true);
     try {
       const res = await authFetch(`/events/${selectedEvent.id}/tables/${id}`, { method: "DELETE" });
       if (!res.ok) {
         const error = (await res.json().catch(() => null)) as { message?: string } | null;
         pushToast(error?.message ?? "Suppression impossible.", "error");
+        setDeleting(false);
         return;
       }
       pushToast("Table supprimee.");
@@ -261,7 +266,19 @@ export default function DashboardTablesPage() {
       setDetailOpen(false);
     } finally {
       setSaving(false);
+      setDeleting(false);
     }
+  }
+
+  function openTableDelete(table: TableItem) {
+    setTableToDelete(table);
+  }
+
+  async function confirmDeleteTable() {
+    if (!tableToDelete) return;
+    const tableId = tableToDelete.id;
+    setTableToDelete(null);
+    await deleteTable(tableId);
   }
 
   async function saveEdit() {
@@ -391,16 +408,29 @@ export default function DashboardTablesPage() {
 
   async function deleteLayout(layoutId: number) {
     if (!selectedEvent) return;
-    if (!window.confirm("Supprimer ce plan ?")) return;
+    setDeleting(true);
     const res = await authFetch(`/events/${selectedEvent.id}/table-layouts/${layoutId}`, {
       method: "DELETE"
     });
     if (!res.ok) {
       const payload = (await res.json().catch(() => null)) as { message?: string } | null;
       pushToast(payload?.message ?? "Suppression impossible.", "error");
+      setDeleting(false);
       return;
     }
+    setDeleting(false);
     await refreshLayouts(selectedEvent.id);
+  }
+
+  function openLayoutDelete(layout: TableLayout) {
+    setLayoutToDelete(layout);
+  }
+
+  async function confirmDeleteLayout() {
+    if (!layoutToDelete) return;
+    const layoutId = layoutToDelete.id;
+    setLayoutToDelete(null);
+    await deleteLayout(layoutId);
   }
 
   async function renameLayout(layoutId: number) {
@@ -517,7 +547,8 @@ export default function DashboardTablesPage() {
                       type="button"
                       className="rounded-lg px-2 py-1 text-left text-red-600 hover:bg-red-50"
                       onClick={() => {
-                        void deleteLayout(activeLayoutId);
+                        const current = layouts.find(item => item.id === activeLayoutId);
+                        if (current) setLayoutToDelete(current);
                         setLayoutMenuOpen(false);
                       }}
                       disabled={layouts.length <= 1}
@@ -1021,7 +1052,7 @@ export default function DashboardTablesPage() {
               type="button"
               variant="ghost"
               className="w-full text-red-600"
-              onClick={() => selectedTable && deleteTable(selectedTable.id)}
+              onClick={() => selectedTable && openTableDelete(selectedTable)}
               disabled={saving}
             >
               Supprimer la table
@@ -1067,6 +1098,46 @@ export default function DashboardTablesPage() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmDialog
+        open={Boolean(tableToDelete)}
+        title="Supprimer la table"
+        description={
+          tableToDelete ? (
+            <>
+              La table <span className="font-semibold text-slate-950">{tableToDelete.label}</span> sera supprimee.
+              Les affectations liees seront egalement retirees.
+            </>
+          ) : (
+            "Cette action est irreversible."
+          )
+        }
+        confirmLabel="Supprimer"
+        variant="danger"
+        loading={deleting}
+        onClose={() => setTableToDelete(null)}
+        onConfirm={confirmDeleteTable}
+      />
+
+      <ConfirmDialog
+        open={Boolean(layoutToDelete)}
+        title="Supprimer le plan"
+        description={
+          layoutToDelete ? (
+            <>
+              Le plan <span className="font-semibold text-slate-950">{layoutToDelete.name}</span> sera supprime.
+              Cette action est irreversible.
+            </>
+          ) : (
+            "Cette action est irreversible."
+          )
+        }
+        confirmLabel="Supprimer"
+        variant="warning"
+        loading={deleting}
+        onClose={() => setLayoutToDelete(null)}
+        onConfirm={confirmDeleteLayout}
+      />
     </main>
   );
 }

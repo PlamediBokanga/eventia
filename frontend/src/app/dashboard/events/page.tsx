@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { EventPicker } from "@/components/layout/EventPicker";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/Input";
 import { SafeHtml } from "@/components/ui/SafeHtml";
 import { TinyMceEditor } from "@/components/ui/TinyMceEditor";
@@ -77,6 +78,11 @@ export default function DashboardEventsPage() {
   const [ownerIdentity, setOwnerIdentity] = useState<{ email: string; name?: string | null } | null>(null);
   const [canManageCoHosts, setCanManageCoHosts] = useState(false);
   const [coHostLoading, setCoHostLoading] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [templateConfirmOpen, setTemplateConfirmOpen] = useState(false);
+  const [coOrganizerToRemove, setCoOrganizerToRemove] = useState<EventCoOrganizer | null>(null);
+  const [inviteToRemove, setInviteToRemove] = useState<{ id: number; email: string } | null>(null);
+  const [coHostDeleteLoading, setCoHostDeleteLoading] = useState(false);
 
   async function loadEvents() {
     const res = await authFetch("/events");
@@ -239,31 +245,59 @@ export default function DashboardEventsPage() {
 
   async function removeCoOrganizer(coOrganizerId: number) {
     if (!selectedEvent) return;
+    setCoHostDeleteLoading(true);
     const res = await authFetch(`/events/${selectedEvent.id}/co-organizers/${coOrganizerId}`, {
       method: "DELETE"
     });
     if (!res.ok) {
       const payload = (await res.json().catch(() => null)) as { message?: string } | null;
       pushToast(payload?.message ?? "Suppression impossible.", "error");
+      setCoHostDeleteLoading(false);
       return;
     }
     pushToast("Co-organisateur retire.");
     await loadCoOrganizers(selectedEvent.id);
     await loadEvents();
+    setCoHostDeleteLoading(false);
   }
 
   async function removeInvite(inviteId: number) {
     if (!selectedEvent) return;
+    setCoHostDeleteLoading(true);
     const res = await authFetch(`/events/${selectedEvent.id}/co-organizers/invites/${inviteId}`, {
       method: "DELETE"
     });
     if (!res.ok) {
       const payload = (await res.json().catch(() => null)) as { message?: string } | null;
       pushToast(payload?.message ?? "Suppression impossible.", "error");
+      setCoHostDeleteLoading(false);
       return;
     }
     pushToast("Invitation retiree.");
     await loadCoOrganizers(selectedEvent.id);
+    setCoHostDeleteLoading(false);
+  }
+
+  function askRemoveCoOrganizer(item: EventCoOrganizer) {
+    setCoOrganizerToRemove(item);
+  }
+
+  function askRemoveInvite(invite: { id: number; email: string }) {
+    setInviteToRemove(invite);
+  }
+
+  async function confirmRemoveCoOrganizer() {
+    if (!coOrganizerToRemove) return;
+    const target = coOrganizerToRemove;
+    setCoOrganizerToRemove(null);
+    await removeCoOrganizer(target.id);
+  }
+
+  async function confirmRemoveInvite() {
+    if (!inviteToRemove) return;
+    const target = inviteToRemove;
+    setInviteToRemove(null);
+    await removeInvite(target.id);
   }
 
   async function handleCreate(e: React.FormEvent) {
@@ -365,7 +399,6 @@ export default function DashboardEventsPage() {
 
   async function handleDelete() {
     if (!selectedEvent) return;
-    if (!window.confirm("Supprimer cet evenement ?")) return;
     setSaving(true);
     try {
       const res = await authFetch(`/events/${selectedEvent.id}`, { method: "DELETE" });
@@ -379,6 +412,17 @@ export default function DashboardEventsPage() {
     } finally {
       setSaving(false);
     }
+  }
+
+  function openDeleteConfirm() {
+    if (!selectedEvent) return;
+    setDeleteConfirmOpen(true);
+  }
+
+  async function confirmDeleteEvent() {
+    if (!selectedEvent) return;
+    setDeleteConfirmOpen(false);
+    await handleDelete();
   }
 
   async function handleImageUpload(file: File) {
@@ -414,9 +458,17 @@ export default function DashboardEventsPage() {
   function applyTemplate() {
     const tpl = INVITATION_TEMPLATES.find(t => t.id === selectedTemplateId);
     if (!tpl) return;
-    if (invitationMessage.trim() && !window.confirm("Remplacer le message actuel par le template ?")) {
+    if (invitationMessage.trim()) {
+      setTemplateConfirmOpen(true);
       return;
     }
+    setInvitationMessage(tpl.html);
+  }
+
+  function confirmTemplateApply() {
+    const tpl = INVITATION_TEMPLATES.find(t => t.id === selectedTemplateId);
+    if (!tpl) return;
+    setTemplateConfirmOpen(false);
     setInvitationMessage(tpl.html);
   }
 
@@ -730,7 +782,7 @@ export default function DashboardEventsPage() {
                 {selectedEvent ? (saving ? "Sauvegarde..." : "Mettre a jour") : creating ? "Creation..." : "Creer"}
               </Button>
               {selectedEvent ? (
-                <Button type="button" variant="ghost" className="px-4 py-2 text-xs" onClick={handleDelete}>
+                <Button type="button" variant="ghost" className="px-4 py-2 text-xs" onClick={openDeleteConfirm}>
                   Supprimer
                 </Button>
               ) : null}
@@ -797,7 +849,7 @@ export default function DashboardEventsPage() {
                           type="button"
                           variant="ghost"
                           className="px-3 py-1 text-xs"
-                          onClick={() => removeCoOrganizer(item.id)}
+                          onClick={() => askRemoveCoOrganizer(item)}
                         >
                           Retirer
                         </Button>
@@ -826,7 +878,7 @@ export default function DashboardEventsPage() {
                           type="button"
                           variant="ghost"
                           className="w-fit px-3 py-1 text-xs"
-                          onClick={() => removeInvite(invite.id)}
+                          onClick={() => askRemoveInvite({ id: invite.id, email: invite.email })}
                         >
                           Supprimer
                         </Button>
@@ -839,6 +891,67 @@ export default function DashboardEventsPage() {
           </div>
         </section>
       </div>
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title="Supprimer l'activite"
+        description="Cette action supprimera l'activite et toutes ses donnees associees. Elle ne peut pas etre annulee."
+        confirmLabel="Supprimer"
+        variant="danger"
+        loading={saving}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={confirmDeleteEvent}
+      />
+
+      <ConfirmDialog
+        open={templateConfirmOpen}
+        title="Remplacer le message"
+        description="Le message actuel sera remplace par le template selectionne."
+        confirmLabel="Remplacer"
+        variant="warning"
+        onClose={() => setTemplateConfirmOpen(false)}
+        onConfirm={confirmTemplateApply}
+      />
+
+      <ConfirmDialog
+        open={Boolean(coOrganizerToRemove)}
+        title="Retirer le co-organisateur"
+        description={
+          coOrganizerToRemove ? (
+            <>
+              Le compte <span className="font-semibold text-slate-950">{coOrganizerToRemove.organizer.email}</span>{" "}
+              ne pourra plus gerer cet evenement.
+            </>
+          ) : (
+            "Cette action est irreversible."
+          )
+        }
+        confirmLabel="Retirer"
+        variant="danger"
+        loading={coHostDeleteLoading}
+        onClose={() => setCoOrganizerToRemove(null)}
+        onConfirm={confirmRemoveCoOrganizer}
+      />
+
+      <ConfirmDialog
+        open={Boolean(inviteToRemove)}
+        title="Supprimer l'invitation"
+        description={
+          inviteToRemove ? (
+            <>
+              L'invitation envoyee a <span className="font-semibold text-slate-950">{inviteToRemove.email}</span> sera
+              supprimee.
+            </>
+          ) : (
+            "Cette action est irreversible."
+          )
+        }
+        confirmLabel="Supprimer"
+        variant="warning"
+        loading={coHostDeleteLoading}
+        onClose={() => setInviteToRemove(null)}
+        onConfirm={confirmRemoveInvite}
+      />
     </main>
   );
 }

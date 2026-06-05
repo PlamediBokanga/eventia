@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
@@ -57,6 +58,8 @@ export default function DashboardDrinksPage() {
   const [drinkCategoryFilter, setDrinkCategoryFilter] = useState<"ALL" | "SOFT" | "ALCOHOLIC">("ALL");
   const [drinkView, setDrinkView] = useState<"cards" | "table">("cards");
   const [drinkStockFilter, setDrinkStockFilter] = useState<"ALL" | "LOW" | "LIMITED">("ALL");
+  const [drinkToDelete, setDrinkToDelete] = useState<DrinkOption | null>(null);
+  const [deletingDrink, setDeletingDrink] = useState(false);
 
   const { pushToast } = useToast();
 
@@ -262,14 +265,27 @@ export default function DashboardDrinksPage() {
 
   async function deleteDrink(drinkId: number) {
     if (!selectedEvent) return;
-    if (!window.confirm("Supprimer cette boisson ?")) return;
+    setDeletingDrink(true);
     const res = await authFetch(`/events/${selectedEvent.id}/drinks/${drinkId}`, { method: "DELETE" });
     if (!res.ok) {
       pushToast("Suppression impossible.", "error");
+      setDeletingDrink(false);
       return;
     }
+    setDeletingDrink(false);
     pushToast("Boisson supprimee.");
     await loadData(selectedEvent.id);
+  }
+
+  function openDrinkDelete(drink: DrinkOption) {
+    setDrinkToDelete(drink);
+  }
+
+  async function confirmDeleteDrink() {
+    if (!drinkToDelete) return;
+    const next = drinkToDelete;
+    setDrinkToDelete(null);
+    await deleteDrink(next.id);
   }
 
   async function toggleDrinksEnabled() {
@@ -485,7 +501,7 @@ export default function DashboardDrinksPage() {
                                       type="button"
                                       variant="ghost"
                                       className="px-3 py-1 text-[11px] text-red-600"
-                                      onClick={() => deleteDrink(drink.id)}
+                                      onClick={() => openDrinkDelete(drink)}
                                     >
                                       Supprimer
                                     </Button>
@@ -531,7 +547,7 @@ export default function DashboardDrinksPage() {
                                 type="button"
                                 variant="ghost"
                                 className="px-3 py-1 text-[11px] text-red-600"
-                                onClick={() => deleteDrink(drink.id)}
+                                onClick={() => openDrinkDelete(drink)}
                               >
                                 Supprimer
                               </Button>
@@ -796,6 +812,26 @@ export default function DashboardDrinksPage() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmDialog
+        open={Boolean(drinkToDelete)}
+        title="Supprimer la boisson"
+        description={
+          drinkToDelete ? (
+            <>
+              La boisson <span className="font-semibold text-slate-950">{drinkToDelete.name}</span> sera supprimee.
+              Les choix associes seront egalement retires.
+            </>
+          ) : (
+            "Cette action est irreversible."
+          )
+        }
+        confirmLabel="Supprimer"
+        variant="danger"
+        loading={deletingDrink}
+        onClose={() => setDrinkToDelete(null)}
+        onConfirm={confirmDeleteDrink}
+      />
     </main>
   );
 }

@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { EventPicker } from "@/components/layout/EventPicker";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/Toast";
 import {
   authFetch,
@@ -19,6 +20,8 @@ export default function DashboardMemoriesPage() {
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [memories, setMemories] = useState<EventMemoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [memoryToDelete, setMemoryToDelete] = useState<EventMemoryItem | null>(null);
+  const [deletingMemory, setDeletingMemory] = useState(false);
   const { pushToast } = useToast();
 
   async function loadEvents() {
@@ -61,15 +64,29 @@ export default function DashboardMemoriesPage() {
 
   async function removeMemory(memoryId: number) {
     if (!selectedEvent) return;
+    setDeletingMemory(true);
     const res = await authFetch(`/events/${selectedEvent.id}/memories/${memoryId}`, {
       method: "DELETE"
     });
     if (!res.ok) {
       pushToast("Suppression impossible.", "error");
+      setDeletingMemory(false);
       return;
     }
     setMemories(prev => prev.filter(m => m.id !== memoryId));
     pushToast("Souvenir supprime.");
+    setDeletingMemory(false);
+  }
+
+  function openMemoryDelete(memory: EventMemoryItem) {
+    setMemoryToDelete(memory);
+  }
+
+  async function confirmDeleteMemory() {
+    if (!memoryToDelete) return;
+    const next = memoryToDelete;
+    setMemoryToDelete(null);
+    await removeMemory(next.id);
   }
 
   return (
@@ -121,9 +138,7 @@ export default function DashboardMemoriesPage() {
                     type="button"
                     variant="ghost"
                     className="px-2 py-1 text-[10px]"
-                    onClick={() => {
-                      void removeMemory(item.id);
-                    }}
+                    onClick={() => openMemoryDelete(item)}
                   >
                     Supprimer
                   </Button>
@@ -133,6 +148,27 @@ export default function DashboardMemoriesPage() {
           )}
         </section>
       </div>
+
+      <ConfirmDialog
+        open={Boolean(memoryToDelete)}
+        title="Supprimer le souvenir"
+        description={
+          memoryToDelete ? (
+            <>
+              Le souvenir{" "}
+              <span className="font-semibold text-slate-950">{memoryToDelete.caption || "selectionne"}</span> sera
+              supprime. Cette action est irreversible.
+            </>
+          ) : (
+            "Cette action est irreversible."
+          )
+        }
+        confirmLabel="Supprimer"
+        variant="danger"
+        loading={deletingMemory}
+        onClose={() => setMemoryToDelete(null)}
+        onConfirm={confirmDeleteMemory}
+      />
     </main>
   );
 }

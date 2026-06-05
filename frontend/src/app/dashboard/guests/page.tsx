@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/Toast";
 import { authFetch, getSelectedEventId, setSelectedEventId, type EventItem, type GuestItem } from "@/lib/dashboard";
 import { API_URL } from "@/lib/config";
@@ -124,6 +125,8 @@ export default function DashboardGuestsPage() {
   const [editError, setEditError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
+  const [guestToDelete, setGuestToDelete] = useState<GuestItem | null>(null);
+  const [deletingGuest, setDeletingGuest] = useState(false);
   const { pushToast } = useToast();
 
   function seatingLabel(mode: "TABLE" | "ZONE" | "NONE") {
@@ -882,15 +885,28 @@ export default function DashboardGuestsPage() {
 
   async function deleteGuest(guestId: number) {
     if (!selectedEvent) return;
-    if (!window.confirm("Supprimer cet invite ?")) return;
+    setDeletingGuest(true);
     const res = await authFetch(`/guests/${guestId}`, { method: "DELETE" });
     if (!res.ok) {
       const payload = (await res.json().catch(() => null)) as { message?: string } | null;
       pushToast(payload?.message ?? "Suppression impossible.", "error");
+      setDeletingGuest(false);
       return;
     }
     pushToast("Invite supprime.");
     await loadEventData(selectedEvent.id);
+    setDeletingGuest(false);
+  }
+
+  function openGuestDelete(guest: GuestItem) {
+    setGuestToDelete(guest);
+  }
+
+  async function confirmDeleteGuest() {
+    if (!guestToDelete) return;
+    const guestId = guestToDelete.id;
+    setGuestToDelete(null);
+    await deleteGuest(guestId);
   }
 
   const filtered = useMemo(() => {
@@ -1268,7 +1284,7 @@ export default function DashboardGuestsPage() {
                                 <button
                                   type="button"
                                   className="rounded-full border border-primary/20 px-2 py-1 text-[10px] text-red-600 hover:bg-red-50"
-                                  onClick={() => deleteGuest(guest.id)}
+                                  onClick={() => openGuestDelete(guest)}
                                 >
                                   Supprimer
                                 </button>
@@ -1401,7 +1417,7 @@ export default function DashboardGuestsPage() {
                             <button
                               type="button"
                               className="rounded-full border border-primary/20 px-2 py-1 text-[10px] text-red-600 hover:bg-red-50"
-                              onClick={() => deleteGuest(guest.id)}
+                              onClick={() => openGuestDelete(guest)}
                             >
                               Supprimer
                             </button>
@@ -1795,6 +1811,26 @@ export default function DashboardGuestsPage() {
           </div>
         </div>
       </Modal>
+
+      <ConfirmDialog
+        open={Boolean(guestToDelete)}
+        title="Supprimer l'invite"
+        description={
+          guestToDelete ? (
+            <>
+              L'invite <span className="font-semibold text-slate-950">{displayGuestName(guestToDelete)}</span> sera
+              supprimee de l'evenement. Cette action est irreversible.
+            </>
+          ) : (
+            "Cette action est irreversible."
+          )
+        }
+        confirmLabel="Supprimer"
+        variant="danger"
+        loading={deletingGuest}
+        onClose={() => setGuestToDelete(null)}
+        onConfirm={confirmDeleteGuest}
+      />
     </main>
   );
 }

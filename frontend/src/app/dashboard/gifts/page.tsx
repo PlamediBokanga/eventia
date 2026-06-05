@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { EventPicker } from "@/components/layout/EventPicker";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import {
@@ -25,6 +26,8 @@ export default function DashboardGiftsPage() {
   const [url, setUrl] = useState("");
   const [isCashFund, setIsCashFund] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [giftToDelete, setGiftToDelete] = useState<GiftRegistryItem | null>(null);
+  const [deletingGift, setDeletingGift] = useState(false);
   const { pushToast } = useToast();
 
   async function loadEvents() {
@@ -94,15 +97,29 @@ export default function DashboardGiftsPage() {
 
   async function removeGift(giftId: number) {
     if (!selectedEvent) return;
+    setDeletingGift(true);
     const res = await authFetch(`/events/${selectedEvent.id}/gifts/${giftId}`, {
       method: "DELETE"
     });
     if (!res.ok) {
       pushToast("Suppression impossible.", "error");
+      setDeletingGift(false);
       return;
     }
     pushToast("Cadeau supprime.");
     await loadGifts(selectedEvent.id);
+    setDeletingGift(false);
+  }
+
+  function openGiftDelete(gift: GiftRegistryItem) {
+    setGiftToDelete(gift);
+  }
+
+  async function confirmDeleteGift() {
+    if (!giftToDelete) return;
+    const next = giftToDelete;
+    setGiftToDelete(null);
+    await removeGift(next.id);
   }
 
   return (
@@ -165,7 +182,7 @@ export default function DashboardGiftsPage() {
                           variant="ghost"
                           className="px-2 py-1 text-[10px]"
                           onClick={() => {
-                            void removeGift(gift.id);
+                            openGiftDelete(gift);
                           }}
                         >
                           Supprimer
@@ -179,6 +196,26 @@ export default function DashboardGiftsPage() {
           )}
         </section>
       </div>
+
+      <ConfirmDialog
+        open={Boolean(giftToDelete)}
+        title="Supprimer le cadeau"
+        description={
+          giftToDelete ? (
+            <>
+              Le lien <span className="font-semibold text-slate-950">{giftToDelete.title}</span> sera retire.
+              Cette action est irreversible.
+            </>
+          ) : (
+            "Cette action est irreversible."
+          )
+        }
+        confirmLabel="Supprimer"
+        variant="danger"
+        loading={deletingGift}
+        onClose={() => setGiftToDelete(null)}
+        onConfirm={confirmDeleteGift}
+      />
     </main>
   );
 }
