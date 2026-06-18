@@ -96,6 +96,22 @@ function cleanAvatarUrl(value: unknown) {
   return cleaned;
 }
 
+function normalizeStoredUploadUrl(value: unknown) {
+  if (typeof value !== "string") return cleanNullableString(value, 500);
+  const cleaned = value.trim();
+  if (!cleaned) return null;
+  if (cleaned.startsWith("/uploads/")) return cleaned.slice(0, 500);
+  try {
+    const url = new URL(cleaned);
+    if (url.pathname.startsWith("/uploads/")) {
+      return url.pathname.slice(0, 500);
+    }
+  } catch {
+    // ignore malformed urls
+  }
+  return cleanNullableString(cleaned, 500);
+}
+
 function generateReferralCode() {
   return crypto.randomBytes(4).toString("hex").toUpperCase();
 }
@@ -875,9 +891,9 @@ authRouter.put("/me", authMiddleware, async (req, res) => {
 
     if (phone !== undefined) data.phone = cleanPhone(phone);
     if (avatarUrl !== undefined) {
-      const clean = cleanAvatarUrl(avatarUrl);
+      const clean = normalizeStoredUploadUrl(avatarUrl);
       if (avatarUrl && !clean) {
-        return res.status(400).json({ message: "URL photo invalide (https://...)." });
+        return res.status(400).json({ message: "URL photo invalide." });
       }
       data.avatarUrl = clean;
     }
@@ -1172,7 +1188,7 @@ authRouter.post("/me/avatar", authMiddleware, async (req, res) => {
     const uploadDir = path.join(process.cwd(), "uploads", "avatars");
     await fs.mkdir(uploadDir, { recursive: true });
     await fs.writeFile(path.join(uploadDir, filename), parsed.buffer);
-    const url = `${uploadBaseUrl(authReq)}/uploads/avatars/${filename}`;
+    const url = `/uploads/avatars/${filename}`;
     const organizer = await prisma.organizer.update({
       where: { id: organizerId },
       data: { avatarUrl: url },

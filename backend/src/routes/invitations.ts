@@ -356,7 +356,7 @@ invitationsRouter.post("/:token/upload-media", async (req, res) => {
     const uploadDir = path.join(process.cwd(), "uploads");
     await fs.mkdir(uploadDir, { recursive: true });
     await fs.writeFile(path.join(uploadDir, filename), parsed.buffer);
-    const url = `${uploadBaseUrl(req)}/uploads/${filename}`;
+    const url = `/uploads/${filename}`;
 
     return res.status(201).json({ url, mediaType: "IMAGE" });
   } catch (err) {

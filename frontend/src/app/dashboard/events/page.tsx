@@ -18,6 +18,7 @@ import {
   type EventItem
 } from "@/lib/dashboard";
 import { sanitizeInvitationHtml } from "@/lib/invitationSanitizer";
+import { normalizePublicUrl } from "@/lib/url";
 
 const INVITATION_TEMPLATES = [
   {
@@ -472,6 +473,8 @@ export default function DashboardEventsPage() {
     setInvitationMessage(tpl.html);
   }
 
+  const previewCoverImageUrl = normalizePublicUrl(coverImageUrl);
+
   return (
     <main className="space-y-4">
       <Header title="Gestion Evenements" />
@@ -554,7 +557,7 @@ export default function DashboardEventsPage() {
               </div>
               {coverImageUrl ? (
                 <img
-                  src={coverImageUrl}
+                  src={previewCoverImageUrl}
                   alt="Apercu couverture"
                   className="mt-1 h-28 w-full rounded-xl object-cover border border-primary/10"
                 />

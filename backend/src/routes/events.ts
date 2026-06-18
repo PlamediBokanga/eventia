@@ -38,6 +38,22 @@ function cleanOptionalText(value: unknown, maxLen: number) {
   return cleaned.slice(0, maxLen);
 }
 
+function normalizeStoredUploadUrl(value: unknown) {
+  if (typeof value !== "string") return cleanOptionalText(value, 500);
+  const cleaned = value.trim();
+  if (!cleaned) return null;
+  if (cleaned.startsWith("/uploads/")) return cleaned.slice(0, 500);
+  try {
+    const url = new URL(cleaned);
+    if (url.pathname.startsWith("/uploads/")) {
+      return url.pathname.slice(0, 500);
+    }
+  } catch {
+    // ignore malformed urls and fall back to cleaned text below
+  }
+  return cleanOptionalText(cleaned, 500);
+}
+
 function cleanOptionalHexColor(value: unknown) {
   if (typeof value !== "string") return null;
   const cleaned = value.trim();
@@ -532,7 +548,7 @@ eventsRouter.post("/upload-cover", authMiddleware, async (req, res) => {
     await fs.mkdir(uploadDir, { recursive: true });
     await fs.writeFile(path.join(uploadDir, filename), finalBuffer);
 
-    const url = `${uploadBaseUrl(authReq)}/uploads/${filename}`;
+    const url = `/uploads/${filename}`;
     return res.status(201).json({ url });
   } catch (err) {
     console.error(err);
@@ -710,7 +726,7 @@ eventsRouter.put("/:id", authMiddleware, async (req, res) => {
               : undefined,
           coverImageUrl:
             typeof coverImageUrl === "string" || coverImageUrl === null
-              ? cleanOptionalText(coverImageUrl, 500)
+              ? normalizeStoredUploadUrl(coverImageUrl)
               : undefined,
           hostNames:
             typeof hostNames === "string" || hostNames === null
@@ -719,7 +735,7 @@ eventsRouter.put("/:id", authMiddleware, async (req, res) => {
           seatingMode: seatingModeFinal,
           logoUrl:
             typeof logoUrl === "string" || logoUrl === null
-              ? cleanOptionalText(logoUrl, 500)
+              ? normalizeStoredUploadUrl(logoUrl)
               : undefined,
           themePreset:
             typeof themePreset === "string" || themePreset === null

@@ -15,6 +15,7 @@ import {
   type ReferralCommission
 } from "@/lib/dashboard";
 import { clearToken } from "@/lib/auth";
+import { normalizePublicUrl } from "@/lib/url";
 
 export default function DashboardSettingsPage() {
   const [profile, setProfile] = useState<OrganizerProfile | null>(null);
@@ -38,6 +39,8 @@ export default function DashboardSettingsPage() {
   const [website, setWebsite] = useState("");
   const [bio, setBio] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
+
+  const displayAvatarUrl = normalizePublicUrl(profile?.avatarUrl ?? avatarUrl);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -281,7 +284,7 @@ export default function DashboardSettingsPage() {
             <div className="flex items-center gap-4">
               {profile.avatarUrl ? (
                 <img
-                  src={profile.avatarUrl}
+                  src={displayAvatarUrl}
                   alt="Avatar"
                   className="h-16 w-16 rounded-full object-cover border border-primary/10"
                 />
