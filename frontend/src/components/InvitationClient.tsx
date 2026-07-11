@@ -302,6 +302,11 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
               <div className="max-w-4xl space-y-3 text-white">
                 <p className="text-[11px] uppercase tracking-[0.32em] text-white/70">{initial.event.type || "Evenement"}</p>
                 <h1 className="text-3xl font-semibold leading-tight md:text-6xl">{initial.event.hostNames || initial.event.name}</h1>
+                <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-white/85">
+                  {dateLabel ? <span className="rounded-full border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-md">{dateLabel}</span> : null}
+                  {timeLabel ? <span className="rounded-full border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-md">{timeLabel}</span> : null}
+                  <span className="rounded-full border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-md">{initial.event.location}</span>
+                </div>
                 <p className="max-w-2xl text-sm text-white/85 md:text-lg">{initial.event.name}</p>
                 {countdownText ? <div className="inline-flex rounded-full border border-white/15 bg-white/12 px-4 py-2 text-sm text-white/90 backdrop-blur-md">{countdownText}</div> : null}
               </div>
@@ -516,7 +521,14 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
         </div>
       </div>
       <div className="fixed inset-x-3 bottom-3 z-50 md:hidden">
-        <div className="rounded-[28px] border border-white/40 bg-white/80 p-3 shadow-2xl shadow-black/10 backdrop-blur-xl" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+        <div className="rounded-[28px] border border-white/40 bg-white/82 p-3 shadow-2xl shadow-black/10 backdrop-blur-xl" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+          <div className="mb-3 flex items-center justify-between gap-3 px-1">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">RSVP mobile</p>
+              <p className="mt-1 text-xs text-slate-600">{countdownText || dateLabel}</p>
+            </div>
+            <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${isConfirmed ? "bg-emerald-100 text-emerald-700" : guestStatus === "CANCELED" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"}`}>{guestStatus === "PENDING" && "En attente"}{guestStatus === "CONFIRMED" && "Confirme"}{guestStatus === "CANCELED" && "Annule"}</span>
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <button className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-sm transition active:scale-[0.99] disabled:opacity-60" type="button" onClick={handleConfirm} disabled={loadingAction === "confirm"}>{loadingAction === "confirm" ? "..." : isConfirmed ? "Voir le pass" : "Confirmer ma presence"}</button>
             <button className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-sm transition active:scale-[0.99] disabled:opacity-60" type="button" onClick={handleCancel} disabled={loadingAction === "cancel"}>{loadingAction === "cancel" ? "..." : "Je ne pourrai pas venir"}</button>
@@ -536,3 +548,4 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
     </div>
   );
 }
+
