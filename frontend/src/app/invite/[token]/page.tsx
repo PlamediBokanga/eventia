@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { API_URL } from "@/lib/config";
 import type { InvitationData } from "@/components/InvitationClient";
 import { InviteSteps } from "@/components/layout/InviteSteps";
@@ -7,7 +7,7 @@ import { getInvitationAnimationClass, getInvitationThemeStyle } from "@/lib/invi
 import { InviteLandingClient } from "@/components/InviteLandingClient";
 
 interface InviteLandingProps {
-  params: { token: string };
+  params: Promise<{ token: string }>;
 }
 
 async function fetchInvitation(token: string): Promise<InvitationData | null> {
@@ -21,7 +21,8 @@ async function fetchInvitation(token: string): Promise<InvitationData | null> {
 }
 
 export default async function InviteLandingPage({ params }: InviteLandingProps) {
-  const data = await fetchInvitation(params.token);
+  const { token } = await params;
+  const data = await fetchInvitation(token);
 
   if (!data) {
     return (
@@ -38,7 +39,7 @@ export default async function InviteLandingPage({ params }: InviteLandingProps) 
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4 py-6">
-      <InviteLandingClient data={data} token={params.token} />
+      <InviteLandingClient data={data} token={token} />
     </main>
   );
 }

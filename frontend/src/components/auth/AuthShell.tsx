@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 
@@ -13,6 +13,15 @@ type AuthShellProps = {
   footer: React.ReactNode;
 };
 
+function ShellSignal({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[22px] border border-white/10 bg-white/6 p-4 shadow-[0_20px_50px_rgba(15,23,42,0.14)] backdrop-blur-md">
+      <p className="text-[10px] uppercase tracking-[0.28em] text-white/45">{label}</p>
+      <p className="mt-1 text-[22px] font-semibold tracking-tight text-white">{value}</p>
+    </div>
+  );
+}
+
 export function AuthShell({
   eyebrow,
   title,
@@ -24,72 +33,70 @@ export function AuthShell({
   footer
 }: AuthShellProps) {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#f4f5f7] px-4 py-6 md:px-6 md:py-8">
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.035)_1px,transparent_1px)] bg-[size:34px_34px] opacity-40" />
-      <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-7xl overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] xl:grid-cols-[1.08fr,0.92fr]">
-        <section className="relative hidden overflow-hidden bg-[linear-gradient(165deg,_#0f172a_0%,_#111c2d_40%,_#15293e_100%)] px-10 py-10 text-white xl:flex xl:flex-col">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_24%),radial-gradient(circle_at_85%_15%,rgba(255,255,255,0.05),transparent_18%),radial-gradient(circle_at_50%_80%,rgba(148,163,184,0.08),transparent_26%)]" />
+    <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_#14203a_0%,_#0b1220_38%,_#090f1a_100%)] px-4 py-6 text-white md:px-6 md:py-8">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:36px_36px] opacity-30" />
+      <div className="pointer-events-none absolute -left-24 top-8 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl" />
+      <div className="pointer-events-none absolute right-0 top-20 h-80 w-80 rounded-full bg-amber-400/10 blur-3xl" />
+      <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-7xl overflow-hidden rounded-[32px] border border-white/10 bg-white/5 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-2xl xl:grid-cols-[1.02fr,0.98fr]">
+        <section className="relative hidden overflow-hidden px-10 py-10 xl:flex xl:flex-col">
+          <div className="absolute inset-0 bg-[linear-gradient(165deg,rgba(8,15,28,0.88)_0%,rgba(13,24,43,0.85)_50%,rgba(16,32,57,0.9)_100%)]" />
+          <div className="absolute inset-0 opacity-35 [background-image:radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.16),transparent_24%),radial-gradient(circle_at_80%_15%,rgba(255,255,255,0.08),transparent_16%),radial-gradient(circle_at_50%_82%,rgba(148,163,184,0.15),transparent_24%)]" />
+
           <div className="relative z-10 flex items-center justify-between">
-            <Link href="/" className="font-heading text-lg tracking-[0.28em] text-white/90">
+            <Link href="/" className="text-lg font-semibold tracking-[0.32em] text-white/95">
               EVENTIA
             </Link>
-            <span className="rounded-full border border-white/15 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-white/65">
-              Organisateur
+            <span className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-[10px] uppercase tracking-[0.34em] text-white/60">
+              Organizer suite
             </span>
           </div>
 
-          <div className="relative z-10 mt-20 max-w-xl space-y-5">
-            <p className="text-[11px] uppercase tracking-[0.35em] text-white/50">{eyebrow}</p>
-            <h1 className="font-heading text-5xl leading-[1.02] text-white">{sideTitle}</h1>
-            <p className="max-w-lg text-[15px] leading-7 text-slate-300">{sideCopy}</p>
+          <div className="relative z-10 mt-16 max-w-xl space-y-5">
+            <p className="text-[11px] uppercase tracking-[0.42em] text-white/45">{eyebrow}</p>
+            <h1 className="max-w-lg text-5xl font-semibold leading-[1.02] tracking-tight text-white">
+              {sideTitle}
+            </h1>
+            <p className="max-w-xl text-[15px] leading-7 text-slate-300">{sideCopy}</p>
           </div>
 
-          <div className="relative z-10 mt-12 grid gap-3">
-            <div className="rounded-[24px] border border-white/10 bg-white/5 p-5">
-              <p className="text-[10px] uppercase tracking-[0.3em] text-white/45">Ce que vos utilisateurs voient</p>
+          <div className="relative z-10 mt-12 grid gap-4">
+            <div className="rounded-[28px] border border-white/10 bg-white/6 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)] backdrop-blur-md">
+              <p className="text-[10px] uppercase tracking-[0.34em] text-white/45">Core experience</p>
               <div className="mt-4 grid gap-3 text-sm text-slate-200 md:grid-cols-2">
-                <div className="rounded-2xl border border-white/10 bg-black/10 px-4 py-3">
-                  Parcours clair
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-black/10 px-4 py-3">
-                  Sessions securisees
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-black/10 px-4 py-3">
-                  Google Sign-In
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-black/10 px-4 py-3">
-                  Redirection propre
-                </div>
+                <div className="rounded-2xl border border-white/10 bg-black/10 px-4 py-3">Secure sign-in</div>
+                <div className="rounded-2xl border border-white/10 bg-black/10 px-4 py-3">Google ready</div>
+                <div className="rounded-2xl border border-white/10 bg-black/10 px-4 py-3">Dynamic feedback</div>
+                <div className="rounded-2xl border border-white/10 bg-black/10 px-4 py-3">Admin dashboard</div>
               </div>
             </div>
 
-            {sideStats.map(item => (
-              <div
-                key={item.label}
-                className="rounded-[22px] border border-white/10 bg-white/5 p-5"
-              >
-                <p className="text-[22px] font-semibold tracking-tight text-white">{item.value}</p>
-                <p className="mt-1 text-sm leading-6 text-slate-300">{item.label}</p>
-              </div>
-            ))}
+            <div className="grid gap-4 md:grid-cols-2">
+              {sideStats.map(item => (
+                <ShellSignal key={item.label} label={item.label} value={item.value} />
+              ))}
+            </div>
           </div>
         </section>
 
-        <section className="flex items-center justify-center bg-[#fbfbfc] px-4 py-8 md:px-8 xl:px-12">
-          <div className="w-full max-w-[560px]">
+        <section className="relative flex items-center justify-center bg-[linear-gradient(180deg,rgba(248,250,252,0.97)_0%,rgba(241,245,249,0.98)_100%)] px-4 py-8 text-slate-900 md:px-8 xl:px-12">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(15,23,42,0.05),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(15,23,42,0.04),transparent_20%)]" />
+          <div className="relative w-full max-w-[560px]">
             <div className="mb-8 xl:hidden">
-              <Link href="/" className="font-heading text-lg tracking-[0.28em] text-slate-900">
+              <Link href="/" className="text-lg font-semibold tracking-[0.32em] text-slate-900">
                 EVENTIA
               </Link>
             </div>
 
-            <div className="mb-8 space-y-4">
-              <p className="text-[11px] uppercase tracking-[0.35em] text-slate-500">{eyebrow}</p>
-              <h2 className="font-heading text-4xl leading-tight text-slate-900 md:text-[3.35rem]">{title}</h2>
+            <div className="mb-6 space-y-4">
+              <p className="text-[11px] uppercase tracking-[0.42em] text-slate-500">{eyebrow}</p>
+              <h2 className="max-w-xl text-4xl font-semibold leading-tight tracking-tight text-slate-900 md:text-[3.35rem]">
+                {title}
+              </h2>
               <p className="max-w-xl text-[15px] leading-7 text-slate-600">{description}</p>
             </div>
 
-            <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_16px_35px_rgba(15,23,42,0.05)] md:p-7">
+            <div className="relative overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/92 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] md:p-7">
+              <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#0f172a,#64748b,#0f766e,#f59e0b)]" />
               {children}
             </div>
 
@@ -105,7 +112,7 @@ export function AuthDivider({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3 py-1">
       <div className="h-px flex-1 bg-slate-200" />
-      <span className="text-[11px] uppercase tracking-[0.26em] text-slate-500">{label}</span>
+      <span className="text-[11px] uppercase tracking-[0.3em] text-slate-500">{label}</span>
       <div className="h-px flex-1 bg-slate-200" />
     </div>
   );
@@ -120,27 +127,31 @@ type AuthNoticeProps = {
 
 const NOTICE_STYLES: Record<
   NonNullable<AuthNoticeProps["variant"]>,
-  { shell: string; badge: string; title: string }
+  { shell: string; badge: string; title: string; accent: string }
 > = {
   info: {
     shell: "border-slate-200 bg-slate-50 text-slate-700",
     badge: "border-slate-200 bg-white text-slate-700",
-    title: "text-slate-900"
+    title: "text-slate-900",
+    accent: "bg-slate-900"
   },
   success: {
     shell: "border-emerald-200 bg-emerald-50 text-emerald-900",
     badge: "border-emerald-200 bg-white text-emerald-800",
-    title: "text-emerald-950"
+    title: "text-emerald-950",
+    accent: "bg-emerald-600"
   },
   warning: {
     shell: "border-amber-200 bg-amber-50 text-amber-900",
     badge: "border-amber-200 bg-white text-amber-900",
-    title: "text-amber-950"
+    title: "text-amber-950",
+    accent: "bg-amber-600"
   },
   error: {
     shell: "border-rose-200 bg-rose-50 text-rose-900",
     badge: "border-rose-200 bg-white text-rose-900",
-    title: "text-rose-950"
+    title: "text-rose-950",
+    accent: "bg-rose-600"
   }
 };
 
@@ -148,11 +159,9 @@ export function AuthNotice({ variant = "info", title, message, action }: AuthNot
   const styles = NOTICE_STYLES[variant];
 
   return (
-    <div className={`rounded-[22px] border px-4 py-4 shadow-[0_14px_30px_rgba(15,23,42,0.04)] ${styles.shell}`}>
+    <div className={`rounded-[22px] border px-4 py-4 shadow-[0_14px_30px_rgba(15,23,42,0.05)] ${styles.shell}`}>
       <div className="flex items-start gap-3">
-        <div className={`mt-0.5 inline-flex rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.28em] ${styles.badge}`}>
-          {variant}
-        </div>
+        <div className={`mt-0.5 h-3 w-3 rounded-full ${styles.accent}`} />
         <div className="min-w-0 flex-1">
           {title ? <p className={`text-sm font-semibold ${styles.title}`}>{title}</p> : null}
           <div className="mt-1 text-sm leading-6">{message}</div>
@@ -192,6 +201,7 @@ export function AuthActionBox({
 
   return (
     <div className={`overflow-hidden rounded-[24px] border shadow-[0_18px_40px_rgba(15,23,42,0.06)] ${styles.shell}`}>
+      <div className={`h-1 ${styles.accent}`} />
       <div className="flex items-start gap-4 px-4 py-4 sm:px-5">
         <div className={`mt-0.5 grid h-11 w-11 place-items-center rounded-2xl border ${styles.badge}`}>
           <span className="text-sm font-bold uppercase tracking-[0.18em]">{variant.slice(0, 1)}</span>
@@ -279,14 +289,15 @@ export function AuthPopup({
       <button
         type="button"
         aria-label="Fermer le popup"
-        className="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className={`relative w-full max-w-lg overflow-hidden rounded-[28px] border bg-white shadow-[0_28px_90px_rgba(15,23,42,0.22)] ${styles.shell}`}>
+      <div className={`relative w-full max-w-lg overflow-hidden rounded-[30px] border bg-white shadow-[0_30px_100px_rgba(15,23,42,0.28)] ${styles.shell}`}>
+        <div className={`h-1 ${styles.accent}`} />
         <div className="flex items-start justify-between gap-4 px-5 py-5">
           <div className="flex items-start gap-3">
-            <div className={`mt-0.5 grid h-11 w-11 place-items-center rounded-2xl border ${styles.badge}`}>
-              <span className="text-sm font-bold uppercase tracking-[0.18em]">{variant.slice(0, 1)}</span>
+            <div className={`mt-0.5 grid h-12 w-12 place-items-center rounded-2xl border ${styles.badge}`}>
+              <span className="text-[11px] font-bold uppercase tracking-[0.22em]">{variant.slice(0, 1)}</span>
             </div>
             <div className="min-w-0">
               <p className={`text-base font-semibold ${styles.title}`}>{title}</p>

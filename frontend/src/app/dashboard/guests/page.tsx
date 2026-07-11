@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { Header } from "@/components/layout/Header";
@@ -744,33 +744,6 @@ export default function DashboardGuestsPage() {
     }
   }
 
-  async function importGuestsFromExcel(file: File) {
-    if (!selectedEvent) return;
-    setImporting(true);
-    try {
-      const xlsx = await import("xlsx");
-      const data = await file.arrayBuffer();
-      const workbook = xlsx.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      if (!sheetName) {
-        pushToast("Aucune feuille detectee.", "error");
-        return;
-      }
-      const worksheet = workbook.Sheets[sheetName];
-      const json = xlsx.utils.sheet_to_json(worksheet, { header: 1 }) as Array<Array<unknown>>;
-      const rows = json.slice(1).map(row => ({
-        fullName: String(row[0] ?? "").trim(),
-        phone: String(row[1] ?? "").trim(),
-        table: String(row[2] ?? "").trim()
-      }));
-      await importGuestsFromRows(rows.filter(row => row.fullName));
-    } catch (error) {
-      pushToast("Impossible d'importer ce fichier Excel.", "error");
-    } finally {
-      setImporting(false);
-    }
-  }
-
   async function assignTable(guestId: number, tableId: number | null) {
     const res = await authFetch(`/guests/${guestId}/table`, {
       method: "PATCH",
@@ -1002,19 +975,15 @@ export default function DashboardGuestsPage() {
                     + Ajouter un invite
                   </Button>
                   <label className="btn-ghost px-3 py-2 text-xs cursor-pointer">
-                    {importing ? "Import..." : "Importer (CSV/Excel)"}
+                    {importing ? "Import..." : "Importer CSV"}
                     <input
                       type="file"
-                      accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                      accept=".csv,text/csv"
                       className="hidden"
                       onChange={e => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        if (file.name.toLowerCase().endsWith(".xlsx")) {
-                          void importGuestsFromExcel(file);
-                        } else {
-                          void importGuestsFromCsv(file);
-                        }
+                        void importGuestsFromCsv(file);
                         e.target.value = "";
                       }}
                     />
@@ -1834,4 +1803,5 @@ export default function DashboardGuestsPage() {
     </main>
   );
 }
+
 

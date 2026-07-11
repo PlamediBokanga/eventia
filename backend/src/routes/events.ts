@@ -1,5 +1,6 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import { prisma } from "../prisma";
+import { EventVisibility } from "@prisma/client";
 import PDFDocument from "pdfkit";
 import fs from "fs/promises";
 import path from "path";
@@ -423,6 +424,14 @@ eventsRouter.post("/", authMiddleware, async (req, res) => {
       accentColor,
       fontFamily,
       animationStyle,
+      visibility,
+      publicSignupEnabled,
+      ticketPrice,
+      currency,
+      venueType,
+      locationNotes,
+      gpsEnabled,
+      publishedAt,
       tableCount,
       capacityPerTable
     } = req.body;
@@ -458,6 +467,7 @@ eventsRouter.post("/", authMiddleware, async (req, res) => {
     const capacityPerTableFinal = seatingModeFinal === "NONE" ? 0 : toNonNegativeInt(capacityPerTable, 0);
     const tableLabelPrefix = seatingModeFinal === "ZONE" ? "Zone" : "Table";
 
+
     const normalizedProgramItems = normalizeProgramItems(programItems);
     const event = await prisma.event.create({
       data: {
@@ -478,6 +488,14 @@ eventsRouter.post("/", authMiddleware, async (req, res) => {
         accentColor: cleanOptionalHexColor(accentColor),
         fontFamily: cleanOptionalFontFamily(fontFamily),
         animationStyle: cleanOptionalAnimationStyle(animationStyle),
+        visibility: (typeof visibility === "string" && ["PRIVATE", "PUBLIC_FREE", "PUBLIC_PAID"].includes(visibility.trim().toUpperCase()) ? visibility.trim().toUpperCase() : "PRIVATE") as EventVisibility,
+        publicSignupEnabled: typeof publicSignupEnabled === "boolean" ? publicSignupEnabled : typeof publicSignupEnabled === "string" ? ["true", "1", "yes", "on"].includes(publicSignupEnabled.trim().toLowerCase()) : false,
+        ticketPrice: ticketPrice == null || ticketPrice === "" ? null : Number.isFinite(Number(ticketPrice)) && Number(ticketPrice) >= 0 ? Math.round(Number(ticketPrice)) : null,
+        currency: typeof currency === "string" ? currency.trim().toUpperCase().slice(0, 3) || "USD" : "USD",
+        venueType: cleanOptionalText(venueType, 80),
+        locationNotes: cleanOptionalText(locationNotes, 2000),
+        gpsEnabled: typeof gpsEnabled === "boolean" ? gpsEnabled : typeof gpsEnabled === "string" ? ["true", "1", "yes", "on"].includes(gpsEnabled.trim().toLowerCase()) : false,
+        publishedAt: typeof publishedAt === "string" && publishedAt && isValidDate(publishedAt) ? new Date(publishedAt) : null,
         tableCount: tableCountFinal,
         capacityPerTable: capacityPerTableFinal,
         organizerId,
@@ -591,6 +609,14 @@ eventsRouter.put("/:id", authMiddleware, async (req, res) => {
       accentColor,
       fontFamily,
       animationStyle,
+      visibility,
+      publicSignupEnabled,
+      ticketPrice,
+      currency,
+      venueType,
+      locationNotes,
+      gpsEnabled,
+      publishedAt,
       tableCount,
       capacityPerTable
     } = req.body as {
@@ -612,6 +638,14 @@ eventsRouter.put("/:id", authMiddleware, async (req, res) => {
       accentColor?: string | null;
       fontFamily?: string | null;
       animationStyle?: string | null;
+      visibility?: "PRIVATE" | "PUBLIC_FREE" | "PUBLIC_PAID";
+      publicSignupEnabled?: boolean | string;
+      ticketPrice?: number | null;
+      currency?: string | null;
+      venueType?: string | null;
+      locationNotes?: string | null;
+      gpsEnabled?: boolean | string;
+      publishedAt?: string | null;
       tableCount?: number;
       capacityPerTable?: number;
     };
@@ -756,6 +790,44 @@ eventsRouter.put("/:id", authMiddleware, async (req, res) => {
           animationStyle:
             typeof animationStyle === "string" || animationStyle === null
               ? cleanOptionalAnimationStyle(animationStyle)
+              : undefined,
+          visibility:
+            typeof visibility === "string"
+              ? ((["PRIVATE", "PUBLIC_FREE", "PUBLIC_PAID"].includes(visibility.trim().toUpperCase()) ? visibility.trim().toUpperCase() : "PRIVATE") as EventVisibility)
+              : undefined,
+          publicSignupEnabled:
+            typeof publicSignupEnabled === "boolean"
+              ? publicSignupEnabled
+              : typeof publicSignupEnabled === "string"
+                ? ["true", "1", "yes", "on"].includes(publicSignupEnabled.trim().toLowerCase())
+                : undefined,
+          ticketPrice:
+            ticketPrice != null
+              ? Number.isFinite(Number(ticketPrice)) && Number(ticketPrice) >= 0
+                ? Math.round(Number(ticketPrice))
+                : null
+              : undefined,
+          currency:
+            typeof currency === "string"
+              ? currency.trim().toUpperCase().slice(0, 3) || undefined
+              : undefined,
+          venueType:
+            typeof venueType === "string" || venueType === null ? cleanOptionalText(venueType, 80) : undefined,
+          locationNotes:
+            typeof locationNotes === "string" || locationNotes === null
+              ? cleanOptionalText(locationNotes, 2000)
+              : undefined,
+          gpsEnabled:
+            typeof gpsEnabled === "boolean"
+              ? gpsEnabled
+              : typeof gpsEnabled === "string"
+                ? ["true", "1", "yes", "on"].includes(gpsEnabled.trim().toLowerCase())
+                : undefined,
+          publishedAt:
+            typeof publishedAt === "string"
+              ? publishedAt && isValidDate(publishedAt)
+                ? new Date(publishedAt)
+                : null
               : undefined,
           tableCount: targetTableCount,
           capacityPerTable: targetCapacityPerTable
@@ -3055,4 +3127,9 @@ eventsRouter.get("/:id/guestbook/pdf", authMiddleware, async (req, res) => {
     }
   }
 });
+
+
+
+
+
 

@@ -1,5 +1,6 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 
-export default function LegacyInvitationPage({ params }: { params: { token: string } }) {
-  redirect(`/invite/${params.token}/invitation`);
+export default async function LegacyInvitationPage({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params;
+  redirect(`/invite/${token}/invitation`);
 }

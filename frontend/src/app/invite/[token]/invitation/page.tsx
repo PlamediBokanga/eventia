@@ -1,11 +1,11 @@
-import { API_URL } from "@/lib/config";
+﻿import { API_URL } from "@/lib/config";
 import { InvitationClient, type InvitationData } from "@/components/InvitationClient";
 import { InviteSteps } from "@/components/layout/InviteSteps";
 
 interface InvitationPageProps {
-  params: {
+  params: Promise<{
     token: string;
-  };
+  }>;
 }
 
 async function fetchInvitation(token: string): Promise<InvitationData | null> {
@@ -24,7 +24,7 @@ async function fetchInvitation(token: string): Promise<InvitationData | null> {
 }
 
 export default async function InvitationPage({ params }: InvitationPageProps) {
-  const { token } = params;
+  const { token } = await params;
   const data = await fetchInvitation(token);
 
   if (!data) {

@@ -1,4 +1,4 @@
-// Schéma Prisma pour EVENTIA (MVP)
+// SchÃƒÂ©ma Prisma pour EVENTIA (MVP)
 
 generator client {
   provider = "prisma-client-js"
@@ -89,7 +89,7 @@ model ReferralCommission {
   @@map("referralcommission")
 }
 
-// Événement géré dans l’application
+// Ãƒâ€°vÃƒÂ©nement gÃƒÂ©rÃƒÂ© dans lÃ¢â‚¬â„¢application
 model Event {
   id               Int       @id @default(autoincrement())
   name             String
@@ -109,6 +109,14 @@ model Event {
   accentColor      String?
   fontFamily       String?
   animationStyle   String?
+  visibility       EventVisibility @default(PRIVATE)
+  publicSignupEnabled Boolean @default(false)
+  ticketPrice      Int?
+  currency         String @default("USD")
+  venueType        String?
+  locationNotes    String? @db.Text
+  gpsEnabled       Boolean @default(false)
+  publishedAt      DateTime?
   drinksEnabled    Boolean   @default(true)
   guestbookRequiresApproval Boolean @default(false)
   tableCount       Int
@@ -246,7 +254,7 @@ model EventCoOrganizerInvite {
   @@map("eventcoorganizerinvite")
 }
 
-// Table physique à l’événement
+// Table physique ÃƒÂ  lÃ¢â‚¬â„¢ÃƒÂ©vÃƒÂ©nement
 model Table {
   id        Int     @id @default(autoincrement())
   label     String
@@ -293,7 +301,7 @@ model TableLayoutPosition {
   @@map("tablelayoutposition")
 }
 
-// Invité
+// InvitÃƒÂ©
 model Guest {
   id         Int        @id @default(autoincrement())
   fullName   String
@@ -326,7 +334,7 @@ model Guest {
   @@map("guest")
 }
 
-// Invitation numérique (token + QR code)
+// Invitation numÃƒÂ©rique (token + QR code)
 model GuestInvitation {
   id         Int      @id @default(autoincrement())
   token      String   @unique
@@ -345,7 +353,7 @@ model GuestInvitation {
   @@map("guestinvitation")
 }
 
-// Options de boissons pour un événement
+// Options de boissons pour un ÃƒÂ©vÃƒÂ©nement
 model DrinkOption {
   id        Int         @id @default(autoincrement())
   name      String
@@ -360,7 +368,7 @@ model DrinkOption {
   @@map("drinkoption")
 }
 
-// Choix de boissons d’un invité
+// Choix de boissons dÃ¢â‚¬â„¢un invitÃƒÂ©
 model GuestDrinkChoice {
   id           Int          @id @default(autoincrement())
   quantity     Int          @default(1)
@@ -374,7 +382,7 @@ model GuestDrinkChoice {
   @@map("guestdrinkchoice")
 }
 
-// Livre d’or
+// Livre dÃ¢â‚¬â„¢or
 model GuestBookMessage {
   id        Int      @id @default(autoincrement())
   message   String
@@ -479,9 +487,18 @@ enum ChatSenderType {
   GUEST
 }
 
+enum EventVisibility {
+  PRIVATE
+  PUBLIC_FREE
+  PUBLIC_PAID
+}
+
 enum SeatingMode {
   TABLE
   ZONE
   NONE
 }
+
+
+
 
