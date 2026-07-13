@@ -271,22 +271,22 @@ export default function DashboardSettingsPage() {
       .join("") || "U";
 
   return (
-    <main className="space-y-4">
-      <Header title="Profil Organisateur" />
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.08),transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] px-3 py-4 md:px-6 md:py-6">
+      <Header title="Profil & Parametres" />
 
       {!profile ? (
-        <section className="card p-4">
-          <p className="text-small">Chargement du profil...</p>
+        <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl">
+          <p className="text-sm text-slate-600">Chargement du profil...</p>
         </section>
       ) : (
         <>
-          <section className="card p-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 flex flex-col gap-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
               {profile.avatarUrl ? (
                 <img
                   src={displayAvatarUrl}
                   alt="Avatar"
-                  className="h-16 w-16 rounded-full object-cover border border-primary/10"
+                  className="h-16 w-16 rounded-full object-cover border border-slate-200/80"
                 />
               ) : (
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-text">
@@ -295,12 +295,12 @@ export default function DashboardSettingsPage() {
               )}
               <div>
                 <p className="text-lg font-semibold">{profile.name || "Organisateur"}</p>
-                <p className="text-small text-textMuted">{profile.email}</p>
-                <p className="text-[11px] text-textMuted">
+                <p className="text-small text-slate-500">{profile.email}</p>
+                <p className="text-[11px] text-slate-500">
                   Membre depuis {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString("fr-FR") : "-"}
                 </p>
                 {profile.referralCode ? (
-                  <p className="text-[11px] text-textMuted">Code partenaire: {profile.referralCode}</p>
+                  <p className="text-[11px] text-slate-500">Code partenaire: {profile.referralCode}</p>
                 ) : null}
               </div>
             </div>
@@ -312,11 +312,11 @@ export default function DashboardSettingsPage() {
           </section>
 
           <section className="grid gap-4 lg:grid-cols-[1.2fr,1fr]">
-            <div className="card p-4 space-y-4">
+            <div className="rounded-[32px] border border-white/70 bg-white/85 p-5 space-y-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl">
               <h3 className="title-4">Infos personnelles</h3>
               <form onSubmit={save} className="grid gap-3 text-xs">
                 <div className="grid grid-cols-1 md:grid-cols-[auto,1fr] gap-3 items-center">
-                  <label className="text-small">Photo</label>
+                  <label className="text-sm text-slate-600">Photo</label>
                   <div className="flex flex-wrap items-center gap-2">
                     <Input
                       placeholder="URL photo (https://...)"
@@ -357,7 +357,7 @@ export default function DashboardSettingsPage() {
                   <Input type="date" placeholder="Date de naissance" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} />
                 </div>
                 <textarea
-                  className="w-full rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-accent/60"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-slate-100"
                   rows={4}
                   placeholder="Bio / Informations complementaires"
                   value={bio}
@@ -370,7 +370,7 @@ export default function DashboardSettingsPage() {
             </div>
 
             <div className="space-y-4">
-              <section className="card p-4 space-y-3">
+              <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 space-y-3 shadow-2xl shadow-slate-200/60 backdrop-blur-xl">
                 <h3 className="title-4">Securite</h3>
                 <form onSubmit={savePassword} className="grid gap-2 text-xs">
                   <div className="grid grid-cols-1 gap-2">
@@ -392,7 +392,7 @@ export default function DashboardSettingsPage() {
                       value={confirmPassword}
                       onChange={e => setConfirmPassword(e.target.value)}
                     />
-                    <div className="flex flex-wrap gap-2 text-[11px] text-textMuted">
+                    <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
                       <button type="button" className="underline" onClick={() => setShowCurrent(s => !s)}>
                         {showCurrent ? "Masquer" : "Afficher"} ancien
                       </button>
@@ -412,7 +412,7 @@ export default function DashboardSettingsPage() {
                   <label className="flex items-center gap-2 text-xs text-text/80">
                     <input
                       type="checkbox"
-                      className="accent-primary"
+                      className="accent-slate-900"
                       checked={securityAlerts}
                       onChange={e => setSecurityAlerts(e.target.checked)}
                     />
@@ -421,16 +421,16 @@ export default function DashboardSettingsPage() {
                 </div>
               </section>
 
-              <section className="card p-4 space-y-3">
+              <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 space-y-3 shadow-2xl shadow-slate-200/60 backdrop-blur-xl">
                 <h3 className="title-4">Sessions actives</h3>
                 {sessions.length === 0 ? (
-                  <p className="text-small">Aucune session active detectee.</p>
+                  <p className="text-sm text-slate-600">Aucune session active detectee.</p>
                 ) : (
                   <div className="space-y-2 text-xs">
                     {sessions.map(session => (
-                      <div key={session.id} className="rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
+                      <div key={session.id} className="rounded-[20px] border border-slate-200/80 bg-slate-50 px-3 py-2">
                         <p className="font-medium">{session.device}</p>
-                        <p className="text-[11px] text-text/60">
+                        <p className="text-[11px] text-slate-500">
                           {session.ip ? `IP: ${session.ip}` : "IP inconnue"}
                           {session.lastActive ? ` • ${new Date(session.lastActive).toLocaleString("fr-FR")}` : ""}
                         </p>
@@ -443,27 +443,27 @@ export default function DashboardSettingsPage() {
                 </Button>
               </section>
 
-              <section className="card p-4 space-y-3">
+              <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 space-y-3 shadow-2xl shadow-slate-200/60 backdrop-blur-xl">
                 <h3 className="title-4">Statistiques</h3>
                 {!stats ? (
-                  <p className="text-small">Chargement des stats...</p>
+                  <p className="text-sm text-slate-600">Chargement des stats...</p>
                 ) : (
                   <div className="grid gap-3">
                     <div className="grid grid-cols-3 gap-2 text-center">
-                      <div className="rounded-xl border border-primary/10 bg-background/70 p-2">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">Evenements</p>
+                      <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 p-2">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Evenements</p>
                         <p className="mt-1 text-lg font-semibold">{stats.totalEvents}</p>
                       </div>
-                      <div className="rounded-xl border border-primary/10 bg-background/70 p-2">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">Invites</p>
+                      <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 p-2">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Invites</p>
                         <p className="mt-1 text-lg font-semibold">{stats.totalGuests}</p>
                       </div>
-                      <div className="rounded-xl border border-primary/10 bg-background/70 p-2">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">Confirmes</p>
+                      <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 p-2">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Confirmes</p>
                         <p className="mt-1 text-lg font-semibold">{stats.confirmed}</p>
                       </div>
                     </div>
-                    <div className="rounded-xl border border-primary/10 bg-background/70 p-3 text-xs space-y-2">
+                    <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 p-3 text-xs space-y-2">
                       <div className="flex items-center justify-between">
                         <span>En attente</span>
                         <span className="font-semibold">{stats.pending}</span>
@@ -473,10 +473,10 @@ export default function DashboardSettingsPage() {
                         <span className="font-semibold">{stats.canceled}</span>
                       </div>
                     </div>
-                    <div className="rounded-xl border border-primary/10 bg-background/70 p-3 text-xs space-y-2">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">Types d'evenements</p>
+                    <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 p-3 text-xs space-y-2">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Types d'evenements</p>
                       {Object.entries(stats.types).length === 0 ? (
-                        <p className="text-small">Aucune donnee.</p>
+                        <p className="text-sm text-slate-600">Aucune donnee.</p>
                       ) : (
                         Object.entries(stats.types).map(([key, value]) => (
                           <div key={key} className="flex items-center justify-between">
@@ -492,45 +492,45 @@ export default function DashboardSettingsPage() {
             </div>
           </section>
 
-          <section className="card p-4 space-y-4">
+          <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 space-y-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl">
             <h3 className="title-4">Parametres</h3>
             {!settings ? (
-              <p className="text-small">Chargement des parametres...</p>
+              <p className="text-sm text-slate-600">Chargement des parametres...</p>
             ) : (
               <form onSubmit={saveSettings} className="grid gap-4 text-xs">
                 <div className="grid gap-3 md:grid-cols-2">
-                  <label className="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
+                  <label className="flex items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-slate-50 px-3 py-2">
                     <span>Email rappel evenement</span>
                     <input
                       type="checkbox"
-                      className="accent-primary"
+                      className="accent-slate-900"
                       checked={settings.emailNotifications}
                       onChange={e => setSettings({ ...settings, emailNotifications: e.target.checked })}
                     />
                   </label>
-                  <label className="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
+                  <label className="flex items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-slate-50 px-3 py-2">
                     <span>Notifications messages</span>
                     <input
                       type="checkbox"
-                      className="accent-primary"
+                      className="accent-slate-900"
                       checked={settings.messageNotifications}
                       onChange={e => setSettings({ ...settings, messageNotifications: e.target.checked })}
                     />
                   </label>
-                  <label className="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
+                  <label className="flex items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-slate-50 px-3 py-2">
                     <span>Alertes evenements</span>
                     <input
                       type="checkbox"
-                      className="accent-primary"
+                      className="accent-slate-900"
                       checked={settings.eventAlerts}
                       onChange={e => setSettings({ ...settings, eventAlerts: e.target.checked })}
                     />
                   </label>
-                  <label className="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
+                  <label className="flex items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-slate-50 px-3 py-2">
                     <span>Notifications marketing</span>
                     <input
                       type="checkbox"
-                      className="accent-primary"
+                      className="accent-slate-900"
                       checked={settings.marketingNotifications}
                       onChange={e => setSettings({ ...settings, marketingNotifications: e.target.checked })}
                     />
@@ -539,9 +539,9 @@ export default function DashboardSettingsPage() {
 
                 <div className="grid gap-2 md:grid-cols-3">
                   <div className="space-y-1">
-                    <label className="text-small">Langue</label>
+                    <label className="text-sm text-slate-600">Langue</label>
                     <select
-                      className="w-full rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs"
                       value={settings.language}
                       onChange={e => setSettings({ ...settings, language: e.target.value })}
                     >
@@ -550,9 +550,9 @@ export default function DashboardSettingsPage() {
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-small">Fuseau horaire</label>
+                    <label className="text-sm text-slate-600">Fuseau horaire</label>
                     <select
-                      className="w-full rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs"
                       value={settings.timezone}
                       onChange={e => setSettings({ ...settings, timezone: e.target.value })}
                     >
@@ -563,9 +563,9 @@ export default function DashboardSettingsPage() {
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-small">Format date</label>
+                    <label className="text-sm text-slate-600">Format date</label>
                     <select
-                      className="w-full rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs"
                       value={settings.dateFormat}
                       onChange={e => setSettings({ ...settings, dateFormat: e.target.value })}
                     >
@@ -578,9 +578,9 @@ export default function DashboardSettingsPage() {
 
                 <div className="grid gap-2 md:grid-cols-3">
                   <div className="space-y-1">
-                    <label className="text-small">Type evenement par defaut</label>
+                    <label className="text-sm text-slate-600">Type evenement par defaut</label>
                     <select
-                      className="w-full rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs"
                       value={settings.defaultEventType}
                       onChange={e => setSettings({ ...settings, defaultEventType: e.target.value })}
                     >
@@ -591,7 +591,7 @@ export default function DashboardSettingsPage() {
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-small">Heure par defaut</label>
+                    <label className="text-sm text-slate-600">Heure par defaut</label>
                     <Input
                       type="time"
                       value={settings.defaultEventTime}
@@ -599,9 +599,9 @@ export default function DashboardSettingsPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-small">QR code actif</label>
+                    <label className="text-sm text-slate-600">QR code actif</label>
                     <select
-                      className="w-full rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs"
                       value={settings.defaultQrEnabled ? "yes" : "no"}
                       onChange={e => setSettings({ ...settings, defaultQrEnabled: e.target.value === "yes" })}
                     >
@@ -618,14 +618,14 @@ export default function DashboardSettingsPage() {
             )}
           </section>
 
-          <section className="card p-4 space-y-4">
+          <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 space-y-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl">
             <h3 className="title-4">Programme partenaire</h3>
-            <div className="rounded-xl border border-primary/10 bg-background/70 p-3 text-xs space-y-2">
+            <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 p-3 text-xs space-y-2">
               <p>Invitez d'autres organisateurs et gagnez des commissions.</p>
               {profile.referralCode ? (
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[11px] uppercase tracking-[0.2em] text-text/60">Votre code</span>
-                  <span className="rounded-full border border-primary/10 px-3 py-1 font-semibold">
+                  <span className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Votre code</span>
+                  <span className="rounded-full border border-slate-200/80 px-3 py-1 font-semibold">
                     {profile.referralCode}
                   </span>
                 </div>
@@ -637,16 +637,16 @@ export default function DashboardSettingsPage() {
             </div>
 
             <div className="grid gap-2 md:grid-cols-3">
-              <div className="rounded-xl border border-primary/10 bg-background/70 p-3 text-center">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">Total</p>
+              <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 p-3 text-center">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Total</p>
                 <p className="mt-1 text-lg font-semibold">${commissionTotals.total}</p>
               </div>
-              <div className="rounded-xl border border-primary/10 bg-background/70 p-3 text-center">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">Payees</p>
+              <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 p-3 text-center">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Payees</p>
                 <p className="mt-1 text-lg font-semibold">${commissionTotals.paid}</p>
               </div>
-              <div className="rounded-xl border border-primary/10 bg-background/70 p-3 text-center">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">En attente</p>
+              <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 p-3 text-center">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">En attente</p>
                 <p className="mt-1 text-lg font-semibold">${commissionTotals.pending}</p>
               </div>
             </div>
@@ -656,12 +656,12 @@ export default function DashboardSettingsPage() {
             ) : (
               <div className="space-y-2 text-xs">
                 {commissions.map(item => (
-                  <div key={item.id} className="rounded-xl border border-primary/10 bg-white/70 px-3 py-2">
+                  <div key={item.id} className="rounded-[20px] border border-slate-200/80 bg-white px-3 py-2">
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{item.referred?.name || item.referred?.email || "Nouveau client"}</span>
-                      <span className="text-[11px] text-text/60">{item.status}</span>
+                      <span className="text-[11px] text-slate-500">{item.status}</span>
                     </div>
-                    <div className="mt-1 flex items-center justify-between text-[11px] text-text/70">
+                    <div className="mt-1 flex items-center justify-between text-[11px] text-slate-600">
                       <span>{new Date(item.createdAt).toLocaleDateString("fr-FR")}</span>
                       <span className="font-semibold">${item.amount}</span>
                     </div>
