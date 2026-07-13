@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { saveToken, getToken } from "@/lib/auth";
 import { API_URL } from "@/lib/config";
-import { AuthDivider, AuthPopup, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
+import { AuthDivider, AuthNotice, AuthPopup, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
 
 type ProvidersResponse = {
   google?: {
@@ -178,18 +178,22 @@ export function RegisterClient() {
       }
     >
       <div className="space-y-5">
-        <div className="rounded-[22px] border border-slate-200 bg-gradient-to-br from-white to-slate-50/80 px-4 py-4 text-sm text-slate-600 shadow-sm">
-          <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Creation de compte</p>
-          <p className="mt-2 leading-6">
-            Un parcours plus serieux pour les organisateurs qui veulent un espace propre, structure et pret pour la
-            production.
-          </p>
-          <div className="mt-4 grid gap-2 sm:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Profil pro</div>
-            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Google SSO</div>
-            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Mot de passe fort</div>
-          </div>
-        </div>
+        <AuthNotice
+          variant={passwordIsStrong ? "success" : "info"}
+          title="Creation de compte"
+          message={
+            <div className="space-y-2">
+              <p className="leading-6">
+                Un parcours plus serieux pour les organisateurs qui veulent un espace propre, structure et pret pour la production.
+              </p>
+              <div className="grid gap-2 sm:grid-cols-3">
+                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Profil pro</div>
+                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Google SSO</div>
+                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Mot de passe fort</div>
+              </div>
+            </div>
+          }
+         />
         <GoogleButton
           href={googleHref}
           disabled={!googleEnabled}
@@ -364,15 +368,15 @@ export function RegisterClient() {
               .
             </span>
           </label>
-          <button className="btn-primary w-full justify-center py-3 text-sm" type="submit" disabled={loading}>
-            {loading ? "Creation en cours..." : "Creer mon espace"}
+          <button className="btn-primary w-full justify-center py-3 text-sm shadow-[0_16px_30px_rgba(15,23,42,0.18)] transition-transform active:scale-[0.99]" type="submit" disabled={loading}>
+            {loading ? "Creation securisee..." : "Creer mon espace"}
           </button>
         </form>
 
         <AuthPopup
           open={Boolean(message)}
           variant={verificationUrl ? "success" : "warning"}
-          title={verificationUrl ? "Compte cree" : "Creation impossible"}
+          title={verificationUrl ? "Compte cree" : "Creation refusee"}
           message={
             verificationUrl
               ? "Ouvrez le lien pour confirmer votre adresse et finaliser l'activation du compte."

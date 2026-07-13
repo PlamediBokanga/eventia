@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { saveToken, getToken } from "@/lib/auth";
 import { API_URL } from "@/lib/config";
-import { AuthDivider, AuthPopup, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
+import { AuthDivider, AuthNotice, AuthPopup, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
 
 type ProvidersResponse = {
   google?: {
@@ -49,6 +49,7 @@ export function LoginClient() {
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
 
   const googleHref = useMemo(() => `${API_URL}/auth/google?mode=login`, []);
+  const loginHintTone = message ? "warning" : googleEnabled ? "success" : "info";
 
   useEffect(() => {
     if (getToken()) {
@@ -142,24 +143,22 @@ export function LoginClient() {
       }
     >
       <div className="space-y-5">
-        <div className="rounded-[22px] border border-slate-200 bg-gradient-to-br from-white to-slate-50/80 px-4 py-4 text-sm text-slate-600 shadow-sm">
-          <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Acces organiseur</p>
-          <p className="mt-2 leading-6">
-            Retrouvez votre dashboard, vos statistiques, vos invitations et vos outils de pilotage en toute
-            securite.
-          </p>
-          <div className="mt-4 grid gap-2 sm:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
-              Session securisee
+        <AuthNotice
+          variant={loginHintTone}
+          title="Acces organisateur"
+          message={
+            <div className="space-y-2">
+              <p className="leading-6">
+                Retrouvez votre dashboard, vos statistiques, vos invitations et vos outils de pilotage dans une interface claire, rapide et sure.
+              </p>
+              <div className="grid gap-2 sm:grid-cols-3">
+                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Session securisee</div>
+                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Google OAuth</div>
+                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Feedback instantane</div>
+              </div>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
-              Google OAuth
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
-              Popup dynamique
-            </div>
-          </div>
-        </div>
+          }
+         />
         <GoogleButton
           href={googleHref}
           disabled={!googleEnabled}
@@ -207,12 +206,12 @@ export function LoginClient() {
             </div>
           </div>
 
-          <button className="btn-primary w-full justify-center py-3 text-sm" type="submit" disabled={loading}>
-            {loading ? "Connexion en cours..." : "Se connecter"}
+          <button className="btn-primary w-full justify-center py-3 text-sm shadow-[0_16px_30px_rgba(15,23,42,0.18)] transition-transform active:scale-[0.99]" type="submit" disabled={loading}>
+            {loading ? "Connexion securisee..." : "Se connecter"}
           </button>
         </form>
 
-        <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
+        <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-4 text-sm text-slate-600 shadow-sm">
           <p className="font-medium text-slate-900">Connexion securisee</p>
           <p className="mt-1 leading-6">
             Votre session donne acces au dashboard organisateur, aux statistiques, au check-in et aux operations de
@@ -232,7 +231,7 @@ export function LoginClient() {
         <AuthPopup
           open={Boolean(message)}
           variant={verificationEmail ? "warning" : "error"}
-          title={verificationEmail ? "Email non verifie" : "Connexion impossible"}
+          title={verificationEmail ? "Verification requise" : "Connexion refusee"}
           message={
             verificationEmail
               ? "Votre compte est cree, mais l'adresse email doit etre confirmee avant la connexion."
