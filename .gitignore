@@ -7,3 +7,10 @@ eventia.sql
 
 *.tsbuildinfo
 
+
+agency_scope_update.ps1
+congomuv_agency_finalize.ps1
+congomuv_deploy_hardening.ps1
+congomuv_phase1_repair.ps1
+congomuv_phase1_transport_updates.ps1
+congomuv_repair_pages.ps1
