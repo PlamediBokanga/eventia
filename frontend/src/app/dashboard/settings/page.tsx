@@ -2,181 +2,68 @@
 
 import { useEffect, useState } from "react";
 import { Header } from "@/components/layout/Header";
+import { EventPicker } from "@/components/layout/EventPicker";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { authFetch, getSelectedEventId, setSelectedEventId, type EventItem, type OrganizerSettings, type ReferralCommission } from "@/lib/dashboard";
 import { useToast } from "@/components/ui/Toast";
-import {
-  authFetch,
-  type OrganizerProfile,
-  type OrganizerStats,
-  type OrganizerSession,
-  type OrganizerSettings,
-  type ReferralCommission
-} from "@/lib/dashboard";
-import { clearToken } from "@/lib/auth";
-import { normalizePublicUrl } from "@/lib/url";
 
 export default function DashboardSettingsPage() {
-  const [profile, setProfile] = useState<OrganizerProfile | null>(null);
-  const [stats, setStats] = useState<OrganizerStats | null>(null);
-  const [sessions, setSessions] = useState<OrganizerSession[]>([]);
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [settings, setSettings] = useState<OrganizerSettings | null>(null);
-  const [securityAlerts, setSecurityAlerts] = useState(true);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
   const [commissions, setCommissions] = useState<ReferralCommission[]>([]);
   const [commissionTotals, setCommissionTotals] = useState({ total: 0, paid: 0, pending: 0 });
-  const [activatingReferral, setActivatingReferral] = useState(false);
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
-  const [companyName, setCompanyName] = useState("");
-  const [jobTitle, setJobTitle] = useState("");
-  const [addressLine1, setAddressLine1] = useState("");
-  const [addressLine2, setAddressLine2] = useState("");
-  const [city, setCity] = useState("");
-  const [postalCode, setPostalCode] = useState("");
-  const [country, setCountry] = useState("");
-  const [website, setWebsite] = useState("");
-  const [bio, setBio] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState("");
-
-  const displayAvatarUrl = normalizePublicUrl(profile?.avatarUrl ?? avatarUrl);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [savingPassword, setSavingPassword] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [activatingReferral, setActivatingReferral] = useState(false);
   const { pushToast } = useToast();
 
   useEffect(() => {
-    async function load() {
-      const res = await authFetch("/auth/me");
-      if (!res.ok) return;
-      const data = (await res.json()) as { organizer: OrganizerProfile };
-      setProfile(data.organizer);
-      setName(data.organizer.name ?? "");
-      setPhone(data.organizer.phone ?? "");
-      setAvatarUrl(data.organizer.avatarUrl ?? "");
-      setSecurityAlerts(data.organizer.securityAlerts ?? true);
-      setCompanyName(data.organizer.companyName ?? "");
-      setJobTitle(data.organizer.jobTitle ?? "");
-      setAddressLine1(data.organizer.addressLine1 ?? "");
-      setAddressLine2(data.organizer.addressLine2 ?? "");
-      setCity(data.organizer.city ?? "");
-      setPostalCode(data.organizer.postalCode ?? "");
-      setCountry(data.organizer.country ?? "");
-      setWebsite(data.organizer.website ?? "");
-      setBio(data.organizer.bio ?? "");
-      setDateOfBirth(data.organizer.dateOfBirth ? data.organizer.dateOfBirth.slice(0, 10) : "");
+    async function init() {
+      try {
+        const [eventsRes, settingsRes, meRes, commissionsRes] = await Promise.all([
+          authFetch("/events"),
+          authFetch("/auth/settings"),
+          authFetch("/auth/me"),
+          authFetch("/auth/commissions")
+        ]);
+
+        if (eventsRes.ok) {
+          const eventData = (await eventsRes.json()) as EventItem[];
+          setEvents(eventData);
+          if (eventData.length > 0) {
+            const savedId = getSelectedEventId();
+            const chosen = (savedId && eventData.find(event => event.id === savedId)) || eventData[0];
+            setSelectedEvent(chosen);
+            setSelectedEventId(chosen.id);
+          }
+        }
+
+        if (settingsRes.ok) {
+          const payload = (await settingsRes.json()) as { settings: OrganizerSettings };
+          setSettings(payload.settings);
+        }
+
+        if (meRes.ok) {
+          const payload = (await meRes.json()) as { organizer?: { referralCode?: string | null } };
+          setReferralCode(payload.organizer?.referralCode ?? null);
+        }
+
+        if (commissionsRes.ok) {
+          const payload = (await commissionsRes.json()) as { commissions: ReferralCommission[]; totals: { total: number; paid: number; pending: number } };
+          setCommissions(payload.commissions || []);
+          setCommissionTotals(payload.totals || { total: 0, paid: 0, pending: 0 });
+        }
+      } finally {
+        setLoading(false);
+      }
     }
-    void load();
-    void loadStats();
-    void loadSessions();
-    void loadSettings();
-    void loadCommissions();
+
+    void init();
   }, []);
-
-  async function loadStats() {
-    const res = await authFetch("/auth/me/stats");
-    if (!res.ok) return;
-    setStats((await res.json()) as OrganizerStats);
-  }
-
-  async function loadSessions() {
-    const res = await authFetch("/auth/sessions");
-    if (!res.ok) return;
-    const payload = (await res.json()) as { sessions: OrganizerSession[] };
-    setSessions(payload.sessions || []);
-  }
-
-  async function loadSettings() {
-    const res = await authFetch("/auth/settings");
-    if (!res.ok) return;
-    const payload = (await res.json()) as { settings: OrganizerSettings };
-    setSettings(payload.settings);
-  }
-
-  async function loadCommissions() {
-    const res = await authFetch("/auth/commissions");
-    if (!res.ok) return;
-    const payload = (await res.json()) as {
-      commissions: ReferralCommission[];
-      totals: { total: number; paid: number; pending: number };
-    };
-    setCommissions(payload.commissions || []);
-    setCommissionTotals(payload.totals || { total: 0, paid: 0, pending: 0 });
-  }
-
-  async function save(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      const res = await authFetch("/auth/me", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          phone,
-          avatarUrl,
-          companyName,
-          jobTitle,
-          addressLine1,
-          addressLine2,
-          city,
-          postalCode,
-          country,
-          website,
-          bio,
-          dateOfBirth: dateOfBirth || null,
-          securityAlerts
-        })
-      });
-      if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { message?: string } | null;
-        pushToast(payload?.message ?? "Mise a jour impossible.", "error");
-        return;
-      }
-      const data = (await res.json()) as { organizer: OrganizerProfile };
-      setProfile(data.organizer);
-      pushToast("Profil mis a jour avec succes.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function revokeSessions() {
-    const res = await authFetch("/auth/sessions", { method: "DELETE" });
-    if (!res.ok) {
-      const payload = (await res.json().catch(() => null)) as { message?: string } | null;
-      pushToast(payload?.message ?? "Deconnexion impossible.", "error");
-      return;
-    }
-    clearToken();
-    pushToast("Vous avez ete deconnecte de tous les appareils.");
-    window.location.href = "/auth/login";
-  }
-
-  async function activateReferral() {
-    setActivatingReferral(true);
-    try {
-      const res = await authFetch("/auth/referral/activate", { method: "POST" });
-      if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { message?: string } | null;
-        pushToast(payload?.message ?? "Activation impossible.", "error");
-        return;
-      }
-      const payload = (await res.json()) as { referralCode: string };
-      setProfile(prev => (prev ? { ...prev, referralCode: payload.referralCode } : prev));
-      pushToast("Programme partenaire active.");
-    } finally {
-      setActivatingReferral(false);
-    }
-  }
 
   async function saveSettings(e: React.FormEvent) {
     e.preventDefault();
@@ -201,477 +88,222 @@ export default function DashboardSettingsPage() {
     }
   }
 
-  async function savePassword(e: React.FormEvent) {
-    e.preventDefault();
-    setSavingPassword(true);
+  async function activateReferral() {
+    setActivatingReferral(true);
     try {
-      const res = await authFetch("/auth/password", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-          confirmPassword
-        })
-      });
+      const res = await authFetch("/auth/referral/activate", { method: "POST" });
       if (!res.ok) {
         const payload = (await res.json().catch(() => null)) as { message?: string } | null;
-        pushToast(payload?.message ?? "Mise a jour impossible.", "error");
+        pushToast(payload?.message ?? "Activation impossible.", "error");
         return;
       }
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      pushToast("Mot de passe mis a jour.");
+      const payload = (await res.json()) as { referralCode: string };
+      setReferralCode(payload.referralCode);
+      pushToast("Programme partenaire active.");
     } finally {
-      setSavingPassword(false);
+      setActivatingReferral(false);
     }
   }
-
-  async function handleAvatarUpload(file: File) {
-    setUploadingAvatar(true);
-    try {
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result || ""));
-        reader.onerror = () => reject(new Error("Impossible de lire le fichier."));
-        reader.readAsDataURL(file);
-      });
-      const res = await authFetch("/auth/me/avatar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileName: file.name, dataUrl })
-      });
-      if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { message?: string } | null;
-        pushToast(payload?.message ?? "Upload impossible.", "error");
-        return;
-      }
-      const payload = (await res.json()) as { avatarUrl?: string; organizer?: OrganizerProfile };
-      if (payload.organizer) {
-        setProfile(payload.organizer);
-        setAvatarUrl(payload.organizer.avatarUrl ?? "");
-      } else if (payload.avatarUrl) {
-        setAvatarUrl(payload.avatarUrl);
-      }
-      pushToast("Photo mise a jour.");
-    } catch {
-      pushToast("Upload impossible.", "error");
-    } finally {
-      setUploadingAvatar(false);
-    }
-  }
-
-  const initials =
-    (profile?.name || profile?.email || "?")
-      .split(" ")
-      .filter(Boolean)
-      .slice(0, 2)
-      .map(item => item[0]?.toUpperCase())
-      .join("") || "U";
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.08),transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] px-3 py-4 md:px-6 md:py-6">
-      <Header title="Profil & Parametres" />
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 md:gap-5">
+        <Header title="Parametres" />
 
-      {!profile ? (
-        <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl">
-          <p className="text-sm text-slate-600">Chargement du profil...</p>
-        </section>
-      ) : (
-        <>
-          <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 flex flex-col gap-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-4">
-              {profile.avatarUrl ? (
-                <img
-                  src={displayAvatarUrl}
-                  alt="Avatar"
-                  className="h-16 w-16 rounded-full object-cover border border-slate-200/80"
-                />
-              ) : (
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-text">
-                  {initials}
-                </div>
-              )}
-              <div>
-                <p className="text-lg font-semibold">{profile.name || "Organisateur"}</p>
-                <p className="text-small text-slate-500">{profile.email}</p>
-                <p className="text-[11px] text-slate-500">
-                  Membre depuis {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString("fr-FR") : "-"}
-                </p>
-                {profile.referralCode ? (
-                  <p className="text-[11px] text-slate-500">Code partenaire: {profile.referralCode}</p>
-                ) : null}
+        <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="space-y-2">
+              <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Preferences compte</p>
+              <h1 className="text-3xl font-semibold text-slate-900 md:text-4xl">Notifications et parametres par defaut</h1>
+              <p className="max-w-2xl text-sm leading-6 text-slate-600">
+                Ajustez vos rappels, vos canaux de communication et les preferences qui s'appliquent automatiquement a vos prochains evenements.
+              </p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[420px]">
+              <div className="rounded-[20px] border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Rappels</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">Actifs</p>
+              </div>
+              <div className="rounded-[20px] border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Mode</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">Personnalise</p>
+              </div>
+              <div className="rounded-[20px] border border-slate-200/80 bg-slate-950 px-4 py-3 text-white shadow-sm">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-white/60">Partenaire</p>
+                <p className="mt-1 text-lg font-semibold">Disponible</p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="ghost" className="px-3 py-2 text-xs">
-                Modifier le profil
-              </Button>
+          </div>
+        </section>
+
+        <div className="grid gap-4 lg:grid-cols-[1fr,1.4fr]">
+          <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6 space-y-4">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Evenement</p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Choisir le contexte</h2>
+            </div>
+            {loading ? (
+              <p className="text-sm text-slate-600">Chargement...</p>
+            ) : events.length === 0 ? (
+              <EmptyState title="Aucun evenement" description="Creez un evenement pour personnaliser vos parametres." />
+            ) : (
+              <EventPicker
+                events={events}
+                selectedEventId={selectedEvent?.id}
+                onSelect={event => {
+                  setSelectedEvent(event);
+                  setSelectedEventId(event.id);
+                }}
+              />
+            )}
+
+            <div className="rounded-[24px] border border-slate-200/80 bg-slate-50 p-4 space-y-3">
+              <p className="text-sm font-semibold text-slate-900">Programme partenaire</p>
+              <p className="text-sm leading-6 text-slate-600">Invitez d'autres organisateurs et suivez vos gains depuis le meme tableau de bord.</p>
+              {referralCode ? (
+                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+                  Code: <span className="font-semibold text-slate-900">{referralCode}</span>
+                </div>
+              ) : (
+                <Button type="button" className="w-full rounded-2xl px-5 py-3 text-sm" onClick={activateReferral} disabled={activatingReferral}>
+                  {activatingReferral ? "Activation..." : "Activer le programme"}
+                </Button>
+              )}
+              <div className="grid gap-2 sm:grid-cols-3 text-sm">
+                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Total</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-900">${commissionTotals.total}</p>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Paye</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-900">${commissionTotals.paid}</p>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">En attente</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-900">${commissionTotals.pending}</p>
+                </div>
+              </div>
             </div>
           </section>
 
-          <section className="grid gap-4 lg:grid-cols-[1.2fr,1fr]">
-            <div className="rounded-[32px] border border-white/70 bg-white/85 p-5 space-y-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl">
-              <h3 className="title-4">Infos personnelles</h3>
-              <form onSubmit={save} className="grid gap-3 text-xs">
-                <div className="grid grid-cols-1 md:grid-cols-[auto,1fr] gap-3 items-center">
-                  <label className="text-sm text-slate-600">Photo</label>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Input
-                      placeholder="URL photo (https://...)"
-                      value={avatarUrl}
-                      onChange={e => setAvatarUrl(e.target.value)}
-                    />
-                    <label className="btn-ghost px-3 py-2 text-xs cursor-pointer">
-                      {uploadingAvatar ? "Upload..." : "Uploader"}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={e => {
-                          const file = e.target.files?.[0];
-                          if (file) void handleAvatarUpload(file);
-                        }}
-                      />
-                    </label>
-                  </div>
+          <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6 space-y-5">
+            {!selectedEvent ? (
+              <EmptyState title="Selection requise" description="Choisissez un evenement pour charger ses parametres." />
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Rappels automatiques</p>
+                  <h2 className="text-2xl font-semibold text-slate-900">Programmation des messages</h2>
+                  <p className="text-sm leading-6 text-slate-600">
+                    Definissez les rappels, les canaux et les preferences par defaut pour gagner du temps sur chaque nouvel evenement.
+                  </p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <Input placeholder="Nom complet" value={name} onChange={e => setName(e.target.value)} />
-                  <Input placeholder="Telephone" value={phone} onChange={e => setPhone(e.target.value)} />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <Input placeholder="Entreprise" value={companyName} onChange={e => setCompanyName(e.target.value)} />
-                  <Input placeholder="Fonction / Poste" value={jobTitle} onChange={e => setJobTitle(e.target.value)} />
-                </div>
-                <Input placeholder="Adresse (ligne 1)" value={addressLine1} onChange={e => setAddressLine1(e.target.value)} />
-                <Input placeholder="Adresse (ligne 2)" value={addressLine2} onChange={e => setAddressLine2(e.target.value)} />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                  <Input placeholder="Ville" value={city} onChange={e => setCity(e.target.value)} />
-                  <Input placeholder="Code postal" value={postalCode} onChange={e => setPostalCode(e.target.value)} />
-                  <Input placeholder="Pays" value={country} onChange={e => setCountry(e.target.value)} />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <Input placeholder="Site web (https://...)" value={website} onChange={e => setWebsite(e.target.value)} />
-                  <Input type="date" placeholder="Date de naissance" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} />
-                </div>
-                <textarea
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-slate-100"
-                  rows={4}
-                  placeholder="Bio / Informations complementaires"
-                  value={bio}
-                  onChange={e => setBio(e.target.value)}
-                />
-                <Button className="w-full sm:w-fit" disabled={saving}>
-                  {saving ? "Sauvegarde..." : "Enregistrer les modifications"}
-                </Button>
-              </form>
-            </div>
 
-            <div className="space-y-4">
-              <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 space-y-3 shadow-2xl shadow-slate-200/60 backdrop-blur-xl">
-                <h3 className="title-4">Securite</h3>
-                <form onSubmit={savePassword} className="grid gap-2 text-xs">
-                  <div className="grid grid-cols-1 gap-2">
-                    <Input
-                      type={showCurrent ? "text" : "password"}
-                      placeholder="Ancien mot de passe"
-                      value={currentPassword}
-                      onChange={e => setCurrentPassword(e.target.value)}
-                    />
-                    <Input
-                      type={showNew ? "text" : "password"}
-                      placeholder="Nouveau mot de passe"
-                      value={newPassword}
-                      onChange={e => setNewPassword(e.target.value)}
-                    />
-                    <Input
-                      type={showConfirm ? "text" : "password"}
-                      placeholder="Confirmer le mot de passe"
-                      value={confirmPassword}
-                      onChange={e => setConfirmPassword(e.target.value)}
-                    />
-                    <div className="flex flex-wrap gap-2 text-[11px] text-slate-500">
-                      <button type="button" className="underline" onClick={() => setShowCurrent(s => !s)}>
-                        {showCurrent ? "Masquer" : "Afficher"} ancien
-                      </button>
-                      <button type="button" className="underline" onClick={() => setShowNew(s => !s)}>
-                        {showNew ? "Masquer" : "Afficher"} nouveau
-                      </button>
-                      <button type="button" className="underline" onClick={() => setShowConfirm(s => !s)}>
-                        {showConfirm ? "Masquer" : "Afficher"} confirmation
-                      </button>
-                    </div>
-                  </div>
-                  <Button className="w-full" disabled={savingPassword}>
-                    {savingPassword ? "Mise a jour..." : "Changer le mot de passe"}
-                  </Button>
-                </form>
-                <div className="pt-2">
-                  <label className="flex items-center gap-2 text-xs text-text/80">
-                    <input
-                      type="checkbox"
-                      className="accent-slate-900"
-                      checked={securityAlerts}
-                      onChange={e => setSecurityAlerts(e.target.checked)}
-                    />
-                    Recevoir un email en cas de connexion suspecte
-                  </label>
-                </div>
-              </section>
-
-              <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 space-y-3 shadow-2xl shadow-slate-200/60 backdrop-blur-xl">
-                <h3 className="title-4">Sessions actives</h3>
-                {sessions.length === 0 ? (
-                  <p className="text-sm text-slate-600">Aucune session active detectee.</p>
-                ) : (
-                  <div className="space-y-2 text-xs">
-                    {sessions.map(session => (
-                      <div key={session.id} className="rounded-[20px] border border-slate-200/80 bg-slate-50 px-3 py-2">
-                        <p className="font-medium">{session.device}</p>
-                        <p className="text-[11px] text-slate-500">
-                          {session.ip ? `IP: ${session.ip}` : "IP inconnue"}
-                          {session.lastActive ? ` • ${new Date(session.lastActive).toLocaleString("fr-FR")}` : ""}
-                        </p>
-                      </div>
+                <form onSubmit={saveSettings} className="space-y-5">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {["7 jours avant", "3 jours avant", "1 jour avant", "Jour J"].map(label => (
+                      <label key={label} className="flex items-center justify-between gap-3 rounded-[18px] border border-slate-200/80 bg-slate-50 px-4 py-3 text-sm">
+                        <span>{label}</span>
+                        <input type="checkbox" defaultChecked className="accent-slate-900" />
+                      </label>
                     ))}
                   </div>
-                )}
-                <Button type="button" variant="ghost" className="w-full" onClick={revokeSessions}>
-                  Se deconnecter de tous les appareils
-                </Button>
-              </section>
 
-              <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 space-y-3 shadow-2xl shadow-slate-200/60 backdrop-blur-xl">
-                <h3 className="title-4">Statistiques</h3>
-                {!stats ? (
-                  <p className="text-sm text-slate-600">Chargement des stats...</p>
-                ) : (
-                  <div className="grid gap-3">
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 p-2">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Evenements</p>
-                        <p className="mt-1 text-lg font-semibold">{stats.totalEvents}</p>
-                      </div>
-                      <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 p-2">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Invites</p>
-                        <p className="mt-1 text-lg font-semibold">{stats.totalGuests}</p>
-                      </div>
-                      <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 p-2">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Confirmes</p>
-                        <p className="mt-1 text-lg font-semibold">{stats.confirmed}</p>
-                      </div>
+                  <div className="rounded-[22px] border border-slate-200/80 bg-white p-4">
+                    <p className="text-sm font-semibold text-slate-900">Message par defaut</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      Le systeme utilise vos preferences pour generer des rappels coherents et professionnels.
+                    </p>
+                    <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                      Apercu: rappel pour votre evenement <span className="font-semibold text-slate-900">{settings?.defaultEventType || "mariage"}</span> a <span className="font-semibold text-slate-900">{settings?.defaultEventTime || "18:00"}</span>.
                     </div>
-                    <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 p-3 text-xs space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span>En attente</span>
-                        <span className="font-semibold">{stats.pending}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span>Annules</span>
-                        <span className="font-semibold">{stats.canceled}</span>
-                      </div>
-                    </div>
-                    <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 p-3 text-xs space-y-2">
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Types d'evenements</p>
-                      {Object.entries(stats.types).length === 0 ? (
-                        <p className="text-sm text-slate-600">Aucune donnee.</p>
-                      ) : (
-                        Object.entries(stats.types).map(([key, value]) => (
-                          <div key={key} className="flex items-center justify-between">
-                            <span className="capitalize">{key}</span>
-                            <span className="font-semibold">{value}</span>
-                          </div>
-                        ))
-                      )}
+                    <p className="mt-3 text-sm text-slate-500">Variables: {"{event}"} {"{date}"} {"{location}"} {"{name}"}</p>
+                  </div>
+
+                  <div className="rounded-[22px] border border-slate-200/80 bg-slate-50 p-4 space-y-4">
+                    <p className="text-sm font-semibold text-slate-900">Canaux disponibles</p>
+                    <div className="grid gap-3 sm:grid-cols-2 text-sm">
+                      {["WhatsApp", "SMS"].map(label => (
+                        <label key={label} className="flex items-center gap-2 rounded-[16px] border border-slate-200 bg-white px-3 py-2">
+                          <input type="checkbox" defaultChecked className="accent-slate-900" />
+                          <span>{label}</span>
+                        </label>
+                      ))}
                     </div>
                   </div>
-                )}
-              </section>
-            </div>
-          </section>
 
-          <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 space-y-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl">
-            <h3 className="title-4">Parametres</h3>
-            {!settings ? (
-              <p className="text-sm text-slate-600">Chargement des parametres...</p>
-            ) : (
-              <form onSubmit={saveSettings} className="grid gap-4 text-xs">
-                <div className="grid gap-3 md:grid-cols-2">
-                  <label className="flex items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-slate-50 px-3 py-2">
-                    <span>Email rappel evenement</span>
-                    <input
-                      type="checkbox"
-                      className="accent-slate-900"
-                      checked={settings.emailNotifications}
-                      onChange={e => setSettings({ ...settings, emailNotifications: e.target.checked })}
-                    />
-                  </label>
-                  <label className="flex items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-slate-50 px-3 py-2">
-                    <span>Notifications messages</span>
-                    <input
-                      type="checkbox"
-                      className="accent-slate-900"
-                      checked={settings.messageNotifications}
-                      onChange={e => setSettings({ ...settings, messageNotifications: e.target.checked })}
-                    />
-                  </label>
-                  <label className="flex items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-slate-50 px-3 py-2">
-                    <span>Alertes evenements</span>
-                    <input
-                      type="checkbox"
-                      className="accent-slate-900"
-                      checked={settings.eventAlerts}
-                      onChange={e => setSettings({ ...settings, eventAlerts: e.target.checked })}
-                    />
-                  </label>
-                  <label className="flex items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-slate-50 px-3 py-2">
-                    <span>Notifications marketing</span>
-                    <input
-                      type="checkbox"
-                      className="accent-slate-900"
-                      checked={settings.marketingNotifications}
-                      onChange={e => setSettings({ ...settings, marketingNotifications: e.target.checked })}
-                    />
-                  </label>
-                </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700">Langue</label>
+                      <Input value={settings?.language ?? ""} onChange={e => setSettings(prev => (prev ? { ...prev, language: e.target.value } : prev))} placeholder="fr" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700">Fuseau horaire</label>
+                      <Input value={settings?.timezone ?? ""} onChange={e => setSettings(prev => (prev ? { ...prev, timezone: e.target.value } : prev))} placeholder="Africa/Kinshasa" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700">Format date</label>
+                      <Input value={settings?.dateFormat ?? ""} onChange={e => setSettings(prev => (prev ? { ...prev, dateFormat: e.target.value } : prev))} placeholder="DD/MM/YYYY" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700">Heure par defaut</label>
+                      <Input value={settings?.defaultEventTime ?? ""} onChange={e => setSettings(prev => (prev ? { ...prev, defaultEventTime: e.target.value } : prev))} placeholder="18:00" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700">Type evenement</label>
+                      <Input value={settings?.defaultEventType ?? ""} onChange={e => setSettings(prev => (prev ? { ...prev, defaultEventType: e.target.value } : prev))} placeholder="mariage" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700">QR code actif</label>
+                      <label className="flex items-center justify-between rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+                        <span>Activer le QR code par defaut</span>
+                        <input type="checkbox" className="accent-slate-900" checked={settings?.defaultQrEnabled ?? false} onChange={e => setSettings(prev => (prev ? { ...prev, defaultQrEnabled: e.target.checked } : prev))} />
+                      </label>
+                    </div>
+                  </div>
 
-                <div className="grid gap-2 md:grid-cols-3">
-                  <div className="space-y-1">
-                    <label className="text-sm text-slate-600">Langue</label>
-                    <select
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs"
-                      value={settings.language}
-                      onChange={e => setSettings({ ...settings, language: e.target.value })}
-                    >
-                      <option value="fr">Francais</option>
-                      <option value="en">Anglais</option>
-                    </select>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-slate-500">Les parametres s'appliquent a vos futurs evenements et restent modifiables a tout moment.</p>
+                    <Button type="submit" className="rounded-2xl px-5 py-3 text-sm" disabled={savingSettings || !settings}>
+                      {savingSettings ? "Enregistrement..." : "Enregistrer les parametres"}
+                    </Button>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-sm text-slate-600">Fuseau horaire</label>
-                    <select
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs"
-                      value={settings.timezone}
-                      onChange={e => setSettings({ ...settings, timezone: e.target.value })}
-                    >
-                      <option value="Africa/Kinshasa">Kinshasa (UTC+1)</option>
-                      <option value="Africa/Lagos">Lagos (UTC+1)</option>
-                      <option value="Africa/Abidjan">Abidjan (UTC+0)</option>
-                      <option value="Europe/Paris">Paris (UTC+1)</option>
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-sm text-slate-600">Format date</label>
-                    <select
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs"
-                      value={settings.dateFormat}
-                      onChange={e => setSettings({ ...settings, dateFormat: e.target.value })}
-                    >
-                      <option value="DD/MM/YYYY">JJ/MM/AAAA</option>
-                      <option value="MM/DD/YYYY">MM/JJ/AAAA</option>
-                      <option value="YYYY-MM-DD">AAAA-MM-JJ</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid gap-2 md:grid-cols-3">
-                  <div className="space-y-1">
-                    <label className="text-sm text-slate-600">Type evenement par defaut</label>
-                    <select
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs"
-                      value={settings.defaultEventType}
-                      onChange={e => setSettings({ ...settings, defaultEventType: e.target.value })}
-                    >
-                      <option value="mariage">Mariage</option>
-                      <option value="anniversaire">Anniversaire</option>
-                      <option value="gala">Gala</option>
-                      <option value="corporate">Corporate</option>
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-sm text-slate-600">Heure par defaut</label>
-                    <Input
-                      type="time"
-                      value={settings.defaultEventTime}
-                      onChange={e => setSettings({ ...settings, defaultEventTime: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-sm text-slate-600">QR code actif</label>
-                    <select
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs"
-                      value={settings.defaultQrEnabled ? "yes" : "no"}
-                      onChange={e => setSettings({ ...settings, defaultQrEnabled: e.target.value === "yes" })}
-                    >
-                      <option value="yes">Oui</option>
-                      <option value="no">Non</option>
-                    </select>
-                  </div>
-                </div>
-
-                <Button className="w-full sm:w-fit" disabled={savingSettings}>
-                  {savingSettings ? "Sauvegarde..." : "Enregistrer les parametres"}
-                </Button>
-              </form>
+                </form>
+              </>
             )}
           </section>
+        </div>
 
-          <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 space-y-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl">
-            <h3 className="title-4">Programme partenaire</h3>
-            <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 p-3 text-xs space-y-2">
-              <p>Invitez d'autres organisateurs et gagnez des commissions.</p>
-              {profile.referralCode ? (
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Votre code</span>
-                  <span className="rounded-full border border-slate-200/80 px-3 py-1 font-semibold">
-                    {profile.referralCode}
-                  </span>
-                </div>
-              ) : (
-                <Button type="button" className="w-full sm:w-fit" onClick={activateReferral} disabled={activatingReferral}>
-                  {activatingReferral ? "Activation..." : "Activer mon code partenaire"}
-                </Button>
-              )}
+        <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Performance partenaire</p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Suivi des commissions</h2>
             </div>
-
-            <div className="grid gap-2 md:grid-cols-3">
-              <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 p-3 text-center">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Total</p>
-                <p className="mt-1 text-lg font-semibold">${commissionTotals.total}</p>
-              </div>
-              <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 p-3 text-center">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Payees</p>
-                <p className="mt-1 text-lg font-semibold">${commissionTotals.paid}</p>
-              </div>
-              <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 p-3 text-center">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">En attente</p>
-                <p className="mt-1 text-lg font-semibold">${commissionTotals.pending}</p>
-              </div>
-            </div>
-
+            <p className="text-sm text-slate-500">{commissions.length} mouvement(s) enregistres</p>
+          </div>
+          <div className="mt-4 overflow-hidden rounded-[24px] border border-slate-200/80 bg-slate-50">
             {commissions.length === 0 ? (
               <EmptyState title="Aucune commission" description="Invitez un organisateur pour commencer." />
             ) : (
-              <div className="space-y-2 text-xs">
+              <div className="space-y-2 p-4 text-sm">
                 {commissions.map(item => (
-                  <div key={item.id} className="rounded-[20px] border border-slate-200/80 bg-white px-3 py-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{item.referred?.name || item.referred?.email || "Nouveau client"}</span>
-                      <span className="text-[11px] text-slate-500">{item.status}</span>
+                  <div key={item.id} className="flex flex-col gap-2 rounded-[18px] border border-white bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="font-semibold text-slate-900">${item.amount}</p>
+                      <p className="text-slate-500">{item.referred?.name || item.referred?.email || "Organisateur refere"}</p>
                     </div>
-                    <div className="mt-1 flex items-center justify-between text-[11px] text-slate-600">
+                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                      <span className="rounded-full bg-slate-100 px-3 py-1 font-semibold uppercase tracking-[0.18em] text-slate-700">{item.status}</span>
                       <span>{new Date(item.createdAt).toLocaleDateString("fr-FR")}</span>
-                      <span className="font-semibold">${item.amount}</span>
                     </div>
                   </div>
                 ))}
               </div>
             )}
-          </section>
-        </>
-      )}
+          </div>
+        </section>
+      </div>
     </main>
   );
 }

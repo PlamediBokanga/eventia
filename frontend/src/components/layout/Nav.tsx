@@ -42,7 +42,9 @@ const MENU_SECTIONS = [
   {
     title: "Parametres",
     items: [
-      { href: "/dashboard/settings", label: "Profil & Parametres", icon: "user" },
+      { href: "/dashboard/profile", label: "Profil", icon: "user" },
+      { href: "/dashboard/settings", label: "Parametres", icon: "settings" },
+      { href: "/dashboard/security", label: "Securite", icon: "shield" },
       { href: "/dashboard/admin", label: "Super Admin", icon: "shield" }
     ]
   }
