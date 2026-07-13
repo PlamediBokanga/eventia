@@ -13,11 +13,53 @@ type AuthShellProps = {
   footer: React.ReactNode;
 };
 
+type Variant = "info" | "success" | "warning" | "error";
+
+const VARIANT_META: Record<Variant, { shell: string; badge: string; title: string; accent: string; label: string }> = {
+  info: {
+    shell: "border-slate-200 bg-slate-50 text-slate-700",
+    badge: "border-slate-200 bg-white text-slate-700",
+    title: "text-slate-950",
+    accent: "bg-slate-950",
+    label: "Info"
+  },
+  success: {
+    shell: "border-emerald-200 bg-emerald-50 text-emerald-900",
+    badge: "border-emerald-200 bg-white text-emerald-800",
+    title: "text-emerald-950",
+    accent: "bg-emerald-600",
+    label: "Succes"
+  },
+  warning: {
+    shell: "border-amber-200 bg-amber-50 text-amber-900",
+    badge: "border-amber-200 bg-white text-amber-900",
+    title: "text-amber-950",
+    accent: "bg-amber-500",
+    label: "Attention"
+  },
+  error: {
+    shell: "border-rose-200 bg-rose-50 text-rose-900",
+    badge: "border-rose-200 bg-white text-rose-900",
+    title: "text-rose-950",
+    accent: "bg-rose-600",
+    label: "Erreur"
+  }
+};
+
 function ShellSignal({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-[22px] border border-white/10 bg-white/6 p-4 shadow-[0_20px_50px_rgba(15,23,42,0.14)] backdrop-blur-md">
       <p className="text-[10px] uppercase tracking-[0.28em] text-white/45">{label}</p>
       <p className="mt-1 text-[22px] font-semibold tracking-tight text-white">{value}</p>
+    </div>
+  );
+}
+
+function VariantBadge({ variant }: { variant: Variant }) {
+  const meta = VARIANT_META[variant];
+  return (
+    <div className={`grid h-11 w-11 place-items-center rounded-2xl border ${meta.badge}`}>
+      <span className="text-[11px] font-bold uppercase tracking-[0.22em]">{meta.label.slice(0, 1)}</span>
     </div>
   );
 }
@@ -33,7 +75,7 @@ export function AuthShell({
   footer
 }: AuthShellProps) {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_#14203a_0%,_#0b1220_38%,_#090f1a_100%)] px-4 py-6 text-white md:px-6 md:py-8">
+    <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_#15213a_0%,_#0b1220_38%,_#090f1a_100%)] px-4 py-6 text-white md:px-6 md:py-8">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:36px_36px] opacity-30" />
       <div className="pointer-events-none absolute -left-24 top-8 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl" />
       <div className="pointer-events-none absolute right-0 top-20 h-80 w-80 rounded-full bg-amber-400/10 blur-3xl" />
@@ -119,44 +161,14 @@ export function AuthDivider({ label }: { label: string }) {
 }
 
 type AuthNoticeProps = {
-  variant?: "info" | "success" | "warning" | "error";
+  variant?: Variant;
   title?: string;
   message: React.ReactNode;
   action?: React.ReactNode;
 };
 
-const NOTICE_STYLES: Record<
-  NonNullable<AuthNoticeProps["variant"]>,
-  { shell: string; badge: string; title: string; accent: string }
-> = {
-  info: {
-    shell: "border-slate-200 bg-slate-50 text-slate-700",
-    badge: "border-slate-200 bg-white text-slate-700",
-    title: "text-slate-900",
-    accent: "bg-slate-900"
-  },
-  success: {
-    shell: "border-emerald-200 bg-emerald-50 text-emerald-900",
-    badge: "border-emerald-200 bg-white text-emerald-800",
-    title: "text-emerald-950",
-    accent: "bg-emerald-600"
-  },
-  warning: {
-    shell: "border-amber-200 bg-amber-50 text-amber-900",
-    badge: "border-amber-200 bg-white text-amber-900",
-    title: "text-amber-950",
-    accent: "bg-amber-600"
-  },
-  error: {
-    shell: "border-rose-200 bg-rose-50 text-rose-900",
-    badge: "border-rose-200 bg-white text-rose-900",
-    title: "text-rose-950",
-    accent: "bg-rose-600"
-  }
-};
-
 export function AuthNotice({ variant = "info", title, message, action }: AuthNoticeProps) {
-  const styles = NOTICE_STYLES[variant];
+  const styles = VARIANT_META[variant];
 
   return (
     <div className={`rounded-[22px] border px-4 py-4 shadow-[0_14px_30px_rgba(15,23,42,0.05)] ${styles.shell}`}>
@@ -173,7 +185,7 @@ export function AuthNotice({ variant = "info", title, message, action }: AuthNot
 }
 
 type AuthActionBoxProps = {
-  variant?: "info" | "success" | "warning" | "error";
+  variant?: Variant;
   title: string;
   message: React.ReactNode;
   primaryLabel: string;
@@ -195,7 +207,7 @@ export function AuthActionBox({
   secondaryHref,
   onSecondaryClick
 }: AuthActionBoxProps) {
-  const styles = NOTICE_STYLES[variant];
+  const styles = VARIANT_META[variant];
   const buttonClass =
     "inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-4";
 
@@ -203,9 +215,7 @@ export function AuthActionBox({
     <div className={`overflow-hidden rounded-[24px] border shadow-[0_18px_40px_rgba(15,23,42,0.06)] ${styles.shell}`}>
       <div className={`h-1 ${styles.accent}`} />
       <div className="flex items-start gap-4 px-4 py-4 sm:px-5">
-        <div className={`mt-0.5 grid h-11 w-11 place-items-center rounded-2xl border ${styles.badge}`}>
-          <span className="text-sm font-bold uppercase tracking-[0.18em]">{variant.slice(0, 1)}</span>
-        </div>
+        <VariantBadge variant={variant} />
         <div className="min-w-0 flex-1">
           <p className={`text-sm font-semibold ${styles.title}`}>{title}</p>
           <div className="mt-1 text-sm leading-6">{message}</div>
@@ -213,7 +223,7 @@ export function AuthActionBox({
             {primaryHref ? (
               <a
                 href={primaryHref}
-                className={`${buttonClass} bg-slate-900 text-white hover:bg-slate-800 focus:ring-slate-300`}
+                className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800 focus:ring-slate-300`}
               >
                 {primaryLabel}
               </a>
@@ -221,7 +231,7 @@ export function AuthActionBox({
               <button
                 type="button"
                 onClick={onPrimaryClick}
-                className={`${buttonClass} bg-slate-900 text-white hover:bg-slate-800 focus:ring-slate-300`}
+                className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800 focus:ring-slate-300`}
               >
                 {primaryLabel}
               </button>
@@ -253,7 +263,7 @@ export function AuthActionBox({
 
 type AuthPopupProps = {
   open: boolean;
-  variant?: "info" | "success" | "warning" | "error";
+  variant?: Variant;
   title: string;
   message: React.ReactNode;
   primaryLabel: string;
@@ -278,7 +288,7 @@ export function AuthPopup({
   onSecondaryClick,
   onClose
 }: AuthPopupProps) {
-  const styles = NOTICE_STYLES[variant];
+  const styles = VARIANT_META[variant];
   const buttonClass =
     "inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-4";
 
@@ -292,16 +302,21 @@ export function AuthPopup({
         className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className={`relative w-full max-w-lg overflow-hidden rounded-[30px] border bg-white shadow-[0_30px_100px_rgba(15,23,42,0.28)] ${styles.shell}`}>
+      <div
+        className={`relative w-full max-w-lg overflow-hidden rounded-[30px] border bg-white shadow-[0_30px_100px_rgba(15,23,42,0.28)] ${styles.shell} animate-[page-enter_220ms_ease-out]`}
+      >
         <div className={`h-1 ${styles.accent}`} />
         <div className="flex items-start justify-between gap-4 px-5 py-5">
           <div className="flex items-start gap-3">
-            <div className={`mt-0.5 grid h-12 w-12 place-items-center rounded-2xl border ${styles.badge}`}>
-              <span className="text-[11px] font-bold uppercase tracking-[0.22em]">{variant.slice(0, 1)}</span>
-            </div>
+            <VariantBadge variant={variant} />
             <div className="min-w-0">
-              <p className={`text-base font-semibold ${styles.title}`}>{title}</p>
-              <div className="mt-1 text-sm leading-6">{message}</div>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className={`text-base font-semibold ${styles.title}`}>{title}</p>
+                <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] uppercase tracking-[0.24em] text-slate-500">
+                  {styles.label}
+                </span>
+              </div>
+              <div className="mt-1 text-sm leading-6 text-slate-700">{message}</div>
             </div>
           </div>
 
@@ -319,7 +334,7 @@ export function AuthPopup({
             {primaryHref ? (
               <a
                 href={primaryHref}
-                className={`${buttonClass} bg-slate-900 text-white hover:bg-slate-800 focus:ring-slate-300`}
+                className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800 focus:ring-slate-300`}
               >
                 {primaryLabel}
               </a>
@@ -327,7 +342,7 @@ export function AuthPopup({
               <button
                 type="button"
                 onClick={onPrimaryClick}
-                className={`${buttonClass} bg-slate-900 text-white hover:bg-slate-800 focus:ring-slate-300`}
+                className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800 focus:ring-slate-300`}
               >
                 {primaryLabel}
               </button>
