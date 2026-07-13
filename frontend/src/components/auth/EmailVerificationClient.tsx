@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { API_URL } from "@/lib/config";
-import { AuthPopup, AuthShell } from "@/components/auth/AuthShell";
+import { AuthNotice, AuthPopup, AuthShell } from "@/components/auth/AuthShell";
 
 type VerificationResponse = {
   message?: string;
@@ -34,14 +34,11 @@ export function EmailVerificationClient() {
       try {
         const res = await fetch(`${API_URL}/auth/email/verify`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token: currentToken })
         });
 
         const data = (await res.json().catch(() => null)) as VerificationResponse | null;
-
         if (cancelled) return;
 
         if (!res.ok) {
@@ -82,9 +79,7 @@ export function EmailVerificationClient() {
     try {
       const res = await fetch(`${API_URL}/auth/email/verification/request`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() })
       });
 
@@ -98,6 +93,8 @@ export function EmailVerificationClient() {
       setLoading(false);
     }
   }
+
+  const statusTone = token ? (verified ? "success" : "info") : verificationUrl ? "success" : "info";
 
   return (
     <AuthShell
@@ -121,7 +118,28 @@ export function EmailVerificationClient() {
         </>
       }
     >
-      <div className="space-y-4">
+      <div className="space-y-5">
+        <AuthNotice
+          variant={statusTone}
+          title={token ? (verified ? "Adresse verifiee" : loading ? "Verification en cours" : "Verification du token") : "Verification du compte"}
+          message={
+            <div className="space-y-2">
+              <p className="leading-6 text-slate-700">
+                {token
+                  ? verified
+                    ? "Votre adresse email est maintenant valide. Vous pouvez ouvrir votre session ou revenir au tableau de bord."
+                    : "Le lien de verification est traite automatiquement. Si la verification n'est pas encore terminee, patientez un instant."
+                  : "Entrez l'adresse email du compte pour recevoir ou regenerer un lien de verification propre et temporaire."}
+              </p>
+              <div className="grid gap-2 sm:grid-cols-3">
+                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Jeton temporaire</div>
+                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Lien protege</div>
+                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Flux coherent</div>
+              </div>
+            </div>
+          }
+        />
+
         {!token ? (
           <form onSubmit={handleRequest} className="space-y-4">
             <div className="space-y-2">
@@ -137,11 +155,18 @@ export function EmailVerificationClient() {
               />
             </div>
 
-            <button className="btn-primary w-full justify-center py-3 text-sm" type="submit" disabled={loading}>
+            <button className="btn-primary w-full justify-center py-3 text-sm shadow-[0_16px_30px_rgba(15,23,42,0.18)] transition-transform active:scale-[0.99]" type="submit" disabled={loading}>
               {loading ? "Preparation..." : "Envoyer le lien"}
             </button>
           </form>
         ) : null}
+
+        <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-4 text-sm text-slate-600 shadow-sm">
+          <p className="font-medium text-slate-900">Astuce</p>
+          <p className="mt-1 leading-6">
+            Si le lien n'arrive pas, verifiez aussi le dossier spam et demandez un renvoi depuis cette page.
+          </p>
+        </div>
 
         <AuthPopup
           open={Boolean(message)}
