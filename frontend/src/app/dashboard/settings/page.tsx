@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Header } from "@/components/layout/Header";
+import { AccountSectionTabs } from "@/components/dashboard/AccountSectionTabs";
 import { EventPicker } from "@/components/layout/EventPicker";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
@@ -109,6 +110,8 @@ export default function DashboardSettingsPage() {
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.08),transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] px-3 py-4 md:px-6 md:py-6">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 md:gap-5">
         <Header title="Parametres" />
+
+        <AccountSectionTabs active="settings" />
 
         <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
