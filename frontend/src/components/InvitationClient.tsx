@@ -89,6 +89,10 @@ function getTimelineIcon(title: string, index: number) {
   return index % 2 === 0 ? "•" : "◦";
 }
 
+function entranceStyle(index: number) {
+  return { animationDelay: `${120 + index * 110}ms`, animationFillMode: "both" as const };
+}
+
 export function InvitationClient({ initial, mode = "full" }: { initial: InvitationData; mode?: "full" | "invitation-only" }) {
   const [guestStatus, setGuestStatus] = useState<GuestStatus>(initial.guest.status);
   const [selectedDrinks, setSelectedDrinks] = useState<number[]>(initial.choices?.map(c => c.drinkOptionId) ?? []);
@@ -272,10 +276,10 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
 
   return (
     <div
-      className={`invite-skin ${getInvitationAnimationClass(initial.event.animationStyle)} space-y-5 pb-36 md:pb-10`}
+      className={`invite-skin ${getInvitationAnimationClass(initial.event.animationStyle)} page-enter relative isolate space-y-5 pb-36 md:pb-10`}
       style={getInvitationThemeStyle(initial.event)}
     >
-      <div className={`overflow-hidden rounded-[32px] border ${shellTheme}`} style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+      <div className={`overflow-hidden rounded-[32px] border ${shellTheme} invite-anim-soft`} style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
         <div className="relative isolate">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_45%),linear-gradient(135deg,rgba(15,23,42,0.5),rgba(15,23,42,0.1))]" />
           <div className="relative h-[28rem] md:h-[32rem]">
@@ -316,7 +320,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
         </div>
       </div>
 
-      <div className="rounded-[30px] border border-white/50 bg-white/82 p-4 shadow-lg shadow-slate-200/50 backdrop-blur-xl md:p-5" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+      <div className="rounded-[30px] border border-white/50 bg-white/82 p-4 shadow-lg shadow-slate-200/50 backdrop-blur-xl md:p-5 invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-[22px] border border-slate-200/80 bg-white px-4 py-4 shadow-sm">
             <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Titre</p>
@@ -343,7 +347,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
 
       <div className="grid gap-5 lg:grid-cols-[1.2fr,0.8fr]">
         <div className="space-y-5">
-          <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+          <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
             <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Message d'accueil</p>
             <p className="mt-3 text-base text-slate-700 md:text-lg">
               Cher(e) <span className="font-semibold text-slate-900">{initial.guest.fullName}</span>, vous etes invite(e) a vivre un moment special autour de <span className="font-semibold text-slate-900">{initial.event.name}</span>.
@@ -355,7 +359,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
             ) : null}
           </div>
 
-          <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+          <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div className="space-y-3">
                 <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Date et lieu</p>
@@ -381,7 +385,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+          <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Deroulement</p>
@@ -434,7 +438,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+          <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">RSVP</p>
@@ -462,7 +466,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
             </div>
           </div>
           {mode === "full" && initial.drinks.length > 0 && (
-            <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+            <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
               <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Boissons</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-900">Choix preferes</h2>
               <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -483,7 +487,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
           )}
 
           {mode === "full" && (initial.gifts?.length ?? 0) > 0 && (
-            <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+            <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
               <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Cadeaux</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-900">Liste de cadeaux</h2>
               <div className="mt-4 space-y-3">
@@ -499,7 +503,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
           )}
 
           {mode === "full" && (
-            <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+            <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
               <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Souvenirs</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-900">Album photo et video</h2>
               <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-[auto,1fr]">
@@ -533,7 +537,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
           )}
 
           {mode === "full" && (
-            <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+            <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
               <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Livre d'or</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-900">Laisser un message</h2>
               <textarea className="mt-4 w-full rounded-[22px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400" rows={4} value={message} onChange={e => setMessage(e.target.value)} placeholder="Laissez un mot aux organisateurs..." />
@@ -546,8 +550,8 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
           {feedback ? <div className="rounded-[24px] border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 shadow-sm backdrop-blur-xl" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>{feedback}</div> : null}
         </div>
       </div>
-      <div className="fixed inset-x-3 bottom-3 z-50 md:hidden">
-        <div className="rounded-[28px] border border-white/40 bg-white/88 p-3 shadow-2xl shadow-black/10 backdrop-blur-xl" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+      <div className="fixed inset-x-3 bottom-4 z-50 md:hidden">
+        <div className="rounded-[28px] border border-white/40 bg-white/88 p-3 shadow-2xl shadow-black/10 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
           <div className="mb-3 flex items-center justify-between gap-3 px-1">
             <div>
               <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">RSVP mobile</p>
@@ -574,6 +578,8 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
     </div>
   );
 }
+
+
 
 
 
