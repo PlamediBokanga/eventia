@@ -161,7 +161,7 @@ export function RegisterClient() {
       eyebrow="Lancement de compte"
       title="Creez un compte organisateur."
       description="Une inscription claire, sobre et structuree pour les utilisateurs qui se connectent a un vrai produit, pas a une demo."
-      sideTitle="Un onboarding plus serieux, plus lisible, plus aligné avec une plateforme premium."
+      sideTitle="Un onboarding plus serieux, plus lisible, plus aligne avec une plateforme premium."
       sideCopy="Nous gardons un parcours direct, mais le traitement visuel et les interactions doivent inspirer confiance des la premiere seconde."
       sideStats={[
         { value: "1", label: "Compte, dashboard et session actives en un seul flux" },
@@ -178,6 +178,18 @@ export function RegisterClient() {
       }
     >
       <div className="space-y-5">
+        <div className="rounded-[22px] border border-slate-200 bg-gradient-to-br from-white to-slate-50/80 px-4 py-4 text-sm text-slate-600 shadow-sm">
+          <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Creation de compte</p>
+          <p className="mt-2 leading-6">
+            Un parcours plus serieux pour les organisateurs qui veulent un espace propre, structure et pret pour la
+            production.
+          </p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Profil pro</div>
+            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Google SSO</div>
+            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Mot de passe fort</div>
+          </div>
+        </div>
         <GoogleButton
           href={googleHref}
           disabled={!googleEnabled}
@@ -299,7 +311,7 @@ export function RegisterClient() {
                   className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 pr-16 text-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="Au moins 6 caracteres"
+                  placeholder="Au moins 6 caracteres, avec majuscule, minuscule, chiffre et symbole"
                   required
                 />
                 <button
@@ -353,14 +365,14 @@ export function RegisterClient() {
             </span>
           </label>
           <button className="btn-primary w-full justify-center py-3 text-sm" type="submit" disabled={loading}>
-            {loading ? "Creation du compte..." : "Creer mon espace"}
+            {loading ? "Creation en cours..." : "Creer mon espace"}
           </button>
         </form>
 
         <AuthPopup
           open={Boolean(message)}
           variant={verificationUrl ? "success" : "warning"}
-          title={verificationUrl ? "Compte créé" : "Création impossible"}
+          title={verificationUrl ? "Compte cree" : "Creation impossible"}
           message={
             verificationUrl
               ? "Ouvrez le lien pour confirmer votre adresse et finaliser l'activation du compte."

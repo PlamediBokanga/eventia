@@ -142,6 +142,24 @@ export function LoginClient() {
       }
     >
       <div className="space-y-5">
+        <div className="rounded-[22px] border border-slate-200 bg-gradient-to-br from-white to-slate-50/80 px-4 py-4 text-sm text-slate-600 shadow-sm">
+          <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Acces organiseur</p>
+          <p className="mt-2 leading-6">
+            Retrouvez votre dashboard, vos statistiques, vos invitations et vos outils de pilotage en toute
+            securite.
+          </p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
+              Session securisee
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
+              Google OAuth
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
+              Popup dynamique
+            </div>
+          </div>
+        </div>
         <GoogleButton
           href={googleHref}
           disabled={!googleEnabled}
@@ -195,7 +213,7 @@ export function LoginClient() {
         </form>
 
         <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600">
-          <p className="font-medium text-slate-900">Connexion professionnelle</p>
+          <p className="font-medium text-slate-900">Connexion securisee</p>
           <p className="mt-1 leading-6">
             Votre session donne acces au dashboard organisateur, aux statistiques, au check-in et aux operations de
             paiement.
@@ -206,7 +224,7 @@ export function LoginClient() {
             </Link>
             <span className="text-slate-300">•</span>
             <Link href="/auth/register" className="font-medium text-slate-900 hover:text-accent">
-              Ouvrir un nouveau compte
+              Creer un nouvel espace
             </Link>
           </div>
         </div>
@@ -235,3 +253,4 @@ export function LoginClient() {
     </AuthShell>
   );
 }
+
