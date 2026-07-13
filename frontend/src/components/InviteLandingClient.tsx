@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -43,6 +43,8 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
     if (!now || Number.isNaN(eventDate.getTime())) return "";
     return formatCountdown(eventDate, new Date(now));
   }, [eventDate, now]);
+
+  const primaryHref = `/invite/${token}/invitation`;
 
   useEffect(() => {
     setNow(Date.now());
@@ -174,6 +176,32 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
                 Aperçu détaillé
               </a>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/30 bg-white/78 px-3 py-3 shadow-[0_-10px_40px_rgba(15,23,42,0.12)] backdrop-blur-xl md:hidden">
+        <div className="mx-auto flex max-w-2xl flex-col gap-2">
+          <a
+            href={primaryHref}
+            className="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 transition active:scale-[0.99]"
+          >
+            Ouvrir l'invitation
+          </a>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setShowCover(true)}
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition active:scale-[0.99]"
+            >
+              Voir la couverture
+            </button>
+            <a
+              href={primaryHref}
+              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-center text-sm font-semibold text-slate-700 transition active:scale-[0.99]"
+            >
+              Details complets
+            </a>
           </div>
         </div>
       </div>
