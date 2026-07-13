@@ -110,6 +110,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
   const qrCodeUrl = normalizePublicUrl(initial.invitation.qrCodeUrl);
   const eventDate = new Date(initial.event.dateTime);
   const programItems = initial.programItems ?? [];
+  const heroTitle = initial.event.hostNames || initial.event.name;
   const isCorporateEvent = useMemo(() => /conference|corporate|business|meeting|seminar|gala|workshop|forum/i.test([initial.event.type, initial.event.name, initial.event.themePreset].filter(Boolean).join(" ")), [initial.event.name, initial.event.themePreset, initial.event.type]);
   const addressParts = splitAddress(initial.event.address);
   const mapLinks = buildMapLinks(initial.invitation.mapsUrl, initial.event.location, initial.event.address);
@@ -271,7 +272,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
 
   return (
     <div
-      className={`invite-skin ${getInvitationAnimationClass(initial.event.animationStyle)} space-y-5 pb-28 md:pb-8`}
+      className={`invite-skin ${getInvitationAnimationClass(initial.event.animationStyle)} space-y-5 pb-32 md:pb-10`}
       style={getInvitationThemeStyle(initial.event)}
     >
       <div className={`overflow-hidden rounded-[32px] border ${shellTheme}`} style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
@@ -284,7 +285,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
               <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-900 via-slate-700 to-slate-500 text-white">
                 <div className="max-w-2xl px-6 text-center">
                   <p className="text-xs uppercase tracking-[0.35em] text-white/70">Invitation officielle</p>
-                  <h1 className="mt-4 text-4xl font-semibold leading-tight md:text-6xl">{initial.event.hostNames || initial.event.name}</h1>
+                  <h1 className="mt-4 text-4xl font-semibold leading-tight md:text-6xl">{heroTitle}</h1>
                   {countdownText ? <div className="mt-5 inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-white/90 backdrop-blur-md">{countdownText}</div> : null}
                 </div>
               </div>
@@ -301,7 +302,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
             <div className="absolute inset-x-0 bottom-0 p-5 md:p-8">
               <div className="max-w-4xl space-y-3 text-white">
                 <p className="text-[11px] uppercase tracking-[0.32em] text-white/70">{initial.event.type || "Evenement"}</p>
-                <h1 className="text-3xl font-semibold leading-tight md:text-6xl">{initial.event.hostNames || initial.event.name}</h1>
+                <h1 className="text-3xl font-semibold leading-tight md:text-6xl">{heroTitle}</h1>
                 <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-white/85">
                   {dateLabel ? <span className="rounded-full border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-md">{dateLabel}</span> : null}
                   {timeLabel ? <span className="rounded-full border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-md">{timeLabel}</span> : null}
@@ -311,6 +312,31 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
                 {countdownText ? <div className="inline-flex rounded-full border border-white/15 bg-white/12 px-4 py-2 text-sm text-white/90 backdrop-blur-md">{countdownText}</div> : null}
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-[30px] border border-white/50 bg-white/82 p-4 shadow-lg shadow-slate-200/50 backdrop-blur-xl md:p-5" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-[22px] border border-slate-200/80 bg-white px-4 py-4 shadow-sm">
+            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Titre</p>
+            <p className="mt-2 text-lg font-semibold text-slate-900">{heroTitle}</p>
+            <p className="mt-1 text-sm text-slate-600">{initial.event.name}</p>
+          </div>
+          <div className="rounded-[22px] border border-slate-200/80 bg-white px-4 py-4 shadow-sm">
+            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Compte a rebours</p>
+            <p className="mt-2 text-lg font-semibold text-slate-900">{countdownText || dateLabel}</p>
+            <p className="mt-1 text-sm text-slate-600">Chaque minute compte avant votre accueil.</p>
+          </div>
+          <div className="rounded-[22px] border border-slate-200/80 bg-white px-4 py-4 shadow-sm">
+            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Lieu</p>
+            <p className="mt-2 text-lg font-semibold text-slate-900">{initial.event.location}</p>
+            <p className="mt-1 text-sm text-slate-600">{addressParts.main || "Adresse a confirmer"}</p>
+          </div>
+          <div className="rounded-[22px] border border-slate-200/80 bg-white px-4 py-4 shadow-sm">
+            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Statut</p>
+            <p className={`mt-2 text-lg font-semibold ${isConfirmed ? "text-emerald-600" : guestStatus === "CANCELED" ? "text-rose-600" : "text-amber-600"}`}>{guestStatus === "PENDING" && "En attente"}{guestStatus === "CONFIRMED" && "Confirme"}{guestStatus === "CANCELED" && "Annule"}</p>
+            <p className="mt-1 text-sm text-slate-600">Le QR code s'active apres RSVP.</p>
           </div>
         </div>
       </div>
@@ -530,7 +556,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
             <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${isConfirmed ? "bg-emerald-100 text-emerald-700" : guestStatus === "CANCELED" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"}`}>{guestStatus === "PENDING" && "En attente"}{guestStatus === "CONFIRMED" && "Confirme"}{guestStatus === "CANCELED" && "Annule"}</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <button className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-sm transition active:scale-[0.99] disabled:opacity-60" type="button" onClick={handleConfirm} disabled={loadingAction === "confirm"}>{loadingAction === "confirm" ? "..." : isConfirmed ? "Voir le pass" : "Confirmer ma presence"}</button>
+            <button className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition active:scale-[0.99] motion-safe:animate-pulse disabled:opacity-60" type="button" onClick={handleConfirm} disabled={loadingAction === "confirm"}>{loadingAction === "confirm" ? "..." : isConfirmed ? "Voir le pass" : "Confirmer ma presence"}</button>
             <button className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-sm transition active:scale-[0.99] disabled:opacity-60" type="button" onClick={handleCancel} disabled={loadingAction === "cancel"}>{loadingAction === "cancel" ? "..." : "Je ne pourrai pas venir"}</button>
           </div>
         </div>
@@ -548,4 +574,6 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
     </div>
   );
 }
+
+
 
