@@ -39,6 +39,19 @@ type EventStats = {
   };
 };
 
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0
+  }).format(value);
+}
+
+function pct(current: number, total: number) {
+  if (!total) return 0;
+  return Math.min(100, Math.max(0, (current / total) * 100));
+}
+
 export default function DashboardStatsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
@@ -84,150 +97,258 @@ export default function DashboardStatsPage() {
     return Math.max(...stats.confirmationsSeries.map(item => item.count));
   }, [stats?.confirmationsSeries]);
 
+  const tableLoad = useMemo(() => {
+    if (!stats?.tables?.length) return 0;
+    return stats.tables.reduce((total, table) => total + pct(table.guestCount, table.capacity || table.guestCount || 1), 0) / stats.tables.length;
+  }, [stats?.tables]);
+
   return (
-    <main className="space-y-4">
-      <Header title="Statistiques" />
-      <section className="card p-4 space-y-3">
-        <h2 className="title-4">Evenement cible</h2>
-        {loading ? (
-          <p className="text-small">Chargement...</p>
-        ) : events.length === 0 ? (
-          <EmptyState title="Aucun evenement" description="Creez un evenement pour afficher les statistiques." />
-        ) : (
-          <EventPicker
-            events={events}
-            selectedEventId={selectedEvent?.id}
-            onSelect={event => {
-              setSelectedEvent(event);
-              setSelectedEventId(event.id);
-            }}
-          />
-        )}
-      </section>
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.08),transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] px-3 py-4 md:px-6 md:py-6">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 md:gap-5">
+        <Header title="Statistiques" />
 
-      {!stats ? (
-        <section className="card p-4">
-          <p className="text-small">Aucune statistique disponible.</p>
+        <section className="rounded-[32px] border border-white/70 bg-white/85 p-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="space-y-2">
+              <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Pilotage evenement</p>
+              <h2 className="text-3xl font-semibold text-slate-900 md:text-4xl">Statistiques en temps reel</h2>
+              <p className="max-w-2xl text-sm leading-6 text-slate-600">
+                Suivi des confirmations, QR scans, tables, activité invitee et revenus dans une vue claire, lisible et exploitable le jour J.
+              </p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[460px]">
+              <div className="rounded-[22px] border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Participation</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">{stats?.guests.attendanceRate ?? 0}%</p>
+              </div>
+              <div className="rounded-[22px] border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Tables remplies</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">{Math.round(tableLoad)}%</p>
+              </div>
+              <div className="rounded-[22px] border border-slate-200/80 bg-slate-950 px-4 py-3 shadow-sm text-white">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-white/60">Revenu</p>
+                <p className="mt-1 text-2xl font-semibold">{stats ? formatCurrency(stats.revenue.amount) : "$0"}</p>
+              </div>
+            </div>
+          </div>
         </section>
-      ) : (
-        <>
-          <section className="grid gap-3 md:grid-cols-4">
-            <div className="rounded-2xl border border-primary/10 bg-background/70 p-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">Invites total</p>
-              <p className="mt-1 text-2xl font-semibold">{stats.guests.total}</p>
-            </div>
-            <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-green-700">Confirmes</p>
-              <p className="mt-1 text-2xl font-semibold text-green-700">{stats.guests.confirmed}</p>
-            </div>
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-amber-700">Presents</p>
-              <p className="mt-1 text-2xl font-semibold text-amber-700">{stats.guests.present}</p>
-            </div>
-            <div className="rounded-2xl border border-primary/10 bg-background/70 p-4">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">Taux participation</p>
-              <p className="mt-1 text-2xl font-semibold">{stats.guests.attendanceRate}%</p>
-            </div>
-          </section>
 
-          <section className="grid gap-4 lg:grid-cols-[1.2fr,1fr]">
-            <div className="card p-4 space-y-3">
-              <h3 className="title-4">Confirmations par jour</h3>
-              {stats.confirmationsSeries.length === 0 ? (
-                <p className="text-small">Pas encore de confirmations.</p>
-              ) : (
-                <div className="space-y-2">
-                  {stats.confirmationsSeries.map(item => (
-                    <div key={item.day} className="flex items-center gap-2 text-xs">
-                      <span className="w-24 text-text/70">{item.day}</span>
-                      <div className="flex-1 rounded-full bg-primary/10">
-                        <div
-                          className="h-2 rounded-full bg-accent"
-                          style={{ width: `${maxConfirm ? (item.count / maxConfirm) * 100 : 0}%` }}
-                        />
+        <section className="rounded-[32px] border border-white/70 bg-white/85 p-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-5 space-y-3">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Evenement cible</p>
+              <h3 className="mt-2 text-2xl font-semibold text-slate-900">Choisir le contexte des statistiques</h3>
+            </div>
+            {loading ? <p className="text-sm text-slate-600">Chargement...</p> : null}
+          </div>
+          {loading ? (
+            <p className="text-sm text-slate-600">Chargement des evenements...</p>
+          ) : events.length === 0 ? (
+            <EmptyState title="Aucun evenement" description="Creez un evenement pour afficher les statistiques." />
+          ) : (
+            <EventPicker
+              events={events}
+              selectedEventId={selectedEvent?.id}
+              onSelect={event => {
+                setSelectedEvent(event);
+                setSelectedEventId(event.id);
+              }}
+            />
+          )}
+        </section>
+
+        {!stats ? (
+          <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl">
+            <EmptyState
+              title="Aucune statistique disponible"
+              description="Selectionnez un evenement pour afficher le resume, les graphiques et les details operationnels."
+            />
+          </section>
+        ) : (
+          <>
+            <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {[
+                { label: "Invites total", value: stats.guests.total, barClass: "bg-slate-200" },
+                { label: "Confirmes", value: stats.guests.confirmed, barClass: "bg-emerald-200" },
+                { label: "Presents", value: stats.guests.present, barClass: "bg-amber-200" },
+                { label: "Taux participation", value: `${stats.guests.attendanceRate}%`, barClass: "bg-indigo-200" }
+              ].map(card => (
+                <div
+                  key={card.label}
+                  className="rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-sm"
+                >
+                  <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">{card.label}</p>
+                  <p className="mt-2 text-3xl font-semibold text-slate-900">{card.value}</p>
+                  <div className={`mt-3 h-1.5 rounded-full ${card.barClass}`} />
+                </div>
+              ))}
+            </section>
+
+            <section className="grid gap-4 lg:grid-cols-[1.2fr,0.8fr]">
+              <div className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl space-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Evolution</p>
+                    <h3 className="mt-2 text-2xl font-semibold text-slate-900">Confirmations par jour</h3>
+                  </div>
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-medium text-slate-600">
+                    {stats.confirmationsSeries.length} jours
+                  </span>
+                </div>
+                {stats.confirmationsSeries.length === 0 ? (
+                  <p className="text-sm text-slate-600">Pas encore de confirmations.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {stats.confirmationsSeries.map(item => (
+                      <div key={item.day} className="grid grid-cols-[84px,1fr,40px] items-center gap-3 text-xs">
+                        <span className="text-slate-600">{item.day}</span>
+                        <div className="h-2 rounded-full bg-slate-100">
+                          <div
+                            className="h-2 rounded-full bg-gradient-to-r from-slate-950 to-indigo-500"
+                            style={{ width: `${maxConfirm ? (item.count / maxConfirm) * 100 : 0}%` }}
+                          />
+                        </div>
+                        <span className="text-right font-semibold text-slate-900">{item.count}</span>
                       </div>
-                      <span className="w-8 text-right">{item.count}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl space-y-4">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Scan QR</p>
+                  <h3 className="mt-2 text-2xl font-semibold text-slate-900">Flux check-in</h3>
+                </div>
+                <div className="space-y-3 text-sm">
+                  {[
+                    { label: "Entrees scannees", value: stats.qr.scanned, color: "text-emerald-700" },
+                    { label: "Refusees", value: stats.qr.refused, color: "text-rose-700" },
+                    { label: "En attente", value: stats.qr.pending, color: "text-amber-700" }
+                  ].map(item => (
+                    <div key={item.label} className="flex items-center justify-between rounded-[18px] border border-slate-200/80 bg-slate-50 px-4 py-3">
+                      <span className="text-slate-600">{item.label}</span>
+                      <span className={`text-lg font-semibold ${item.color}`}>{item.value}</span>
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
-
-            <div className="card p-4 space-y-3">
-              <h3 className="title-4">Statistiques QR Scan</h3>
-              <div className="grid gap-2 text-xs">
-                <div className="flex items-center justify-between rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
-                  <span>Entrees scannees</span>
-                  <span className="font-semibold">{stats.qr.scanned}</span>
-                </div>
-                <div className="flex items-center justify-between rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
-                  <span>Refusees</span>
-                  <span className="font-semibold">{stats.qr.refused}</span>
-                </div>
-                <div className="flex items-center justify-between rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
-                  <span>En attente</span>
-                  <span className="font-semibold">{stats.qr.pending}</span>
+                <div className="rounded-[20px] border border-slate-200 bg-slate-950 px-4 py-4 text-white">
+                  <p className="text-[10px] uppercase tracking-[0.24em] text-white/60">Insight</p>
+                  <p className="mt-2 text-sm leading-6 text-white/88">
+                    {stats.qr.refused > 0
+                      ? "Certaines invitations ont ete refusees: surveillez les doublons, les QR expirés ou les invitations non valides."
+                      : "Le flux QR est fluide. Continuez a surveiller l'arrivee des invites en direct."}
+                  </p>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
 
-          <section className="grid gap-4 lg:grid-cols-[1.1fr,1fr]">
-            <div className="card p-4 space-y-3">
-              <h3 className="title-4">Statistiques tables</h3>
-              {stats.tables.length === 0 ? (
-                <p className="text-small">Aucune table.</p>
-              ) : (
-                <div className="space-y-2 text-xs">
-                  {stats.tables.map(table => (
-                    <div key={table.id} className="flex items-center justify-between rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
-                      <span>{table.label}</span>
-                      <span className="font-semibold">
-                        {table.guestCount}/{table.capacity || "-"}
-                      </span>
+            <section className="grid gap-4 lg:grid-cols-[1.05fr,0.95fr]">
+              <div className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl space-y-4">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Tables</p>
+                  <h3 className="mt-2 text-2xl font-semibold text-slate-900">Occupation par table</h3>
+                </div>
+                {stats.tables.length === 0 ? (
+                  <p className="text-sm text-slate-600">Aucune table.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {stats.tables.map(table => {
+                      const occupancy = pct(table.guestCount, table.capacity || table.guestCount || 1);
+                      return (
+                        <div key={table.id} className="rounded-[20px] border border-slate-200/80 bg-slate-50 px-4 py-4">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="font-semibold text-slate-900">{table.label}</p>
+                              <p className="mt-1 text-xs text-slate-500">{table.guestCount}/{table.capacity || "-"} places</p>
+                            </div>
+                            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-900 shadow-sm">
+                              {Math.round(occupancy)}%
+                            </span>
+                          </div>
+                          <div className="mt-3 h-2 rounded-full bg-slate-200">
+                            <div
+                              className="h-2 rounded-full bg-gradient-to-r from-slate-950 to-indigo-500"
+                              style={{ width: `${occupancy}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl space-y-4">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Activite</p>
+                  <h3 className="mt-2 text-2xl font-semibold text-slate-900">Messages et souvenirs</h3>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {[
+                    { label: "Messages chat", value: stats.activity.messages },
+                    { label: "Livre d'or", value: stats.activity.guestbookMessages },
+                    { label: "Photos partagees", value: stats.activity.photos },
+                    { label: "Videos", value: stats.activity.videos }
+                  ].map(item => (
+                    <div key={item.label} className="rounded-[20px] border border-slate-200/80 bg-slate-50 px-4 py-4">
+                      <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">{item.label}</p>
+                      <p className="mt-2 text-2xl font-semibold text-slate-900">{item.value}</p>
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
-            <div className="card p-4 space-y-3">
-              <h3 className="title-4">Activite</h3>
-              <div className="grid gap-2 text-xs">
-                <div className="flex items-center justify-between rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
-                  <span>Messages chat</span>
-                  <span className="font-semibold">{stats.activity.messages}</span>
-                </div>
-                <div className="flex items-center justify-between rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
-                  <span>Messages livre d'or</span>
-                  <span className="font-semibold">{stats.activity.guestbookMessages}</span>
-                </div>
-                <div className="flex items-center justify-between rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
-                  <span>Photos partagees</span>
-                  <span className="font-semibold">{stats.activity.photos}</span>
-                </div>
-                <div className="flex items-center justify-between rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
-                  <span>Videos</span>
-                  <span className="font-semibold">{stats.activity.videos}</span>
+                <div className="rounded-[20px] border border-slate-200 bg-slate-950 px-4 py-4 text-white">
+                  <p className="text-[10px] uppercase tracking-[0.24em] text-white/60">Volume total</p>
+                  <p className="mt-2 text-sm leading-6 text-white/85">
+                    {stats.activity.photos + stats.activity.videos} medias et {stats.activity.messages + stats.activity.guestbookMessages} messages recueillis.
+                  </p>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
 
-          <section className="card p-4 space-y-3">
-            <h3 className="title-4">Revenus</h3>
-            <div className="grid gap-2 text-xs md:grid-cols-2">
-              <div className="rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-text/60">Total paye</p>
-                <p className="mt-1 text-lg font-semibold">${stats.revenue.amount}</p>
+            <section className="grid gap-4 lg:grid-cols-[0.8fr,1.2fr]">
+              <div className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl space-y-4">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Revenus</p>
+                  <h3 className="mt-2 text-2xl font-semibold text-slate-900">Monetisation</h3>
+                </div>
+                <div className="grid gap-3">
+                  <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 px-4 py-4">
+                    <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Total paye</p>
+                    <p className="mt-2 text-3xl font-semibold text-slate-900">{formatCurrency(stats.revenue.amount)}</p>
+                  </div>
+                  <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 px-4 py-4">
+                    <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Plan utilise</p>
+                    <p className="mt-2 text-2xl font-semibold text-slate-900">{stats.revenue.plan}</p>
+                  </div>
+                </div>
               </div>
-              <div className="rounded-xl border border-primary/10 bg-background/70 px-3 py-2">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-text/60">Plan utilise</p>
-                <p className="mt-1 text-lg font-semibold">{stats.revenue.plan}</p>
+
+              <div className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl space-y-4">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Vue globale</p>
+                  <h3 className="mt-2 text-2xl font-semibold text-slate-900">Lecture rapide</h3>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {[
+                    { label: "Total invites", value: stats.guests.total },
+                    { label: "Confirmes", value: stats.guests.confirmed },
+                    { label: "En attente", value: stats.guests.pending },
+                    { label: "Annules", value: stats.guests.canceled },
+                    { label: "QR valides", value: stats.qr.scanned },
+                    { label: "QR refuses", value: stats.qr.refused }
+                  ].map(item => (
+                    <div key={item.label} className="rounded-[18px] border border-slate-200/80 bg-slate-50 px-4 py-4">
+                      <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">{item.label}</p>
+                      <p className="mt-2 text-2xl font-semibold text-slate-900">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          </section>
-        </>
-      )}
+            </section>
+          </>
+        )}
+      </div>
     </main>
   );
 }
