@@ -504,14 +504,14 @@ export default function DashboardCheckinPage() {
   }
 
   return (
-    <main className={fullscreen ? "space-y-4 p-4 min-h-screen" : "space-y-4"}>
+    <main className={fullscreen ? "min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.08),transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] p-3 md:p-6" : "min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.08),transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] px-3 py-4 md:px-6 md:py-6"}>
       <Header title="Scanner des invitations" />
-      <section className="card p-4 space-y-4">
+      <section className="rounded-[32px] border border-white/70 bg-white/84 p-4 space-y-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h2 className="title-4">Scanner des invitations</h2>
+            <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Controle des entrees</p>`r`n            <h2 className="mt-2 text-3xl font-semibold text-slate-900">Scanner des invitations</h2>
             <p className="text-small text-textSecondary">
-              Scannez rapidement les QR codes et suivez l'affluence en temps reel.
+              Scannez rapidement les QR codes, affichez le resultat en plein ecran et suivez l'affluence en temps reel.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -558,16 +558,16 @@ export default function DashboardCheckinPage() {
           </div>
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-3">
-          <div className="rounded-2xl border border-primary/10 bg-background/70 p-3">
+        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="rounded-[22px] border border-slate-200/80 bg-white p-4 shadow-sm">
             <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">Invites attendus</p>
             <p className="mt-1 text-lg font-semibold">{stats.totalGuests}</p>
           </div>
-          <div className="rounded-2xl border border-green-200 bg-green-50 p-3">
+          <div className="rounded-[22px] border border-emerald-200/70 bg-emerald-50 p-4 shadow-sm">
             <p className="text-[10px] uppercase tracking-[0.2em] text-green-700">Deja presents</p>
             <p className="mt-1 text-lg font-semibold text-green-700">{stats.present}</p>
           </div>
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
+          <div className="rounded-[22px] border border-amber-200/70 bg-amber-50 p-4 shadow-sm">
             <p className="text-[10px] uppercase tracking-[0.2em] text-amber-700">Restants</p>
             <p className="mt-1 text-lg font-semibold text-amber-700">{stats.remaining}</p>
           </div>
@@ -575,9 +575,9 @@ export default function DashboardCheckinPage() {
       </section>
 
       <div className={fullscreen ? "grid gap-4" : "grid gap-4 lg:grid-cols-[1.2fr,1fr]"}>
-        <section className={`card p-4 space-y-4 ${fullscreen ? "max-h-[calc(100vh-180px)] overflow-y-auto" : ""}`}>
+        <section className={`rounded-[32px] border border-white/70 bg-white/84 p-4 space-y-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl ${fullscreen ? "max-h-[calc(100vh-180px)] overflow-y-auto" : ""}`}>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="title-4">Zone scanner</h3>
+            <div><p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Zone scanner</p><h3 className="mt-2 text-2xl font-semibold text-slate-900">Capture du QR code</h3></div>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
@@ -629,14 +629,14 @@ export default function DashboardCheckinPage() {
             </div>
           </div>
 
-            <div className="relative overflow-hidden rounded-2xl border border-primary/10 bg-black">
+            <div className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-slate-950">
               <div className="absolute inset-0 pointer-events-none">
                 <div className="scan-line" />
                 <div className="scan-frame" />
               </div>
-              <video ref={videoRef} className="h-[320px] w-full rounded-2xl object-cover" />
+              <video ref={videoRef} className="h-[360px] w-full rounded-[28px] object-cover opacity-95" />
             </div>
-          <p className="text-small text-text/70">{scanHint}</p>
+          <p className="text-sm text-slate-600">{scanHint}</p>
 
           {mode === "MANUAL" ? (
             <div className="space-y-3">
@@ -703,7 +703,7 @@ export default function DashboardCheckinPage() {
           ) : null}
         </section>
 
-        <section className={`card p-4 space-y-4 ${fullscreen ? "max-h-[calc(100vh-180px)] overflow-y-auto" : ""}`}>
+        <section className={`rounded-[32px] border border-white/70 bg-white/84 p-4 space-y-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl ${fullscreen ? "max-h-[calc(100vh-180px)] overflow-y-auto" : ""}`}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="title-4">Resultat du scan</h3>
             <div className="flex flex-wrap items-center gap-2">
@@ -862,12 +862,12 @@ export default function DashboardCheckinPage() {
       </div>
 
       {showResultModal && currentResult ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-md">
+          <div className="w-full max-w-md rounded-[28px] border border-white/60 bg-white p-5 shadow-2xl shadow-black/20">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-text/50">Resultat du scan</p>
-                <h3 className="mt-1 text-lg font-semibold text-text">
+                <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Resultat du scan</p>
+                <h3 className="mt-1 text-2xl font-semibold text-slate-900">
                   {currentResult.guestName ?? "Invite"}
                 </h3>
               </div>
@@ -930,7 +930,7 @@ export default function DashboardCheckinPage() {
           left: 12%;
           right: 12%;
           height: 2px;
-          background: rgba(212, 175, 55, 0.9);
+          background: linear-gradient(90deg, rgba(212, 175, 55, 0), rgba(212, 175, 55, 0.95), rgba(212, 175, 55, 0));
           top: 10%;
           animation: scanMove 2.2s ease-in-out infinite;
         }
@@ -954,12 +954,12 @@ export default function DashboardCheckinPage() {
           position: absolute;
           left: 50%;
           top: 50%;
-          width: 120px;
-          height: 120px;
+          width: 150px;
+          height: 150px;
           transform: translate(-50%, -50%);
-          border-radius: 18px;
+          border-radius: 22px;
           border: 1px solid rgba(255, 255, 255, 0.35);
-          box-shadow: 0 0 28px rgba(212, 175, 55, 0.35);
+          box-shadow: 0 0 28px rgba(212, 175, 55, 0.28);
           animation: pulseFrame 2.4s ease-in-out infinite;
         }
 
