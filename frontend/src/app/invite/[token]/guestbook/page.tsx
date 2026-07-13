@@ -8,6 +8,15 @@ import type { InvitationData } from "@/components/InvitationClient";
 import { getInvitationAnimationClass, getInvitationThemeStyle } from "@/lib/invitationTheme";
 import { normalizePublicUrl } from "@/lib/url";
 
+function formatDateTime(value: string) {
+  return new Date(value).toLocaleString("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
 export default function InviteGuestbookPage({ params }: { params: { token: string } }) {
   const [data, setData] = useState<InvitationData | null>(null);
   const [text, setText] = useState("");
@@ -120,136 +129,195 @@ export default function InviteGuestbookPage({ params }: { params: { token: strin
 
   const remaining = 400 - text.length;
   const visibleMessages = useMemo(() => data?.guestbookMessages ?? [], [data?.guestbookMessages]);
+  const memories = data?.memories ?? [];
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 py-6">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.08),transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] px-3 py-4 md:px-6 md:py-6">
       <div
-        className={`max-w-xl w-full card p-6 space-y-4 invite-skin ${getInvitationAnimationClass(data?.event.animationStyle)}`}
+        className={`mx-auto flex w-full max-w-6xl flex-col gap-4 ${getInvitationAnimationClass(data?.event.animationStyle)}`}
         style={getInvitationThemeStyle(data?.event)}
       >
         <InviteSteps token={params.token} current="guestbook" />
-        <h1 className="title-3 invite-title">Livre d'or</h1>
-        <p className="text-body-muted">Partagez un mot chaleureux avec l'organisateur.</p>
-        <textarea
-          className="w-full rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/60"
-          rows={5}
-          value={text}
-          onChange={e => setText(e.target.value)}
-          maxLength={400}
-          placeholder="Exemple: Merci pour l'invitation, nous avons hate d'etre avec vous..."
-        />
-        <p className="text-small">{remaining} caracteres restants</p>
-        <div className="flex gap-2">
-          <button className="btn-primary" onClick={submit} disabled={loading}>
-            {loading ? "Envoi..." : "Envoyer mon message"}
-          </button>
-          <Link href={`/invite/${params.token}/invitation`} className="btn-ghost">
-            Retour
-          </Link>
-          <Link href={`/invite/${params.token}/chat`} className="btn-ghost">
-            Chat
-          </Link>
-        </div>
 
-        <div className="rounded-2xl border border-primary/10 bg-background/60 p-4 space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-body-muted font-medium">Messages des invites</p>
-            <span className="text-xs text-text/60">{visibleMessages.length} messages</span>
+        <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="space-y-2">
+              <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Livre d'or premium</p>
+              <h1 className="text-3xl font-semibold text-slate-900 md:text-4xl">Laissez une trace elegante</h1>
+              <p className="max-w-2xl text-sm leading-6 text-slate-600">
+                Partagez un message chaleureux, ajoutez un souvenir photo ou video, et nourrissez la memoire de l'evenement avec une presentation claire et moderne.
+              </p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[420px]">
+              <div className="rounded-[20px] border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Messages</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">{visibleMessages.length}</p>
+              </div>
+              <div className="rounded-[20px] border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Souvenirs</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">{memories.length}</p>
+              </div>
+              <div className="rounded-[20px] border border-slate-200/80 bg-slate-950 px-4 py-3 shadow-sm text-white">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-white/60">Etat</p>
+                <p className="mt-1 text-lg font-semibold">Actif</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-[1.1fr,0.9fr]">
+          <div className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl space-y-4 md:p-6">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Message</p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Ecrire dans le livre d'or</h2>
+            </div>
+            <textarea
+              className="min-h-[150px] w-full rounded-[22px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+              rows={5}
+              value={text}
+              onChange={e => setText(e.target.value)}
+              maxLength={400}
+              placeholder="Exemple: Merci pour l'invitation, nous vous souhaitons une merveilleuse celebration..."
+            />
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+              <span>{remaining} caracteres restants</span>
+              <div className="flex flex-wrap gap-2">
+                <Link href={`/invite/${params.token}/invitation`} className="rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-900 transition hover:-translate-y-0.5">
+                  Retour invitation
+                </Link>
+                <Link href={`/invite/${params.token}/chat`} className="rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-900 transition hover:-translate-y-0.5">
+                  Aller au chat
+                </Link>
+              </div>
+            </div>
+            <button
+              className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5 disabled:opacity-60"
+              onClick={submit}
+              disabled={loading}
+            >
+              {loading ? "Envoi..." : "Envoyer mon message"}
+            </button>
+          </div>
+
+          <div className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Album</p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Photo et video</h2>
+            </div>
+            <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-[auto,1fr]">
+              <select
+                className="rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-xs font-medium text-slate-900 outline-none"
+                value={mediaType}
+                onChange={e => setMediaType(e.target.value as "IMAGE" | "VIDEO")}
+              >
+                <option value="IMAGE">Photo</option>
+                <option value="VIDEO">Video (lien)</option>
+              </select>
+              <input
+                className="rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-xs text-slate-900 outline-none"
+                value={mediaUrl}
+                onChange={e => setMediaUrl(e.target.value)}
+                placeholder="Lien media (https://...)"
+              />
+            </div>
+            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-[1fr,auto]">
+              <input
+                className="rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-xs text-slate-900 outline-none"
+                value={mediaCaption}
+                onChange={e => setMediaCaption(e.target.value)}
+                placeholder="Legende (optionnel)"
+              />
+              <label className="cursor-pointer rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-center text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5">
+                Telecharger photo
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  className="hidden"
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    void uploadImage(file);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            </div>
+            <button
+              className="mt-4 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5 disabled:opacity-60"
+              onClick={publishMemory}
+              disabled={loading}
+            >
+              Publier le souvenir
+            </button>
+          </div>
+        </section>
+
+        <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Mur public</p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Messages recents</h2>
+            </div>
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
+              {visibleMessages.length} message(s)
+            </span>
           </div>
           {visibleMessages.length === 0 ? (
-            <p className="text-small text-text/70">Soyez le premier a laisser un message.</p>
+            <div className="mt-4 rounded-[20px] border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-600">
+              Soyez le premier a laisser un message.
+            </div>
           ) : (
-            <div className="space-y-2">
+            <div className="mt-4 grid gap-3">
               {visibleMessages.map(item => (
-                <div key={item.id} className="rounded-xl border border-primary/10 bg-white/80 p-3">
-                  <div className="flex items-center justify-between gap-2 text-[11px] text-text/60">
-                    <span className="font-semibold text-text">{item.guestName ?? "Invite anonyme"}</span>
-                    <span>
-                      {new Date(item.createdAt).toLocaleString("fr-FR", {
-                        day: "2-digit",
-                        month: "short",
-                        hour: "2-digit",
-                        minute: "2-digit"
-                      })}
-                    </span>
+                <article key={item.id} className="rounded-[22px] border border-slate-200/80 bg-slate-50 px-4 py-4 shadow-sm">
+                  <div className="flex items-center justify-between gap-2 text-[11px] text-slate-500">
+                    <span className="font-semibold text-slate-900">{item.guestName ?? "Invite anonyme"}</span>
+                    <span>{formatDateTime(item.createdAt)}</span>
                   </div>
-                  <p className="mt-2 text-sm leading-relaxed text-text">{item.message}</p>
-                </div>
+                  <p className="mt-2 text-sm leading-6 text-slate-700">{item.message}</p>
+                </article>
               ))}
             </div>
           )}
-        </div>
+        </section>
 
-        <div className="rounded-xl border border-primary/10 bg-background/60 p-3 space-y-2">
-          <p className="text-body-muted font-medium">Album photo/video</p>
-          <div className="grid grid-cols-1 sm:grid-cols-[auto,1fr] gap-2">
-            <select
-              className="rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs"
-              value={mediaType}
-              onChange={e => setMediaType(e.target.value as "IMAGE" | "VIDEO")}
-            >
-              <option value="IMAGE">Photo</option>
-              <option value="VIDEO">Video (lien)</option>
-            </select>
-            <input
-              className="rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs"
-              value={mediaUrl}
-              onChange={e => setMediaUrl(e.target.value)}
-              placeholder="Lien media (https://...)"
-            />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto] gap-2">
-            <input
-              className="rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs"
-              value={mediaCaption}
-              onChange={e => setMediaCaption(e.target.value)}
-              placeholder="Legende (optionnel)"
-            />
-            <label className="btn-ghost px-3 py-2 text-xs cursor-pointer text-center">
-              Telecharger photo
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/jpg,image/webp"
-                className="hidden"
-                onChange={e => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  void uploadImage(file);
-                  e.target.value = "";
-                }}
-              />
-            </label>
-          </div>
-          <button className="btn-ghost" onClick={publishMemory} disabled={loading}>
-            Publier le souvenir
-          </button>
-          {data?.memories?.length ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {data.memories.map(item => (
-                <div key={item.id} className="rounded-lg border border-primary/10 bg-white/70 p-2">
+        {memories.length > 0 ? (
+          <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Galerie</p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Souvenirs partages</h2>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {memories.map(item => (
+                <article key={item.id} className="overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
                   {item.mediaType === "IMAGE" ? (
                     <img
                       src={normalizePublicUrl(item.mediaUrl)}
                       alt={item.caption || "Souvenir"}
-                      className="h-28 w-full rounded object-cover"
+                      className="h-44 w-full object-cover"
                     />
                   ) : (
-                    <a
-                      href={normalizePublicUrl(item.mediaUrl)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="underline text-small"
-                    >
-                      Ouvrir la video
-                    </a>
+                    <div className="flex h-44 items-center justify-center bg-slate-950 text-sm font-semibold text-white">
+                      Video
+                    </div>
                   )}
-                  {item.caption ? <p className="mt-1 text-small">{item.caption}</p> : null}
-                </div>
+                  <div className="p-4">
+                    {item.caption ? <p className="text-sm leading-6 text-slate-700">{item.caption}</p> : null}
+                    <p className="mt-2 text-[11px] uppercase tracking-[0.22em] text-slate-500">
+                      {item.uploadedByName || "Invite"}
+                    </p>
+                  </div>
+                </article>
               ))}
             </div>
-          ) : null}
-        </div>
-        {message ? <p className="text-small">{message}</p> : null}
+          </section>
+        ) : null}
+
+        {message ? (
+          <div className="rounded-[20px] border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 shadow-sm">
+            {message}
+          </div>
+        ) : null}
       </div>
     </main>
   );
