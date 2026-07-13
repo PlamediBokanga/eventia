@@ -12,23 +12,25 @@ export function InviteSteps({ token, current }: { token: string; current: Step }
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-[11px]">
-      {steps.map(step => {
-        const active = step.key === current;
-        return (
-          <Link
-            key={step.key}
-            href={step.href}
-            className={`rounded-lg px-2 py-1 text-center transition ${
-              active
-                ? "bg-primary text-white font-medium"
-                : "bg-background/70 text-textSecondary hover:bg-background/90"
-            }`}
-          >
-            {step.label}
-          </Link>
-        );
-      })}
+    <div className="sticky top-2 z-30 -mx-1 overflow-x-auto px-1 pb-1 text-[11px]">
+      <div className="grid min-w-max grid-flow-col grid-cols-5 gap-2">
+        {steps.map(step => {
+          const active = step.key === current;
+          return (
+            <Link
+              key={step.key}
+              href={step.href}
+              className={`rounded-full px-3 py-2 text-center transition ${
+                active
+                  ? "bg-slate-950 text-white font-medium shadow-lg shadow-slate-950/15"
+                  : "bg-white/85 text-slate-600 border border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              {step.label}
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 }
