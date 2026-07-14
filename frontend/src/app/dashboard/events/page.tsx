@@ -42,6 +42,7 @@ export default function DashboardEventsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [creating, setCreating] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -88,10 +89,22 @@ export default function DashboardEventsPage() {
   async function loadEvents() {
     const res = await authFetch("/events");
     if (!res.ok) {
-      pushToast("Impossible de charger les evenements. Les donnees deja affichees sont conservees.", "error");
+      const raw = await res.text().catch(() => "");
+      let message = raw.trim();
+      try {
+        const parsed = raw ? (JSON.parse(raw) as { message?: string }) : null;
+        message = parsed?.message || message;
+      } catch {
+        // ignore non-JSON error bodies
+      }
+      const friendlyMessage = message || "Impossible de charger les evenements.";
+      setLoadError(friendlyMessage);
+      console.error("GET /events failed", { status: res.status, message: friendlyMessage });
+      pushToast(friendlyMessage + " (HTTP " + res.status + ").", "error");
       return;
     }
     const data = (await res.json()) as EventItem[];
+    setLoadError(null);
     setEvents(data);
     if (data.length > 0) {
       const savedId = getSelectedEventId();
@@ -487,6 +500,14 @@ export default function DashboardEventsPage() {
           </div>
           {loading ? (
             <p className="text-small">Chargement...</p>
+          ) : loadError ? (
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs text-red-700 space-y-2">
+              <p className="font-semibold">Erreur de chargement</p>
+              <p className="leading-5">{loadError}</p>
+              <Button type="button" variant="ghost" className="px-3 py-2 text-xs" onClick={() => void loadEvents()}>
+                Reessayer
+              </Button>
+            </div>
           ) : events.length === 0 ? (
             <EmptyState
               title="Aucun evenement"

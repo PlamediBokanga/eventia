@@ -403,11 +403,41 @@ eventsRouter.get("/", authMiddleware, async (req, res) => {
           }
         ]
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        dateTime: true,
+        location: true,
+        address: true,
+        details: true,
+        program: true,
+        invitationMessage: true,
+        coverImageUrl: true,
+        hostNames: true,
+        seatingMode: true,
+        logoUrl: true,
+        themePreset: true,
+        primaryColor: true,
+        accentColor: true,
+        fontFamily: true,
+        animationStyle: true,
+        tableCount: true,
+        capacityPerTable: true,
+        organizerId: true,
+        createdAt: true,
+        updatedAt: true,
         coOrganizers: {
           select: { id: true }
         },
         programItems: {
+          select: {
+            id: true,
+            timeLabel: true,
+            title: true,
+            description: true,
+            order: true
+          },
           orderBy: { order: "asc" }
         }
       },
@@ -418,7 +448,7 @@ eventsRouter.get("/", authMiddleware, async (req, res) => {
         ...event,
         isOwner: event.organizerId === organizerId,
         coOrganizerCount: event.coOrganizers.length,
-        featureAccess: await resolveEventFeatureAccess(event.organizerId, event.paidPlanCode)
+        featureAccess: await resolveEventFeatureAccess(event.organizerId)
       }))
     );
     res.json(enrichedEvents);
