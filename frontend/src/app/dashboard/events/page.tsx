@@ -43,6 +43,7 @@ export default function DashboardEventsPage() {
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [creating, setCreating] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -99,12 +100,14 @@ export default function DashboardEventsPage() {
       }
       const friendlyMessage = message || "Impossible de charger les evenements.";
       setLoadError(friendlyMessage);
+      setActionError(null);
       console.error("GET /events failed", { status: res.status, message: friendlyMessage });
       pushToast(friendlyMessage + " (HTTP " + res.status + ").", "error");
       return;
     }
     const data = (await res.json()) as EventItem[];
     setLoadError(null);
+    setActionError(null);
     setEvents(data);
     if (data.length > 0) {
       const savedId = getSelectedEventId();
@@ -319,6 +322,7 @@ export default function DashboardEventsPage() {
       pushToast("Nom, type, date et lieu sont obligatoires.", "error");
       return;
     }
+    setActionError(null);
     setCreating(true);
     try {
       const cleanedInvitation = sanitizeInvitationHtml(invitationMessage);
@@ -351,11 +355,14 @@ export default function DashboardEventsPage() {
       if (!res.ok) {
         const payload = (await res.json().catch(() => null)) as { message?: string } | null;
         const detail = payload?.message ? ` ${payload.message}` : "";
-        pushToast(`Creation impossible (HTTP ${res.status}).${detail}`, "error");
+        const message = `Creation impossible (HTTP ${res.status}).${detail}`;
+        setActionError(message);
+        pushToast(message, "error");
         return;
       }
 
       const created = (await res.json()) as EventItem;
+      setActionError(null);
       pushToast("Evenement cree.");
       await loadEvents();
       setSelectedEvent(created);
@@ -368,6 +375,7 @@ export default function DashboardEventsPage() {
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedEvent) return;
+    setActionError(null);
     setSaving(true);
     try {
       const cleanedInvitation = sanitizeInvitationHtml(invitationMessage);
@@ -400,9 +408,12 @@ export default function DashboardEventsPage() {
       if (!res.ok) {
         const payload = (await res.json().catch(() => null)) as { message?: string } | null;
         const detail = payload?.message ? ` ${payload.message}` : "";
-        pushToast(`Mise a jour impossible (HTTP ${res.status}).${detail}`, "error");
+        const message = `Mise a jour impossible (HTTP ${res.status}).${detail}`;
+        setActionError(message);
+        pushToast(message, "error");
         return;
       }
+      setActionError(null);
       pushToast("Evenement mis a jour.");
       await loadEvents();
     } finally {
@@ -501,10 +512,10 @@ export default function DashboardEventsPage() {
           {loading ? (
             <p className="text-small">Chargement...</p>
           ) : loadError ? (
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs text-red-700 space-y-2">
-              <p className="font-semibold">Erreur de chargement</p>
-              <p className="leading-5">{loadError}</p>
-              <Button type="button" variant="ghost" className="px-3 py-2 text-xs" onClick={() => void loadEvents()}>
+            <div className="rounded-2xl border border-rose-400/50 bg-slate-950 p-4 text-xs text-rose-50 shadow-xl shadow-rose-950/20 space-y-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-300">Erreur de chargement</p>
+              <p className="leading-5 text-slate-100 break-words">{loadError}</p>
+              <Button type="button" variant="ghost" className="px-3 py-2 text-xs bg-white/10 text-white border border-white/15 hover:bg-white/15" onClick={() => void loadEvents()}>
                 Reessayer
               </Button>
             </div>
@@ -530,6 +541,12 @@ export default function DashboardEventsPage() {
             {selectedEvent ? "Modifier l'activite et l'invitation" : "Creer une activite et son invitation"}
           </h2>
           <form onSubmit={selectedEvent ? handleUpdate : handleCreate} className="grid gap-3 text-xs">
+            {actionError ? (
+              <div className="rounded-2xl border border-rose-400/50 bg-slate-950 px-4 py-3 text-[12px] leading-5 text-rose-50 shadow-xl shadow-rose-950/20">
+                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-300">Action refusee</p>
+                <p className="break-words">{actionError}</p>
+              </div>
+            ) : null}
             <div className="space-y-1">
               <label className="text-small">Nom de l'activite</label>
               <Input value={name} onChange={e => setName(e.target.value)} required />
