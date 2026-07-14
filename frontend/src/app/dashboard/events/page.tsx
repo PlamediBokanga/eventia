@@ -88,8 +88,7 @@ export default function DashboardEventsPage() {
   async function loadEvents() {
     const res = await authFetch("/events");
     if (!res.ok) {
-      setEvents([]);
-      setSelectedEvent(null);
+      pushToast("Impossible de charger les evenements. Les donnees deja affichees sont conservees.", "error");
       return;
     }
     const data = (await res.json()) as EventItem[];

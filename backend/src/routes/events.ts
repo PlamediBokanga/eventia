@@ -208,52 +208,61 @@ function cleanChatMessage(value: unknown) {
 }
 
 async function resolveEventCreationAllowance(organizerId: number) {
-  const now = new Date();
-  const subscription = await prisma.organizerSubscription.findFirst({
-    where: {
-      organizerId,
-      status: "ACTIVE",
-      currentPeriodEnd: { gt: now }
-    },
-    orderBy: { currentPeriodEnd: "desc" }
-  });
+  try {
+    const now = new Date();
+    const subscription = await prisma.organizerSubscription.findFirst({
+      where: {
+        organizerId,
+        status: "ACTIVE",
+        currentPeriodEnd: { gt: now }
+      },
+      orderBy: { currentPeriodEnd: "desc" }
+    });
 
-  if (!subscription) {
+    if (!subscription) {
+      return {
+        activeSubscription: null,
+        eventLimit: null,
+        eventsUsed: null
+      };
+    }
+
+    let eventLimit: number | null = null;
+    if (subscription.planCode === "PRO_ORGANIZER") eventLimit = 5;
+    if (subscription.planCode === "AGENCY") eventLimit = 999;
+    if (subscription.planCode === "ENTERPRISE") eventLimit = 9999;
+
+    if (eventLimit == null) {
+      return {
+        activeSubscription: subscription,
+        eventLimit: null,
+        eventsUsed: null
+      };
+    }
+
+    const eventsUsed = await prisma.event.count({
+      where: {
+        organizerId,
+        createdAt: {
+          gte: subscription.currentPeriodStart,
+          lte: subscription.currentPeriodEnd
+        }
+      }
+    });
+
+    return {
+      activeSubscription: subscription,
+      eventLimit,
+      eventsUsed
+    };
+  } catch (error) {
+    console.warn("resolveEventCreationAllowance fallback:", error);
     return {
       activeSubscription: null,
       eventLimit: null,
       eventsUsed: null
     };
   }
-
-  let eventLimit: number | null = null;
-  if (subscription.planCode === "PRO_ORGANIZER") eventLimit = 5;
-  if (subscription.planCode === "AGENCY") eventLimit = 999;
-  if (subscription.planCode === "ENTERPRISE") eventLimit = 9999;
-
-  if (eventLimit == null) {
-    return {
-      activeSubscription: subscription,
-      eventLimit: null,
-      eventsUsed: null
-    };
-  }
-
-  const eventsUsed = await prisma.event.count({
-    where: {
-      organizerId,
-      createdAt: {
-        gte: subscription.currentPeriodStart,
-        lte: subscription.currentPeriodEnd
-      }
-    }
-  });
-
-  return {
-    activeSubscription: subscription,
-    eventLimit,
-    eventsUsed
-  };
 }
 
 async function convertWebpToJpg(buffer: Buffer): Promise<Buffer> {
@@ -311,32 +320,50 @@ async function ensureEventAccess(eventId: number, organizerId: number) {
 }
 
 async function getActiveSubscriptionPlanCode(organizerId: number) {
-  const now = new Date();
-  const subscription = await prisma.organizerSubscription.findFirst({
-    where: {
-      organizerId,
-      status: "ACTIVE",
-      currentPeriodEnd: { gt: now }
-    },
-    orderBy: { currentPeriodEnd: "desc" }
-  });
-  return subscription?.planCode ?? null;
+  try {
+    const now = new Date();
+    const subscription = await prisma.organizerSubscription.findFirst({
+      where: {
+        organizerId,
+        status: "ACTIVE",
+        currentPeriodEnd: { gt: now }
+      },
+      orderBy: { currentPeriodEnd: "desc" }
+    });
+    return subscription?.planCode ?? null;
+  } catch (error) {
+    console.warn("getActiveSubscriptionPlanCode fallback:", error);
+    return null;
+  }
 }
 
 async function resolveEventFeatureAccess(organizerId: number, paidPlanCode?: string | null) {
-  const subscriptionPlanCode = await getActiveSubscriptionPlanCode(organizerId);
-  const hasSubscription = Boolean(subscriptionPlanCode);
   const eventPlan = paidPlanCode ?? "FREE";
+  try {
+    const subscriptionPlanCode = await getActiveSubscriptionPlanCode(organizerId);
+    const hasSubscription = Boolean(subscriptionPlanCode);
 
-  return {
-    eventPlan,
-    subscriptionPlanCode,
-    hasSubscription,
-    exports: hasSubscription || eventPlan === "STANDARD" || eventPlan === "PREMIUM",
-    memories: hasSubscription || eventPlan === "PREMIUM",
-    scanner: hasSubscription || eventPlan === "PREMIUM",
-    advancedStats: hasSubscription || eventPlan === "STANDARD" || eventPlan === "PREMIUM"
-  };
+    return {
+      eventPlan,
+      subscriptionPlanCode,
+      hasSubscription,
+      exports: hasSubscription || eventPlan === "STANDARD" || eventPlan === "PREMIUM",
+      memories: hasSubscription || eventPlan === "PREMIUM",
+      scanner: hasSubscription || eventPlan === "PREMIUM",
+      advancedStats: hasSubscription || eventPlan === "STANDARD" || eventPlan === "PREMIUM"
+    };
+  } catch (error) {
+    console.warn("resolveEventFeatureAccess fallback:", error);
+    return {
+      eventPlan,
+      subscriptionPlanCode: null,
+      hasSubscription: false,
+      exports: eventPlan === "STANDARD" || eventPlan === "PREMIUM",
+      memories: eventPlan === "PREMIUM",
+      scanner: eventPlan === "PREMIUM",
+      advancedStats: eventPlan === "STANDARD" || eventPlan === "PREMIUM"
+    };
+  }
 }
 
 async function hasExportAccess(organizerId: number, eventId: number) {
