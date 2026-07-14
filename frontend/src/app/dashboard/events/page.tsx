@@ -512,10 +512,10 @@ export default function DashboardEventsPage() {
           {loading ? (
             <p className="text-small">Chargement...</p>
           ) : loadError ? (
-            <div className="rounded-2xl border border-rose-400/50 bg-slate-950 p-4 text-xs text-rose-50 shadow-xl shadow-rose-950/20 space-y-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-300">Erreur de chargement</p>
-              <p className="leading-5 text-slate-100 break-words">{loadError}</p>
-              <Button type="button" variant="ghost" className="px-3 py-2 text-xs bg-white/10 text-white border border-white/15 hover:bg-white/15" onClick={() => void loadEvents()}>
+            <div role="alert" aria-live="assertive" className="rounded-3xl border-2 border-red-300 bg-gradient-to-br from-red-950 via-rose-950 to-slate-950 p-4 text-xs text-white shadow-2xl shadow-red-950/35 space-y-3 ring-1 ring-red-200/40">
+              <p className="text-[11px] font-black uppercase tracking-[0.24em] text-red-200">Erreur de chargement</p>
+              <p className="leading-6 break-words text-white font-semibold">{loadError}</p>
+              <Button type="button" variant="ghost" className="px-3 py-2 text-xs bg-white text-red-950 border border-red-200 font-bold hover:bg-red-50" onClick={() => void loadEvents()}>
                 Reessayer
               </Button>
             </div>
@@ -540,13 +540,13 @@ export default function DashboardEventsPage() {
           <h2 className="title-4 mb-3">
             {selectedEvent ? "Modifier l'activite et l'invitation" : "Creer une activite et son invitation"}
           </h2>
+          {actionError ? (
+            <div className="mb-3 rounded-3xl border-2 border-red-300 bg-gradient-to-r from-red-950 via-rose-950 to-slate-950 px-4 py-3 text-[12px] leading-6 text-white shadow-2xl shadow-red-950/35 ring-1 ring-red-200/40" role="alert" aria-live="assertive">
+              <p className="text-[11px] font-black uppercase tracking-[0.24em] text-red-200">Derniere erreur</p>
+              <p className="break-words font-semibold text-white">{actionError}</p>
+            </div>
+          ) : null}
           <form onSubmit={selectedEvent ? handleUpdate : handleCreate} className="grid gap-3 text-xs">
-            {actionError ? (
-              <div className="rounded-2xl border border-rose-400/50 bg-slate-950 px-4 py-3 text-[12px] leading-5 text-rose-50 shadow-xl shadow-rose-950/20">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-300">Action refusee</p>
-                <p className="break-words">{actionError}</p>
-              </div>
-            ) : null}
             <div className="space-y-1">
               <label className="text-small">Nom de l'activite</label>
               <Input value={name} onChange={e => setName(e.target.value)} required />
