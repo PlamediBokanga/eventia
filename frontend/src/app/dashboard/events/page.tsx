@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { Header } from "@/components/layout/Header";
@@ -993,3 +993,4 @@ export default function DashboardEventsPage() {
     </main>
   );
 }
+
