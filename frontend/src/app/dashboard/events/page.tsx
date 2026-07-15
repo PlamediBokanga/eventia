@@ -101,7 +101,7 @@ export default function DashboardEventsPage() {
       const friendlyMessage = message || "Impossible de charger les evenements.";
       setLoadError(friendlyMessage);
       setActionError(null);
-      console.error("GET /events failed", { status: res.status, message: friendlyMessage });
+      console.error("GET /events failed", { status: res.status, message: friendlyMessage, raw });
       pushToast(friendlyMessage + " (HTTP " + res.status + ").", "error");
       return;
     }
@@ -353,10 +353,9 @@ export default function DashboardEventsPage() {
         })
       });
       if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { message?: string } | null;
-        const detail = payload?.message ? ` ${payload.message}` : "";
+        const payload = (await res.json().catch(() => null)) as { message?: string; details?: string } | null;
+        const detail = payload?.details ? ` Detail: ${payload.details}` : payload?.message ? ` ${payload.message}` : "";
         const message = `Creation impossible (HTTP ${res.status}).${detail}`;
-        setActionError(message);
         pushToast(message, "error");
         return;
       }
@@ -406,10 +405,9 @@ export default function DashboardEventsPage() {
         })
       });
       if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { message?: string } | null;
-        const detail = payload?.message ? ` ${payload.message}` : "";
+        const payload = (await res.json().catch(() => null)) as { message?: string; details?: string } | null;
+        const detail = payload?.details ? ` Detail: ${payload.details}` : payload?.message ? ` ${payload.message}` : "";
         const message = `Mise a jour impossible (HTTP ${res.status}).${detail}`;
-        setActionError(message);
         pushToast(message, "error");
         return;
       }

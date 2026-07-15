@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import { prisma } from "../prisma";
 import { EventVisibility } from "@prisma/client";
 import PDFDocument from "pdfkit";
@@ -454,7 +454,9 @@ eventsRouter.get("/", authMiddleware, async (req, res) => {
     res.json(enrichedEvents);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Erreur lors de la recuperation des evenements." });
+    console.error("GET /events failed:", err);
+    const details = err instanceof Error ? err.message : "Erreur inconnue.";
+    res.status(500).json({ message: "Erreur lors de la recuperation des evenements.", details });
   }
 });
 
@@ -579,8 +581,9 @@ eventsRouter.post("/", authMiddleware, async (req, res) => {
 
     res.status(201).json(event);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Erreur lors de la creation de l'evenement." });
+    console.error("POST /events failed:", err);
+    const details = err instanceof Error ? err.message : "Erreur inconnue.";
+    res.status(500).json({ message: "Erreur lors de la creation de l'evenement.", details });
   }
 });
 
@@ -903,11 +906,11 @@ eventsRouter.put("/:id", authMiddleware, async (req, res) => {
 
     res.json(updated);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Erreur lors de la mise a jour de l'evenement." });
+    console.error("UPDATE /events/:id failed:", err);
+    const details = err instanceof Error ? err.message : "Erreur inconnue.";
+    res.status(500).json({ message: "Erreur lors de la mise a jour de l'evenement.", details });
   }
 });
-
 // Suppression d'un evenement
 eventsRouter.delete("/:id", authMiddleware, async (req, res) => {
   try {
@@ -3184,6 +3187,7 @@ eventsRouter.get("/:id/guestbook/pdf", authMiddleware, async (req, res) => {
     }
   }
 });
+
 
 
 
