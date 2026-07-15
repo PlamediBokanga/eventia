@@ -331,7 +331,7 @@ export default function DashboardCheckinPage() {
       const okMessage = actionToSend === "OUT"
         ? payload.alreadyCheckedIn
           ? "Sortie enregistree."
-          : "Invite non encore enregistre."
+          : "Invit? non encore enregistre."
         : payload.alreadyCheckedIn
           ? "Invite deja enregistre."
           : "Entree validee.";
@@ -577,7 +577,7 @@ export default function DashboardCheckinPage() {
       <div className={fullscreen ? "grid gap-4" : "grid gap-4 lg:grid-cols-[1.2fr,1fr]"}>
         <section className={`rounded-[32px] border border-white/70 bg-white/84 p-4 space-y-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl ${fullscreen ? "max-h-[calc(100vh-180px)] overflow-y-auto" : ""}`}>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div><p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Zone scanner</p><h3 className="mt-2 text-2xl font-semibold text-slate-900">Capture du QR code</h3></div>
+            <div className="space-y-2"><p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Zone scanner</p><div><h3 className="text-2xl font-semibold text-slate-900">Capture du QR code</h3><p className="mt-1 max-w-2xl text-sm text-slate-600">Scannez, validez et affichez le r?sultat imm?diatement avant de passer au prochain invit?.</p></div></div>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
@@ -705,7 +705,7 @@ export default function DashboardCheckinPage() {
 
         <section className={`rounded-[32px] border border-white/70 bg-white/84 p-4 space-y-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl ${fullscreen ? "max-h-[calc(100vh-180px)] overflow-y-auto" : ""}`}>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="title-4">Resultat du scan</h3>
+            <h3 className="title-4">R?sultat du scan</h3>
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 type="button"
