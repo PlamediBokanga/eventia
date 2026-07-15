@@ -353,7 +353,7 @@ export default function DashboardTablesPage() {
       }
       const payload = (await res.json()) as { assigned: number; remaining: number };
       setAutoResult(`Repartition terminee: ${payload.assigned} assigne(s), ${payload.remaining} restant(s).`);
-      pushToast("Repartition automatique terminee.");
+      pushToast("R?partition auto terminee.");
       await refreshTables(selectedEvent.id);
       await refreshGuests(selectedEvent.id);
     } finally {
@@ -454,12 +454,12 @@ export default function DashboardTablesPage() {
 
   return (
     <main className="space-y-4">
-      <Header title="Gestion des tables" />
+      <Header title="Plan de salle" />
       <section className="card p-4 space-y-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h2 className="title-4">Gestion des tables</h2>
-            <p className="text-small text-textSecondary">Structurez vos invites par table et suivez l'occupation.</p>
+            <h2 className="title-4">Plan de salle et occupation</h2>
+            <p className="text-small text-textSecondary">Organisez les tables, les zones et l'occupation en temps r?el.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {loading ? (
@@ -501,7 +501,7 @@ export default function DashboardTablesPage() {
                 disabled={layouts.length === 0}
               >
                 {layouts.length === 0 ? (
-                  <option value="">Plan par defaut</option>
+                  <option value="">Plan par d?faut</option>
                 ) : (
                   layouts.map(layout => (
                     <option key={layout.id} value={layout.id}>
@@ -565,10 +565,10 @@ export default function DashboardTablesPage() {
               className="px-3 py-2 text-xs"
               onClick={() => setCreateLayoutOpen(true)}
             >
-              Nouveau plan
+              Cr?er un plan
             </Button>
             <Button type="button" className="px-4 py-2 text-xs" onClick={() => setCreateOpen(true)}>
-              + Ajouter une table
+              + Ajouter une table/zone
             </Button>
             <Button
               type="button"
@@ -577,7 +577,7 @@ export default function DashboardTablesPage() {
               onClick={autoAssignGuests}
               disabled={autoAssigning}
             >
-              {autoAssigning ? "Repartition..." : "Repartition automatique"}
+              {autoAssigning ? "R?partition..." : "Repartition automatique"}
             </Button>
           </div>
         </div>
@@ -607,11 +607,11 @@ export default function DashboardTablesPage() {
                   <p className="mt-1 text-lg font-semibold">{tableOverview.length}</p>
                 </div>
                 <div className="rounded-2xl border border-primary/10 bg-background/70 p-3">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">Capacite totale</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">Capacit? totale</p>
                   <p className="mt-1 text-lg font-semibold">{hasUnlimited ? "Illimitee" : totalCapacity}</p>
                 </div>
                 <div className="rounded-2xl border border-green-200 bg-green-50 p-3">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-green-700">Places occupees</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-green-700">Places occup?es</p>
                   <p className="mt-1 text-lg font-semibold text-green-700">{totalGuests}</p>
                 </div>
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">

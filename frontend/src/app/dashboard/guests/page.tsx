@@ -931,17 +931,17 @@ export default function DashboardGuestsPage() {
 
   return (
     <main className="space-y-4">
-      <Header title="Invites" />
+      <Header title="Invit?s" />
       <div className="grid gap-4">
         <section className="card p-4 space-y-3">
           {!selectedEvent ? (
-            <p className="text-small">Selectionnez un evenement.</p>
+            <p className="text-small">S?lectionnez un ?v?nement.</p>
           ) : (
             <>
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <h2 className="title-4">Invites</h2>
-                  <p className="text-small text-textSecondary">Gerez vos invites, statuts et tables.</p>
+                  <h2 className="title-4">Gestion des invit?s</h2>
+                  <p className="text-small text-textSecondary">Suivez les invit?s, les statuts RSVP, les tables et le partage individuel.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {loading ? (
@@ -950,7 +950,7 @@ export default function DashboardGuestsPage() {
                     </div>
                   ) : events.length === 0 ? (
                     <div className="min-w-[220px] rounded-full border border-primary/10 bg-background/70 px-3 py-2 text-[11px] text-text/60">
-                      Aucun evenement disponible
+                      Aucun ?v?nement disponible
                     </div>
                   ) : (
                     <select
@@ -972,7 +972,7 @@ export default function DashboardGuestsPage() {
                     </select>
                   )}
                   <Button type="button" className="px-4 py-2 text-xs" onClick={openAdd}>
-                    + Ajouter un invite
+                    + Ajouter un invit?
                   </Button>
                   <label className="btn-ghost px-3 py-2 text-xs cursor-pointer">
                     {importing ? "Import..." : "Importer CSV"}
@@ -994,7 +994,7 @@ export default function DashboardGuestsPage() {
                     className="px-3 py-2 text-xs"
                     onClick={downloadGuestsTemplate}
                   >
-                    Modele CSV
+                    Mod?le CSV
                   </Button>
                   <Button type="button" variant="ghost" className="px-3 py-2 text-xs" onClick={downloadGuestsPdf}>
                     Exporter PDF
@@ -1035,7 +1035,7 @@ export default function DashboardGuestsPage() {
                   <p className="mt-1 text-lg font-semibold">{stats.total}</p>
                 </div>
                 <div className="rounded-2xl border border-green-200 bg-green-50 p-3">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-green-700">Confirmes</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-green-700">Confirm?s</p>
                   <p className="mt-1 text-lg font-semibold text-green-700">{stats.confirmed}</p>
                 </div>
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
@@ -1043,14 +1043,14 @@ export default function DashboardGuestsPage() {
                   <p className="mt-1 text-lg font-semibold text-amber-700">{stats.pending}</p>
                 </div>
                 <div className="rounded-2xl border border-red-200 bg-red-50 p-3">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-red-700">Annules</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-red-700">Annul?s</p>
                   <p className="mt-1 text-lg font-semibold text-red-700">{stats.canceled}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-[1.4fr,1fr,1fr,auto] gap-2 text-xs">
                 <Input
-                  placeholder="Rechercher un invite..."
+                  placeholder="Rechercher un invit?..."
                   value={search}
                   onChange={e => {
                     setSearch(e.target.value);

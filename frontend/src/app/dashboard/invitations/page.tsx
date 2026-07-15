@@ -56,7 +56,7 @@ export default function DashboardInvitationsPage() {
             <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Gestion</p>
             <h2 className="mt-2 text-2xl font-semibold text-slate-900">Choisir l'evenement</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Les invitations sont liees a un evenement actif. Selectionnez celui que vous souhaitez partager.
+              Les invitations sont li?es ? un ?v?nement actif. S?lectionnez celui que vous souhaitez partager.
             </p>
           </div>
           <div className="p-4">
@@ -66,8 +66,8 @@ export default function DashboardInvitationsPage() {
               </div>
             ) : events.length === 0 ? (
               <EmptyState
-                title="Aucun evenement"
-                description="Creez un evenement pour configurer vos invitations."
+                title="Aucun ?v?nement"
+                description="Cr?ez un ?v?nement pour configurer vos invitations."
               />
             ) : (
               <EventPicker
@@ -85,7 +85,7 @@ export default function DashboardInvitationsPage() {
         <section className="overflow-hidden rounded-[28px] border border-white/40 bg-white/85 shadow-xl shadow-slate-200/50 backdrop-blur-xl">
           <div className="border-b border-slate-200/70 bg-white/70 px-5 py-5">
             <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Aperçu</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-900">Configuration de l'invitation</h2>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-900">Aper?u et partage</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
               Un aperçu rapide des elements qui seront visibles par vos invites.
             </p>
@@ -94,7 +94,7 @@ export default function DashboardInvitationsPage() {
           {!selectedEvent ? (
             <div className="p-5">
               <div className="rounded-[22px] border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-sm text-slate-600">
-                Selectionnez un evenement pour voir son invitation.
+                S?lectionnez un ?v?nement pour voir son invitation.
               </div>
             </div>
           ) : (
@@ -150,21 +150,21 @@ export default function DashboardInvitationsPage() {
                     href="/dashboard/events"
                     className="rounded-2xl bg-slate-950 px-4 py-3 text-center text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-lg"
                   >
-                    Editer l'invitation
+                    Ouvrir l'?diteur
                   </Link>
                   <Link
                     href="/dashboard/guests"
                     className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md"
                   >
-                    Partager aux invites
+                    Aller aux invit?s
                   </Link>
                 </div>
               </div>
 
               <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Conseil</p>
+                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Bon r?flexe</p>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Le partage individuel des liens se fait dans l'onglet Invites. Depuis cette page, vous gardez une vue d'ensemble et un acces rapide a l'edition.
+                  Le partage individuel des liens se fait dans l'onglet Invit?s. Depuis cette page, vous gardez une vue d'ensemble et un acc?s rapide ? l'?dition.
                 </p>
               </div>
             </div>
