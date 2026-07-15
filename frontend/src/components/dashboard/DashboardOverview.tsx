@@ -230,6 +230,39 @@ export function DashboardOverview({ title }: { title: string }) {
               <ActionLink href="/dashboard/checkin" label="Check-in" />
               <ActionLink href="/dashboard/profile" label="Profil" />
             </div>
+
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <Link href="/dashboard/invitations" className="rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Parcours invite</p>
+                <h3 className="mt-2 text-lg font-semibold text-slate-900">Invitation et RSVP</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-600">Designer la page publique, le message, le QR et les actions de confirmation.</p>
+              </Link>
+              <Link href="/dashboard/checkin" className="rounded-[26px] border border-slate-200/80 bg-slate-950 p-4 text-white shadow-[0_18px_40px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-white/55">Controle d'acces</p>
+                <h3 className="mt-2 text-lg font-semibold">Scan QR et doublons</h3>
+                <p className="mt-3 text-sm leading-6 text-white/75">Valider les entrees en direct et bloquer les scans repetes.</p>
+              </Link>
+              <Link href="/dashboard/tables" className="rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Plan de salle</p>
+                <h3 className="mt-2 text-lg font-semibold text-slate-900">Tables, zones et places</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-600">Gerer les configurations avec ou sans tables selon le format de l'evenement.</p>
+              </Link>
+              <Link href="/dashboard/stats" className="rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Reporting</p>
+                <h3 className="mt-2 text-lg font-semibold text-slate-900">Statistiques et KPI</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-600">Suivre les confirmations, scans, activite et performance globale.</p>
+              </Link>
+              <Link href="/dashboard/billing" className="rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Monetisation</p>
+                <h3 className="mt-2 text-lg font-semibold text-slate-900">Paiements et abonnements</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-600">Suivre les plans, les transactions et la rentabilite.</p>
+              </Link>
+              <Link href="/dashboard/admin" className="rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Super admin</p>
+                <h3 className="mt-2 text-lg font-semibold text-slate-900">Gouvernance et commissions</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-600">Valider les paiements, suivre les commissions et surveiller la plateforme.</p>
+              </Link>
+            </div>
           </div>
 
           <div className="space-y-4">
