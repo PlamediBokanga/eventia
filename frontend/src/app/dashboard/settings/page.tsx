@@ -116,24 +116,24 @@ export default function DashboardSettingsPage() {
         <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-2">
-              <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Preferences compte</p>
-              <h1 className="text-3xl font-semibold text-slate-900 md:text-4xl">Notifications et parametres par defaut</h1>
+              <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Configuration utilisateur</p>
+              <h1 className="text-3xl font-semibold text-slate-900 md:text-4xl">Notifications, preferences et valeurs par defaut</h1>
               <p className="max-w-2xl text-sm leading-6 text-slate-600">
-                Ajustez vos rappels, vos canaux de communication et les preferences qui s'appliquent automatiquement a vos prochains evenements.
+                Tout ce qui doit s'appliquer automatiquement a vos prochains evenements est centralise ici, sans auto-save, avec validation manuelle.
               </p>
             </div>
             <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[420px]">
               <div className="rounded-[20px] border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Rappels</p>
-                <p className="mt-1 text-lg font-semibold text-slate-900">Actifs</p>
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Notifications</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">Controlees</p>
               </div>
               <div className="rounded-[20px] border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Mode</p>
-                <p className="mt-1 text-lg font-semibold text-slate-900">Personnalise</p>
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Preferences</p>
+                <p className="mt-1 text-lg font-semibold text-slate-900">Personnalisees</p>
               </div>
               <div className="rounded-[20px] border border-slate-200/80 bg-slate-950 px-4 py-3 text-white shadow-sm">
                 <p className="text-[10px] uppercase tracking-[0.24em] text-white/60">Partenaire</p>
-                <p className="mt-1 text-lg font-semibold">Disponible</p>
+                <p className="mt-1 text-lg font-semibold">Actif</p>
               </div>
             </div>
           </div>
@@ -142,8 +142,8 @@ export default function DashboardSettingsPage() {
         <div className="grid gap-4 lg:grid-cols-[1fr,1.4fr]">
           <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6 space-y-4">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Evenement</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Choisir le contexte</h2>
+              <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Contexte evenement</p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Choisir un evenement de reference</h2>
             </div>
             {loading ? (
               <p className="text-sm text-slate-600">Chargement...</p>
@@ -195,10 +195,10 @@ export default function DashboardSettingsPage() {
             ) : (
               <>
                 <div className="space-y-2">
-                  <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Rappels automatiques</p>
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Notifications automatiques</p>
                   <h2 className="text-2xl font-semibold text-slate-900">Programmation des messages</h2>
                   <p className="text-sm leading-6 text-slate-600">
-                    Definissez les rappels, les canaux et les preferences par defaut pour gagner du temps sur chaque nouvel evenement.
+                    Choisissez comment l'application vous previent pour vos evenements et vos messages.
                   </p>
                 </div>
 
@@ -213,7 +213,7 @@ export default function DashboardSettingsPage() {
                   </div>
 
                   <div className="rounded-[22px] border border-slate-200/80 bg-white p-4">
-                    <p className="text-sm font-semibold text-slate-900">Message par defaut</p>
+                    <p className="text-sm font-semibold text-slate-900">Preferences generales</p>
                     <p className="mt-2 text-sm leading-6 text-slate-600">
                       Le systeme utilise vos preferences pour generer des rappels coherents et professionnels.
                     </p>
@@ -224,7 +224,7 @@ export default function DashboardSettingsPage() {
                   </div>
 
                   <div className="rounded-[22px] border border-slate-200/80 bg-slate-50 p-4 space-y-4">
-                    <p className="text-sm font-semibold text-slate-900">Canaux disponibles</p>
+                    <p className="text-sm font-semibold text-slate-900">Parametres evenement par defaut</p>
                     <div className="grid gap-3 sm:grid-cols-2 text-sm">
                       {["WhatsApp", "SMS"].map(label => (
                         <label key={label} className="flex items-center gap-2 rounded-[16px] border border-slate-200 bg-white px-3 py-2">
@@ -259,14 +259,14 @@ export default function DashboardSettingsPage() {
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-700">QR code actif</label>
                       <label className="flex items-center justify-between rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
-                        <span>Activer le QR code par defaut</span>
+                        <span>Activer QR code par defaut</span>
                         <input type="checkbox" className="accent-slate-900" checked={settings?.defaultQrEnabled ?? false} onChange={e => setSettings(prev => (prev ? { ...prev, defaultQrEnabled: e.target.checked } : prev))} />
                       </label>
                     </div>
                   </div>
 
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="text-sm text-slate-500">Les parametres s'appliquent a vos futurs evenements et restent modifiables a tout moment.</p>
+                    <p className="text-sm text-slate-500">Les parametres sont enregistres manuellement pour eviter tout changement involontaire.</p>
                     <Button type="submit" className="rounded-2xl px-5 py-3 text-sm" disabled={savingSettings || !settings}>
                       {savingSettings ? "Enregistrement..." : "Enregistrer les parametres"}
                     </Button>
