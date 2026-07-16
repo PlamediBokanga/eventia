@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -86,6 +86,64 @@ function ActionLink({ href, label, variant = "soft" }: { href: string; label: st
   );
 }
 
+const ROLE_ROUTES = [
+  {
+    role: "Visiteur / invite",
+    headline: "Invitation, RSVP, QR et acces public",
+    route: "/dashboard/invitations",
+    accent: "from-sky-500 to-cyan-500",
+    bullets: ["Lien prive", "RSVP confirme/refuse", "QR apres validation"]
+  },
+  {
+    role: "Organisateur",
+    headline: "Creer, gerer, mesurer",
+    route: "/dashboard/events",
+    accent: "from-slate-900 to-slate-700",
+    bullets: ["Evenements prives/publics", "Invites et plan de salle", "KPI et facturation"]
+  },
+  {
+    role: "Staff / Check-in",
+    headline: "Scan QR et controle d'entree",
+    route: "/dashboard/checkin",
+    accent: "from-emerald-500 to-teal-500",
+    bullets: ["Scan rapide", "Anti-doublon", "Validation temps reel"]
+  },
+  {
+    role: "Agence / entreprise",
+    headline: "Multi-evenements et acces par role",
+    route: "/dashboard/settings",
+    accent: "from-violet-500 to-fuchsia-500",
+    bullets: ["Collaborateurs", "Permissions", "Multi-tenant"]
+  },
+  {
+    role: "Comptable",
+    headline: "Recettes, depenses et exports",
+    route: "/dashboard/billing",
+    accent: "from-amber-500 to-orange-500",
+    bullets: ["Abonnements", "Paiements", "Solde et exports"]
+  },
+  {
+    role: "Super admin",
+    headline: "Gouvernance et commissions",
+    route: "/dashboard/admin",
+    accent: "from-rose-500 to-red-500",
+    bullets: ["Validation", "Commissions", "Vue globale"]
+  }
+] as const;
+
+const PRODUCT_P0 = [
+  "Authentification organisateur",
+  "Creation d'evenement",
+  "Mode prive / public gratuit / public payant",
+  "Invitation privee",
+  "Inscription publique",
+  "Paiement",
+  "QR code",
+  "Scan QR",
+  "Dashboard",
+  "Gestion invites",
+  "Plan de salle"
+];
 export function DashboardOverview({ title }: { title: string }) {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
@@ -224,6 +282,62 @@ export function DashboardOverview({ title }: { title: string }) {
               </div>
             )}
 
+            <div className="rounded-[28px] border border-slate-200/80 bg-slate-50/80 p-4 md:p-5">
+              <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Structure produit</p>
+                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">Lecture par role, comme dans le cahier</h2>
+                </div>
+                <p className="max-w-2xl text-sm leading-6 text-slate-600">
+                  Eventia doit rester lisible par role. Le dashboard sert de passerelle vers les parcours invites, staff,
+                  agence, comptabilite et supervision.
+                </p>
+              </div>
+
+              <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {ROLE_ROUTES.map(item => (
+                  <Link
+                    key={item.role}
+                    href={item.route}
+                    className="group rounded-[24px] border border-white/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(15,23,42,0.08)]"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.26em] text-slate-500">{item.role}</p>
+                        <h3 className="mt-2 text-lg font-semibold text-slate-950">{item.headline}</h3>
+                      </div>
+                      <span className={`h-3 w-3 rounded-full bg-gradient-to-br ${item.accent}`} />
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {item.bullets.map(bullet => (
+                        <span key={bullet} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
+                          {bullet}
+                        </span>
+                      ))}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[28px] border border-slate-200/80 bg-white/95 p-4 shadow-sm">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Priorite P0</p>
+                  <h2 className="mt-2 text-xl font-semibold text-slate-950">Ce que le cahier demande en premier</h2>
+                </div>
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
+                  Socle produit
+                </span>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {PRODUCT_P0.map(item => (
+                  <span key={item} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
             <div className="flex flex-wrap gap-2">
               <ActionLink href="/dashboard/events" label="Evenements" variant="solid" />
               <ActionLink href="/dashboard/invitations" label="Invitations" />
@@ -452,3 +566,4 @@ export function DashboardOverview({ title }: { title: string }) {
     </main>
   );
 }
+

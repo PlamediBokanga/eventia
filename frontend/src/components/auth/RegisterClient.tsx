@@ -13,9 +13,42 @@ type ProvidersResponse = {
   };
 };
 
+type AccountType = "organizer" | "agency" | "company";
+
+const ACCOUNT_TYPES: Array<{
+  value: AccountType;
+  title: string;
+  subtitle: string;
+  hint: string;
+}> = [
+  {
+    value: "organizer",
+    title: "Organisateur particulier",
+    subtitle: "Mariage, anniversaire, fete privee",
+    hint: "Idem pour un compte seul, avec dashboard complet et invitation privee."
+  },
+  {
+    value: "agency",
+    title: "Agence evenementielle",
+    subtitle: "Plusieurs clients et plusieurs evenements",
+    hint: "Pour gerer des equipes, des clients, des co-organisateurs et des droits."
+  },
+  {
+    value: "company",
+    title: "Entreprise / corporate",
+    subtitle: "Conference, seminaire, interne",
+    hint: "Pour les structures qui veulent un cadre plus corporate et multi-usage."
+  }
+];
+
+function getAccountTypeMeta(type: AccountType) {
+  return ACCOUNT_TYPES.find(item => item.value === type) ?? ACCOUNT_TYPES[0];
+}
+
 export function RegisterClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [accountType, setAccountType] = useState<AccountType>((searchParams.get("type") as AccountType) || "organizer");
   const [name, setName] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [jobTitle, setJobTitle] = useState("");
@@ -46,6 +79,7 @@ export function RegisterClient() {
     [password]
   );
   const passwordIsStrong = Object.values(passwordChecks).every(Boolean);
+  const accountMeta = getAccountTypeMeta(accountType);
 
   useEffect(() => {
     if (getToken()) {
@@ -89,7 +123,7 @@ export function RegisterClient() {
       return;
     }
     if (!companyName.trim()) {
-      setMessage("Le nom de votre organisation ou marque est requis.");
+      setMessage("Le nom de votre organisation est requis.");
       return;
     }
     if (!country.trim()) {
@@ -113,6 +147,7 @@ export function RegisterClient() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
+          accountType,
           name: name.trim(),
           companyName: companyName.trim(),
           jobTitle: jobTitle.trim(),
@@ -159,14 +194,14 @@ export function RegisterClient() {
   return (
     <AuthShell
       eyebrow="Lancement de compte"
-      title="Creez un compte organisateur."
-      description="Une inscription claire, sobre et structuree pour les utilisateurs qui se connectent a un vrai produit, pas a une demo."
-      sideTitle="Un onboarding plus serieux, plus lisible, plus aligne avec une plateforme premium."
-      sideCopy="Nous gardons un parcours direct, mais le traitement visuel et les interactions doivent inspirer confiance des la premiere seconde."
+      title="Creez un compte adaptee a votre structure."
+      description="Une inscription serieuse, segmentee par profil, pour que chaque compte Eventia parte avec la bonne logique metier des le debut."
+      sideTitle="Un onboarding plus clair pour les organisateurs, agences et entreprises."
+      sideCopy="Le meme produit, mais avec des entrees differentes selon le contexte d'utilisation: evenement prive, agence multi-client ou corporate."
       sideStats={[
-        { value: "1", label: "Compte, dashboard et session actives en un seul flux" },
-        { value: "Pro", label: "Messages d'erreur et validation plus propres" },
-        { value: "SSO", label: "Base prete pour Google Sign-In et extensions futures" }
+        { value: "3", label: "Profils de compte clairs des l'inscription" },
+        { value: "SSO", label: "Google compatible et flux sécurisé" },
+        { value: "6+", label: "Mot de passe fort oblige" }
       ]}
       footer={
         <>
@@ -184,7 +219,7 @@ export function RegisterClient() {
           message={
             <div className="space-y-2">
               <p className="leading-6">
-                Un parcours plus serieux pour les organisateurs qui veulent un espace propre, structure et pret pour la production.
+                Choisissez d'abord votre type de compte. Le parcours et les recommandations s'adaptent ensuite a votre usage reel.
               </p>
               <div className="grid gap-2 sm:grid-cols-3">
                 <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Profil pro</div>
@@ -193,7 +228,8 @@ export function RegisterClient() {
               </div>
             </div>
           }
-         />
+        />
+
         <GoogleButton
           href={googleHref}
           disabled={!googleEnabled}
@@ -202,6 +238,34 @@ export function RegisterClient() {
 
         <AuthDivider label="ou creez votre compte" />
 
+        <div className="space-y-3">
+          <p className="text-[11px] uppercase tracking-[0.3em] text-slate-500">Type de compte</p>
+          <div className="grid gap-3 md:grid-cols-3">
+            {ACCOUNT_TYPES.map(item => {
+              const active = item.value === accountType;
+              return (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => setAccountType(item.value)}
+                  className={`rounded-[20px] border p-4 text-left transition ${
+                    active
+                      ? "border-slate-900 bg-slate-950 text-white shadow-[0_18px_40px_rgba(15,23,42,0.14)]"
+                      : "border-slate-200 bg-white text-slate-800 hover:-translate-y-0.5 hover:border-slate-300"
+                  }`}
+                >
+                  <p className="text-[10px] uppercase tracking-[0.24em] opacity-70">{item.value}</p>
+                  <h3 className="mt-2 text-sm font-semibold">{item.title}</h3>
+                  <p className={`mt-2 text-xs leading-5 ${active ? "text-white/75" : "text-slate-500"}`}>{item.subtitle}</p>
+                </button>
+              );
+            })}
+          </div>
+          <div className="rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            <span className="font-semibold text-slate-900">{accountMeta.title}:</span> {accountMeta.hint}
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-slate-800">Nom de l'organisation ou marque</label>
@@ -209,7 +273,7 @@ export function RegisterClient() {
               className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
               value={companyName}
               onChange={e => setCompanyName(e.target.value)}
-              placeholder="EVENTIA Events"
+              placeholder={accountType === "company" ? "EVENTIA Corporate" : accountType === "agency" ? "EVENTIA Agency" : "EVENTIA Events"}
               required
             />
           </div>
@@ -244,7 +308,7 @@ export function RegisterClient() {
                 className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
                 value={jobTitle}
                 onChange={e => setJobTitle(e.target.value)}
-                placeholder="Fondateur, Event Manager..."
+                placeholder={accountType === "company" ? "Direction evenementielle" : accountType === "agency" ? "Chef de projet" : "Fondateur, Event Manager..."}
               />
             </div>
             <div className="space-y-2">
@@ -293,6 +357,7 @@ export function RegisterClient() {
               required
             />
           </div>
+
           <div className="space-y-2">
             <label className="block text-sm font-medium text-slate-800">Code partenaire ou referral</label>
             <input
@@ -302,6 +367,7 @@ export function RegisterClient() {
               placeholder="Optionnel"
             />
           </div>
+
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-3">
@@ -336,6 +402,7 @@ export function RegisterClient() {
                 </span>
               </div>
             </div>
+
             <div className="space-y-2">
               <label className="block text-sm font-medium text-slate-800">Confirmer</label>
               <input
@@ -349,6 +416,7 @@ export function RegisterClient() {
               />
             </div>
           </div>
+
           <label className="flex items-start gap-3 rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
             <input
               type="checkbox"
@@ -368,8 +436,9 @@ export function RegisterClient() {
               .
             </span>
           </label>
+
           <button className="btn-primary w-full justify-center py-3 text-sm shadow-[0_16px_30px_rgba(15,23,42,0.18)] transition-transform active:scale-[0.99]" type="submit" disabled={loading}>
-            {loading ? "Creation securisee..." : "Creer mon espace"}
+            {loading ? "Creation securisee..." : `Creer mon espace ${accountMeta.title.toLowerCase()}`}
           </button>
         </form>
 

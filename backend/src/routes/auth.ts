@@ -116,6 +116,14 @@ function generateReferralCode() {
   return crypto.randomBytes(4).toString("hex").toUpperCase();
 }
 
+function normalizeAccountRole(value: unknown) {
+  const cleaned = normalizeString(value).toLowerCase();
+  if (cleaned === "agency" || cleaned === "company" || cleaned === "organizer") {
+    return cleaned;
+  }
+  return "organizer";
+}
+
 function parseImageDataUrl(dataUrl: unknown) {
   if (typeof dataUrl !== "string") return null;
   const match = dataUrl.match(/^data:(image\/(png|jpeg|jpg|webp));base64,(.+)$/i);
@@ -469,6 +477,7 @@ authRouter.get("/google/callback", async (req, res) => {
           name: cleanNullableString(googleUser.name, 120),
           avatarUrl: cleanAvatarUrl(googleUser.picture),
           referralCode: generateReferralCode(),
+          role: "organizer",
           emailVerifiedAt: new Date()
         },
         select: {
@@ -527,6 +536,7 @@ authRouter.post("/register", async (req, res) => {
         ? null
         : cleanWebsite(websiteRaw);
     const referralCode = normalizeString(req.body?.referralCode);
+    const accountType = normalizeAccountRole(req.body?.accountType);
 
     if (!email || !password) {
       return res
@@ -560,7 +570,7 @@ authRouter.post("/register", async (req, res) => {
     if (existing) {
       return res
         .status(409)
-        .json({ message: "Un compte existe déjà avec cet email." });
+        .json({ message: "Un compte existe deja avec cet email." });
     }
 
     const hashed = await bcrypt.hash(password, 10);
@@ -578,6 +588,7 @@ authRouter.post("/register", async (req, res) => {
         country,
         website,
         referralCode: generateReferralCode(),
+        role: accountType,
         emailVerifiedAt: requireVerification ? null : new Date()
       },
       select: {
@@ -757,7 +768,7 @@ authRouter.post("/login", async (req, res) => {
     console.error(err);
     res
       .status(500)
-      .json({ message: "Erreur lors de la connexion de l’organisateur." });
+      .json({ message: "Erreur lors de la connexion de lÃ¢â‚¬â„¢organisateur." });
   }
 });
 

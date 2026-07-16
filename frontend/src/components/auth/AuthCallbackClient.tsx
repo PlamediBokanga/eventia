@@ -36,7 +36,7 @@ export function AuthCallbackClient() {
                   Connexion en cours
                 </h1>
                 <p className="mt-4 max-w-md text-sm leading-7 text-slate-300">
-                  Votre session Google est en train d'etre finalisee. Nous securisons le token puis redirigeons vers votre espace organisateur.
+                  Votre session Google est en cours de validation. Nous securisons le token puis redirigeons vers votre espace organisateur.
                 </p>
               </div>
               <div className="grid gap-4">
@@ -57,15 +57,13 @@ export function AuthCallbackClient() {
                 <span className="absolute inset-0 animate-ping rounded-full bg-cyan-400/20" />
                 <span className="absolute inset-3 rounded-full border border-white/15 bg-white/8 backdrop-blur-md" />
                 <span className="absolute inset-0 rounded-full border border-white/10" />
-                <div className="relative h-11 w-11 rounded-full border-2 border-white/80 border-t-transparent animate-spin" />
+                <div className="relative h-11 w-11 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
               </div>
 
               <p className="mt-6 text-[11px] uppercase tracking-[0.42em] text-white/45">Connexion securisee</p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white md:text-4xl">
-                Finalisation du compte
-              </h2>
+              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white md:text-4xl">Finalisation du compte</h2>
               <p className="mt-4 max-w-lg text-sm leading-7 text-slate-300 md:text-[15px]">
-                Patientez quelques secondes pendant que nous ouvrons votre session et préparons votre dashboard.
+                Patientez quelques secondes pendant que nous ouvrons votre session et preparons votre dashboard.
               </p>
 
               <div className="mt-8 grid w-full gap-3 text-left">
@@ -83,9 +81,7 @@ export function AuthCallbackClient() {
                 </div>
               </div>
 
-              <p className="mt-8 text-xs uppercase tracking-[0.28em] text-white/45">
-                EVENTIA • Organizer suite
-              </p>
+              <p className="mt-8 text-xs uppercase tracking-[0.28em] text-white/45">EVENTIA • Organizer suite</p>
             </section>
           </div>
         </div>

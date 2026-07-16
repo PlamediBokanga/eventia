@@ -377,7 +377,12 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
               <div className="grid gap-2 sm:grid-cols-3 md:w-[330px] md:grid-cols-1">
                 <button type="button" onClick={downloadIcs} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">Ajouter au calendrier</button>
                 <a href={mapLinks.google} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">Ouvrir dans Google Maps</a>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="mb-2 grid grid-cols-3 gap-2">
+            <button type="button" onClick={downloadIcs} className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-semibold text-slate-900 transition active:scale-[0.99]">Calendrier</button>
+            <a href={mapLinks.google} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-center text-[11px] font-semibold text-slate-900 transition active:scale-[0.99]">Google Maps</a>
+            <a href={mapLinks.waze} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-center text-[11px] font-semibold text-slate-900 transition active:scale-[0.99]">Waze</a>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
                   <a href={mapLinks.apple} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-3 py-3 text-center text-xs font-medium text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">Apple Maps</a>
                   <a href={mapLinks.waze} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-3 py-3 text-center text-xs font-medium text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">Waze</a>
                 </div>
