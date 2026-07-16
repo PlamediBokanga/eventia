@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
+import { DashboardRoleGate } from "@/components/dashboard/DashboardRoleGate";
 
 type ScanResult = {
   token: string;
@@ -504,6 +505,11 @@ export default function DashboardCheckinPage() {
   }
 
   return (
+    <DashboardRoleGate
+      allowedRoles={["organizer", "agency", "company", "superadmin"]}
+      title="Controle des entrees"
+      description="Cette page est reservee aux organisateurs, agences, entreprises et super admin."
+    >
     <main className={fullscreen ? "min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.08),transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] p-3 md:p-6" : "min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.08),transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] px-3 py-4 md:px-6 md:py-6"}>
       <Header title="Scanner des invitations" />
       <section className="rounded-[32px] border border-white/70 bg-white/84 p-4 space-y-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-5">
@@ -976,5 +982,6 @@ export default function DashboardCheckinPage() {
         }
       `}</style>
     </main>
+    </DashboardRoleGate>
   );
 }
