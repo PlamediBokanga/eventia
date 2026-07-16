@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
+import { DashboardRoleGate } from "@/components/dashboard/DashboardRoleGate";
 import {
   authFetch,
   getSelectedEventId,
@@ -123,6 +124,11 @@ export default function DashboardGiftsPage() {
   }
 
   return (
+    <DashboardRoleGate
+      allowedRoles={["agency", "company", "superadmin"]}
+      title="Liste de cadeaux"
+      description="Cette zone est reservee aux comptes agence, entreprise et super admin."
+    >
     <main className="space-y-4">
       <Header title="Liste de Cadeaux" />
       <div className="grid gap-4 lg:grid-cols-[1.1fr,1.9fr]">
@@ -217,5 +223,6 @@ export default function DashboardGiftsPage() {
         onConfirm={confirmDeleteGift}
       />
     </main>
+    </DashboardRoleGate>
   );
 }

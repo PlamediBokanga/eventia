@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { Header } from "@/components/layout/Header";
@@ -6,6 +6,7 @@ import { EventPicker } from "@/components/layout/EventPicker";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
+import { DashboardRoleGate } from "@/components/dashboard/DashboardRoleGate";
 import {
   authFetch,
   getSelectedEventId,
@@ -205,6 +206,11 @@ export default function BillingPage() {
   const selectedEventPlan = selectedEvent?.paidPlanCode ?? null;
 
   return (
+    <DashboardRoleGate
+      allowedRoles={["agency", "company", "superadmin"]}
+      title="Paiement & abonnements"
+      description="Cette zone est reservee aux comptes agence, entreprise et super admin."
+    >
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.08),transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] px-3 py-4 md:px-6 md:py-6">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 md:gap-5">
         <Header title="Paiement & Abonnements" />
@@ -436,5 +442,6 @@ export default function BillingPage() {
         </div>
       </div>
     </main>
+    </DashboardRoleGate>
   );
 }

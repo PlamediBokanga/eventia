@@ -10,8 +10,10 @@ import {
   getSelectedEventId,
   setSelectedEventId,
   type EventItem,
-  type EventStats
+  type EventStats,
+  type OrganizerProfile
 } from "@/lib/dashboard";
+import { ROLE_META, type DashboardRole } from "@/components/layout/dashboardNav";
 
 function StatIcon({ kind }: { kind: "guests" | "ok" | "cancel" | "pending" }) {
   if (kind === "ok") {
@@ -144,11 +146,55 @@ const PRODUCT_P0 = [
   "Gestion invites",
   "Plan de salle"
 ];
-export function DashboardOverview({ title }: { title: string }) {
+
+const ROLE_HOME: Record<DashboardRole, { eyebrow: string; title: string; description: string; cta: string; href: string }> = {
+  user: {
+    eyebrow: "Acces general",
+    title: "Vos invitations et l'espace public",
+    description: "Parcourez les invitations, confirmez votre presence et ouvrez les espaces partages.",
+    cta: "Voir mes invitations",
+    href: "/dashboard/invitations"
+  },
+  organizer: {
+    eyebrow: "Espace organisateur",
+    title: "Piloter les evenements de bout en bout",
+    description: "Creation, gestion des invites, QR, statistiques et facturation regroupes au meme endroit.",
+    cta: "Ouvrir les evenements",
+    href: "/dashboard/events"
+  },
+  agency: {
+    eyebrow: "Espace agence",
+    title: "Gerer plusieurs clients avec methode",
+    description: "Centralisez les dossiers, les acces d'equipe et les campagnes sur plusieurs evenements.",
+    cta: "Voir les parametres",
+    href: "/dashboard/settings"
+  },
+  company: {
+    eyebrow: "Espace entreprise",
+    title: "Une vitrine corporate, claire et sobre",
+    description: "Composez des evenements internes ou publics avec un cadre premium et un controle fin.",
+    cta: "Aller au billing",
+    href: "/dashboard/billing"
+  },
+  superadmin: {
+    eyebrow: "Supervision plateforme",
+    title: "Voir la sante produit, les paiements et les commissions",
+    description: "Un tableau de bord de gouvernance pour suivre la monetisation et les comptes.",
+    cta: "Ouvrir la gouvernance",
+    href: "/dashboard/admin"
+  }
+};
+
+export function DashboardOverview({ title, role: roleProp }: { title: string; role?: DashboardRole }) {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [stats, setStats] = useState<EventStats | null>(null);
+  const [profile, setProfile] = useState<OrganizerProfile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const role = roleProp ?? (profile?.role as DashboardRole | undefined) ?? "organizer";
+  const roleMeta = ROLE_META[role];
+  const roleHome = ROLE_HOME[role];
 
   function seatingModeLabel(mode: "TABLE" | "ZONE" | "NONE") {
     if (mode === "ZONE") return "Mode: Zones / Sections";
@@ -159,16 +205,21 @@ export function DashboardOverview({ title }: { title: string }) {
   useEffect(() => {
     async function load() {
       try {
-        const res = await authFetch("/events");
-        if (!res.ok) return;
-        const data = (await res.json()) as EventItem[];
-        setEvents(data);
+        const [eventsRes, meRes] = await Promise.all([authFetch("/events"), authFetch("/auth/me")]);
+        if (eventsRes.ok) {
+          const data = (await eventsRes.json()) as EventItem[];
+          setEvents(data);
 
-        if (data.length > 0) {
-          const savedId = getSelectedEventId();
-          const chosen = (savedId && data.find(e => e.id === savedId)) || data[0];
-          setSelectedEvent(chosen);
-          setSelectedEventId(chosen.id);
+          if (data.length > 0) {
+            const savedId = getSelectedEventId();
+            const chosen = (savedId && data.find(e => e.id === savedId)) || data[0];
+            setSelectedEvent(chosen);
+            setSelectedEventId(chosen.id);
+          }
+        }
+        if (meRes.ok) {
+          const payload = (await meRes.json()) as { organizer?: OrganizerProfile };
+          setProfile(payload.organizer ?? null);
         }
       } finally {
         setLoading(false);
@@ -228,6 +279,17 @@ export function DashboardOverview({ title }: { title: string }) {
         <div className="absolute -right-20 top-10 h-48 w-48 rounded-full bg-sky-400/10 blur-3xl" />
         <div className="absolute -left-24 bottom-0 h-56 w-56 rounded-full bg-slate-900/5 blur-3xl" />
 
+        <div className="relative mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[26px] border border-slate-200 bg-slate-50 px-4 py-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Espace connecté</p>
+            <p className="mt-1 text-sm font-semibold text-slate-900">{roleMeta.label}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-600">
+            <span className="rounded-full bg-white px-3 py-1 shadow-sm">{roleHome.eyebrow}</span>
+            <span className="rounded-full bg-slate-950 px-3 py-1 text-white">{role}</span>
+          </div>
+        </div>
+
         <div className="relative grid gap-6 xl:grid-cols-[1.15fr,0.85fr]">
           <div className="space-y-5">
             <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">
@@ -238,11 +300,17 @@ export function DashboardOverview({ title }: { title: string }) {
             <div className="space-y-3">
               <p className="text-[11px] uppercase tracking-[0.34em] text-slate-500">Pilotage</p>
               <h1 className="max-w-2xl text-3xl font-semibold leading-tight text-slate-950 md:text-5xl">
-                Controlez vos evenements avec une vue claire, premium et actionnable.
+                {roleHome.title}
               </h1>
               <p className="max-w-2xl text-sm leading-7 text-slate-600 md:text-base">
-                Suivez les invites, les confirmations, les tables et les performances en un seul espace, sans surcharge visuelle.
+                {roleHome.description}
               </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <ActionLink href={roleHome.href} label={roleHome.cta} variant="solid" />
+              <ActionLink href="/dashboard/profile" label="Profil" />
+              <ActionLink href="/dashboard/settings" label="Parametres" />
             </div>
 
             {selectedEvent ? (
@@ -338,13 +406,6 @@ export function DashboardOverview({ title }: { title: string }) {
                 ))}
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <ActionLink href="/dashboard/events" label="Evenements" variant="solid" />
-              <ActionLink href="/dashboard/invitations" label="Invitations" />
-              <ActionLink href="/dashboard/checkin" label="Check-in" />
-              <ActionLink href="/dashboard/profile" label="Profil" />
-            </div>
-
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               <Link href="/dashboard/invitations" className="rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
                 <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Parcours invite</p>
@@ -419,150 +480,87 @@ export function DashboardOverview({ title }: { title: string }) {
                 <p className="mt-2 text-3xl font-semibold text-slate-950">
                   {invitationsSent}/{invitationsTotal}
                 </p>
-                <p className="mt-1 text-sm text-slate-600">Diffusion completee sur les invites</p>
+                <p className="mt-1 text-sm text-slate-600">Invitees touches par les campagnes</p>
+              </div>
+              <div className="rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_20px_50px_rgba(15,23,42,0.06)]">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Tables occupees</p>
+                <p className="mt-2 text-3xl font-semibold text-slate-950">{stats?.tables.length ?? 0}</p>
+                <p className="mt-1 text-sm text-slate-600">Organisation visible pendant le jour J</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {[
-          { label: "Invites", value: totalGuests, icon: "guests", tone: metricTone(totalGuests) },
-          { label: "Confirmes", value: confirmed, icon: "ok", tone: metricTone(confirmed) },
-          { label: "En attente", value: pending, icon: "pending", tone: metricTone(pending) },
-          { label: "Annules", value: canceled, icon: "cancel", tone: metricTone(canceled) }
-        ].map(card => (
-          <div key={card.label} className="rounded-[26px] border border-slate-200/80 bg-white/90 p-4 shadow-[0_18px_50px_rgba(15,23,42,0.05)] backdrop-blur-xl">
+      {selectedEvent ? (
+        <section className="relative grid gap-4 md:grid-cols-3">
+          <div className="rounded-[28px] border border-slate-200/80 bg-white/90 p-4 shadow-sm backdrop-blur-xl">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <span className={`grid h-10 w-10 place-items-center rounded-2xl border text-sm ${card.tone === "emerald" ? "border-emerald-100 bg-emerald-50" : card.tone === "sky" ? "border-sky-100 bg-sky-50" : card.tone === "amber" ? "border-amber-100 bg-amber-50" : "border-slate-200 bg-slate-50"}`}>
-                  <StatIcon kind={card.icon as "guests" | "ok" | "cancel" | "pending"} />
-                </span>
-                <p className="text-sm font-medium text-slate-600">{card.label}</p>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Invites</p>
+                <h3 className="mt-2 text-xl font-semibold text-slate-950">Progression</h3>
               </div>
+              <StatIcon kind="guests" />
             </div>
-            <p className="mt-4 text-3xl font-semibold text-slate-950">{card.value}</p>
-          </div>
-        ))}
-      </section>
-
-      <section className="grid gap-4 xl:grid-cols-[1.2fr,0.8fr]">
-        <div className="rounded-[30px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_20px_70px_rgba(15,23,42,0.06)] backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Performance</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-950">Reponses et tendances</h2>
-            </div>
-            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
-              {seatingLabel}
-            </span>
-          </div>
-
-          {!selectedEvent ? (
-            <p className="mt-4 text-sm text-slate-600">Selectionnez un evenement pour afficher les statistiques.</p>
-          ) : !stats ? (
-            <p className="mt-4 text-sm text-slate-600">Chargement des statistiques...</p>
-          ) : (
-            <div className="mt-5 space-y-4">
-              <div className="grid gap-3 md:grid-cols-3">
-                {[
-                  { label: "Confirmes", value: confirmed, percent: responseRate, color: "bg-emerald-500" },
-                  { label: "En attente", value: pending, percent: pendingRate, color: "bg-amber-500" },
-                  { label: "Annules", value: canceled, percent: canceledRate, color: "bg-rose-500" }
-                ].map(item => (
-                  <div key={item.label} className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
-                    <div className="flex items-center justify-between text-sm text-slate-600">
-                      <span>{item.label}</span>
-                      <span>{formatPercent(item.percent)}</span>
-                    </div>
-                    <p className="mt-3 text-2xl font-semibold text-slate-950">{item.value}</p>
-                    <div className="mt-3 h-2 rounded-full bg-slate-200">
-                      <div className={`h-2 rounded-full ${item.color}`} style={{ width: formatPercent(item.percent) }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4">
-                  <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Boissons</p>
-                  {topDrinks.length === 0 ? (
-                    <p className="mt-3 text-sm text-slate-600">Aucune selection pour le moment.</p>
-                  ) : (
-                    <div className="mt-4 space-y-3">
-                      {topDrinks.map(drink => {
-                        const total = drink.totalQuantity ?? 0;
-                        const ratio = drinkTotal > 0 ? Math.round((total / drinkTotal) * 100) : 0;
-                        return (
-                          <div key={drink.id}>
-                            <div className="mb-1 flex items-center justify-between text-sm">
-                              <span className="truncate font-medium text-slate-700">{drink.name}</span>
-                              <span className="text-slate-500">{total}</span>
-                            </div>
-                            <div className="h-2 rounded-full bg-slate-200">
-                              <div className="h-2 rounded-full bg-slate-950" style={{ width: `${ratio}%` }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+            <div className="mt-4 space-y-3">
+              <div>
+                <div className="mb-1 flex items-center justify-between text-sm font-medium text-slate-600">
+                  <span>Confirmes</span>
+                  <span>{confirmed}/{totalGuests}</span>
                 </div>
-
-                <div className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4">
-                  <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Apercu rapide</p>
-                  <div className="mt-4 space-y-3 text-sm text-slate-600">
-                    <div className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 shadow-sm">
-                      <span>Total boisson choisies</span>
-                      <span className="font-semibold text-slate-950">{drinkTotal}</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 shadow-sm">
-                      <span>Invitations envoyees</span>
-                      <span className="font-semibold text-slate-950">{invitationsSent}</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 shadow-sm">
-                      <span>Tables / zones</span>
-                      <span className="font-semibold text-slate-950">{seatingMode === "NONE" ? "-" : stats.tables.length}</span>
-                    </div>
-                  </div>
+                <div className="h-2 rounded-full bg-slate-100">
+                  <div className="h-full rounded-full bg-emerald-500" style={{ width: formatPercent(responseRate) }} />
+                </div>
+              </div>
+              <div>
+                <div className="mb-1 flex items-center justify-between text-sm font-medium text-slate-600">
+                  <span>Annules</span>
+                  <span>{canceled}/{totalGuests}</span>
+                </div>
+                <div className="h-2 rounded-full bg-slate-100">
+                  <div className="h-full rounded-full bg-rose-500" style={{ width: formatPercent(canceledRate) }} />
+                </div>
+              </div>
+              <div>
+                <div className="mb-1 flex items-center justify-between text-sm font-medium text-slate-600">
+                  <span>En attente</span>
+                  <span>{pending}/{totalGuests}</span>
+                </div>
+                <div className="h-2 rounded-full bg-slate-100">
+                  <div className="h-full rounded-full bg-amber-500" style={{ width: formatPercent(pendingRate) }} />
                 </div>
               </div>
             </div>
-          )}
-        </div>
-
-        <div className="rounded-[30px] border border-slate-200/80 bg-white/90 p-5 shadow-[0_20px_70px_rgba(15,23,42,0.06)] backdrop-blur-xl">
-          <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Actions rapides</p>
-          <h2 className="mt-2 text-2xl font-semibold text-slate-950">Aller plus vite</h2>
-          <div className="mt-4 grid gap-3">
-            <ActionLink href="/dashboard/events" label="Gerer les evenements" variant="solid" />
-            <ActionLink href="/dashboard/invitations" label="Relancer les invitations" />
-            <ActionLink href="/dashboard/checkin" label="Ouvrir le check-in" />
-            <ActionLink href="/dashboard/profile" label="Mettre a jour le profil" />
-            <ActionLink href="/dashboard/settings" label="Ajuster les parametres" />
-            <ActionLink href="/dashboard/billing" label="Suivre la facturation" />
           </div>
 
-          <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
-            <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Lecture rapide</p>
-            <div className="mt-3 space-y-3 text-sm text-slate-600">
-              <div className="flex items-center justify-between">
-                <span>Taux de reponse</span>
-                <span className="font-semibold text-slate-950">{formatPercent(responseRate)}</span>
+          <div className="rounded-[28px] border border-slate-200/80 bg-white/90 p-4 shadow-sm backdrop-blur-xl md:col-span-2">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Boissons</p>
+                <h3 className="mt-2 text-xl font-semibold text-slate-950">Distribution et stocks</h3>
               </div>
-              <div className="flex items-center justify-between">
-                <span>Invites en attente</span>
-                <span className="font-semibold text-slate-950">{pending}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Invite confirmes</span>
-                <span className="font-semibold text-slate-950">{confirmed}</span>
-              </div>
+              <span className="rounded-full bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
+                {drinkTotal} total
+              </span>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              {topDrinks.length === 0 ? (
+                <div className="md:col-span-3">
+                  <EmptyState title="Aucune boisson" description="Ajoute des boissons pour suivre la consommation et les stocks." />
+                </div>
+              ) : (
+                topDrinks.map(drink => (
+                  <div key={drink.id} className="rounded-[24px] border border-slate-200/80 bg-slate-50 p-4">
+                    <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">{drink.category}</p>
+                    <p className="mt-2 text-lg font-semibold text-slate-950">{drink.name}</p>
+                    <p className="mt-1 text-sm text-slate-600">Quantite totale: {drink.totalQuantity}</p>
+                  </div>
+                ))
+              )}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
     </main>
   );
 }

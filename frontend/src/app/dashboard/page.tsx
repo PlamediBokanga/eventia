@@ -1,7 +1,35 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
+import { authFetch, type OrganizerProfile } from "@/lib/dashboard";
+import { type DashboardRole } from "@/components/layout/dashboardNav";
+
+function normalizeRole(value?: string | null): DashboardRole {
+  if (value === "user" || value === "organizer" || value === "agency" || value === "company" || value === "superadmin") {
+    return value;
+  }
+  return "organizer";
+}
 
 export default function DashboardPage() {
-  return <DashboardOverview title="Dashboard" />;
+  const [role, setRole] = useState<DashboardRole>("organizer");
+
+  useEffect(() => {
+    let alive = true;
+
+    async function load() {
+      const res = await authFetch("/auth/me");
+      if (!res.ok || !alive) return;
+      const payload = (await res.json()) as { organizer?: OrganizerProfile };
+      setRole(normalizeRole(payload.organizer?.role));
+    }
+
+    void load();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  return <DashboardOverview title="Dashboard" role={role} />;
 }
