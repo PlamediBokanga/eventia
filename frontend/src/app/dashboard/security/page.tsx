@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { AccountSectionTabs } from "@/components/dashboard/AccountSectionTabs";
+import { AccountRoleCard } from "@/components/dashboard/AccountRoleCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
@@ -119,6 +120,8 @@ export default function DashboardSecurityPage() {
 
         <AccountSectionTabs active="security" />
 
+        <AccountRoleCard profile={profile} fallbackName='Securite Eventia' />
+
         <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-2">
@@ -231,3 +234,4 @@ export default function DashboardSecurityPage() {
     </main>
   );
 }
+

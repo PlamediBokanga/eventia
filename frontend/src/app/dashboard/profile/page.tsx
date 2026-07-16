@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { AccountSectionTabs } from "@/components/dashboard/AccountSectionTabs";
+import { AccountRoleCard } from "@/components/dashboard/AccountRoleCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
@@ -169,6 +170,8 @@ export default function DashboardProfilePage() {
         <Header title="Profil" />
 
         <AccountSectionTabs active="profile" />
+
+        <AccountRoleCard profile={profile} fallbackName={name || 'Profil Eventia'} />
 
         <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -338,3 +341,4 @@ export default function DashboardProfilePage() {
     </main>
   );
 }
+

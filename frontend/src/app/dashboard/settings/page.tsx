@@ -1,18 +1,20 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { AccountSectionTabs } from "@/components/dashboard/AccountSectionTabs";
+import { AccountRoleCard } from "@/components/dashboard/AccountRoleCard";
 import { EventPicker } from "@/components/layout/EventPicker";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { authFetch, getSelectedEventId, setSelectedEventId, type EventItem, type OrganizerSettings, type ReferralCommission } from "@/lib/dashboard";
+import { authFetch, getSelectedEventId, setSelectedEventId, type EventItem, type OrganizerProfile, type OrganizerSettings, type ReferralCommission } from "@/lib/dashboard";
 import { useToast } from "@/components/ui/Toast";
 
 export default function DashboardSettingsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
+  const [profile, setProfile] = useState<OrganizerProfile | null>(null);
   const [settings, setSettings] = useState<OrganizerSettings | null>(null);
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [commissions, setCommissions] = useState<ReferralCommission[]>([]);
@@ -49,7 +51,8 @@ export default function DashboardSettingsPage() {
         }
 
         if (meRes.ok) {
-          const payload = (await meRes.json()) as { organizer?: { referralCode?: string | null } };
+          const payload = (await meRes.json()) as { organizer?: OrganizerProfile };
+          setProfile(payload.organizer ?? null);
           setReferralCode(payload.organizer?.referralCode ?? null);
         }
 
@@ -112,6 +115,8 @@ export default function DashboardSettingsPage() {
         <Header title="Parametres" />
 
         <AccountSectionTabs active="settings" />
+
+        <AccountRoleCard profile={profile} fallbackName="Parametres Eventia" />
 
         <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -310,3 +315,4 @@ export default function DashboardSettingsPage() {
     </main>
   );
 }
+
