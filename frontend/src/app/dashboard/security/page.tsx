@@ -1,10 +1,9 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { AccountSectionTabs } from "@/components/dashboard/AccountSectionTabs";
-import { AccountRoleCard } from "@/components/dashboard/AccountRoleCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
@@ -120,29 +119,35 @@ export default function DashboardSecurityPage() {
 
         <AccountSectionTabs active="security" />
 
-        <AccountRoleCard profile={profile} fallbackName='Securite Eventia' />
-
-        <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="space-y-2">
-              <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Protection du compte</p>
-              <h1 className="text-3xl font-semibold text-slate-900 md:text-4xl">Controle de l'acces et des alertes</h1>
-              <p className="max-w-2xl text-sm leading-6 text-slate-600">
-                Gardez la main sur votre mot de passe, vos sessions actives et vos signaux de securite, le tout dans une interface simple et serieuse.
+        <section className="overflow-hidden rounded-[32px] border border-slate-800/70 bg-[linear-gradient(135deg,rgba(2,6,23,0.98),rgba(15,23,42,0.96),rgba(30,41,59,0.96))] p-5 text-white shadow-2xl shadow-slate-900/30 md:p-6">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="space-y-3">
+              <p className="text-[11px] uppercase tracking-[0.32em] text-white/55">Protection du compte</p>
+              <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">Acces, sessions et alertes de securite</h1>
+              <p className="max-w-2xl text-sm leading-6 text-white/72">
+                Un espace isole pour renforcer l'acces au compte sans melanger les donnees de profil ni les parametres produits.
               </p>
+              <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.18em]">
+                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">Mot de passe</span>
+                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">Sessions</span>
+                <span className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1.5 text-emerald-100">Alerte active</span>
+              </div>
             </div>
-            <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[420px]">
-              <div className="rounded-[20px] border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Mot de passe</p>
-                <p className="mt-1 text-lg font-semibold text-slate-900">Renforce</p>
+            <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[420px]">
+              <div className="rounded-[22px] border border-white/10 bg-white/8 px-4 py-3 backdrop-blur">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-white/50">Bloc</p>
+                <p className="mt-1 text-lg font-semibold">Mot de passe</p>
+                <p className="mt-1 text-xs text-white/60">Renover et verrouiller</p>
               </div>
-              <div className="rounded-[20px] border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Sessions</p>
-                <p className="mt-1 text-lg font-semibold text-slate-900">Controlees</p>
+              <div className="rounded-[22px] border border-white/10 bg-white/8 px-4 py-3 backdrop-blur">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-white/50">Bloc</p>
+                <p className="mt-1 text-lg font-semibold">Sessions</p>
+                <p className="mt-1 text-xs text-white/60">Vue et deconnexion</p>
               </div>
-              <div className="rounded-[20px] border border-slate-200/80 bg-slate-950 px-4 py-3 text-white shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-white/60">Alerte</p>
-                <p className="mt-1 text-lg font-semibold">Activee</p>
+              <div className="rounded-[22px] border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-emerald-50 backdrop-blur">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-emerald-100/60">Bloc</p>
+                <p className="mt-1 text-lg font-semibold">Alertes</p>
+                <p className="mt-1 text-xs text-emerald-50/70">Connexion suspecte</p>
               </div>
             </div>
           </div>
@@ -234,4 +239,7 @@ export default function DashboardSecurityPage() {
     </main>
   );
 }
+
+
+
 

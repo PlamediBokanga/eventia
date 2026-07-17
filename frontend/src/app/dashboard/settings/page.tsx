@@ -1,9 +1,8 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { AccountSectionTabs } from "@/components/dashboard/AccountSectionTabs";
-import { AccountRoleCard } from "@/components/dashboard/AccountRoleCard";
 import { EventPicker } from "@/components/layout/EventPicker";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
@@ -116,29 +115,35 @@ export default function DashboardSettingsPage() {
 
         <AccountSectionTabs active="settings" />
 
-        <AccountRoleCard profile={profile} fallbackName="Parametres Eventia" />
-
-        <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="space-y-2">
-              <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Configuration utilisateur</p>
-              <h1 className="text-3xl font-semibold text-slate-900 md:text-4xl">Notifications, preferences et valeurs par defaut</h1>
-              <p className="max-w-2xl text-sm leading-6 text-slate-600">
-                Tout ce qui doit s'appliquer automatiquement a vos prochains evenements est centralise ici, sans auto-save, avec validation manuelle.
+        <section className="overflow-hidden rounded-[32px] border border-blue-200/70 bg-[linear-gradient(135deg,rgba(30,64,175,0.95),rgba(14,165,233,0.9),rgba(99,102,241,0.92))] p-5 text-white shadow-2xl shadow-blue-200/40 md:p-6">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="space-y-3">
+              <p className="text-[11px] uppercase tracking-[0.32em] text-white/60">Configuration produit</p>
+              <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">Notifications, preferences et valeurs par defaut</h1>
+              <p className="max-w-2xl text-sm leading-6 text-white/75">
+                Chaque option de cet ecran agit comme une couche d'automatisation distincte, sans auto-save, avec validation manuelle.
               </p>
+              <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.18em]">
+                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">Notifications</span>
+                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">Preferences</span>
+                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">Partenaires</span>
+              </div>
             </div>
-            <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[420px]">
-              <div className="rounded-[20px] border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Notifications</p>
-                <p className="mt-1 text-lg font-semibold text-slate-900">Controlees</p>
+            <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[420px]">
+              <div className="rounded-[22px] border border-white/10 bg-white/10 px-4 py-3 backdrop-blur">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-white/50">Bloc</p>
+                <p className="mt-1 text-lg font-semibold">Notifications</p>
+                <p className="mt-1 text-xs text-white/65">Rappels et messages</p>
               </div>
-              <div className="rounded-[20px] border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Preferences</p>
-                <p className="mt-1 text-lg font-semibold text-slate-900">Personnalisees</p>
+              <div className="rounded-[22px] border border-white/10 bg-white/10 px-4 py-3 backdrop-blur">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-white/50">Bloc</p>
+                <p className="mt-1 text-lg font-semibold">Preferences</p>
+                <p className="mt-1 text-xs text-white/65">Langue et fuseau</p>
               </div>
-              <div className="rounded-[20px] border border-slate-200/80 bg-slate-950 px-4 py-3 text-white shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-white/60">Partenaire</p>
-                <p className="mt-1 text-lg font-semibold">Actif</p>
+              <div className="rounded-[22px] border border-amber-300/25 bg-amber-300/12 px-4 py-3 text-amber-50 backdrop-blur">
+                <p className="text-[10px] uppercase tracking-[0.24em] text-amber-100/70">Bloc</p>
+                <p className="mt-1 text-lg font-semibold">Partenaires</p>
+                <p className="mt-1 text-xs text-amber-50/75">Commissions et codes</p>
               </div>
             </div>
           </div>
@@ -315,4 +320,7 @@ export default function DashboardSettingsPage() {
     </main>
   );
 }
+
+
+
 
