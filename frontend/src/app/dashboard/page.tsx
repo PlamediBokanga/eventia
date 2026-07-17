@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
+import { DashboardRoleBanner } from "@/components/dashboard/DashboardRoleBanner";
 import { authFetch, type OrganizerProfile } from "@/lib/dashboard";
 import { type DashboardRole } from "@/components/layout/dashboardNav";
 
@@ -31,5 +32,12 @@ export default function DashboardPage() {
     };
   }, []);
 
-  return <DashboardOverview title="Dashboard" role={role} />;
+  return (
+    <div className="space-y-4">
+      <DashboardRoleBanner role={role} />
+      <DashboardOverview title="Dashboard" role={role} />
+    </div>
+  );
 }
+
+
