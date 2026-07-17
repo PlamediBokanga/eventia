@@ -158,6 +158,14 @@ function isGoogleAuthConfigured() {
   );
 }
 
+function isFacebookAuthConfigured() {
+  return Boolean(
+    process.env.FACEBOOK_CLIENT_ID &&
+      process.env.FACEBOOK_CLIENT_SECRET &&
+      process.env.FACEBOOK_REDIRECT_URI
+  );
+}
+
 function buildGoogleState(mode: "login" | "register") {
   return crypto
     .createHmac("sha256", process.env.JWT_SECRET || "dev-secret-change-me")
@@ -177,6 +185,24 @@ function googleAuthUrl(mode: "login" | "register") {
     state: buildGoogleState(mode)
   });
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+}
+
+function buildFacebookState(mode: "login" | "register") {
+  return crypto
+    .createHmac("sha256", process.env.JWT_SECRET || "dev-secret-change-me")
+    .update(`facebook:${mode}:${Date.now()}`)
+    .digest("hex");
+}
+
+function facebookAuthUrl(mode: "login" | "register") {
+  const params = new URLSearchParams({
+    client_id: process.env.FACEBOOK_CLIENT_ID || "",
+    redirect_uri: process.env.FACEBOOK_REDIRECT_URI || "",
+    response_type: "code",
+    scope: "email,public_profile",
+    state: buildFacebookState(mode)
+  });
+  return `https://www.facebook.com/v20.0/dialog/oauth?${params.toString()}`;
 }
 
 function authRedirectUrl(
@@ -232,6 +258,18 @@ type GoogleUserInfo = {
   picture?: string;
 };
 
+type FacebookUserInfo = {
+  id?: string;
+  name?: string;
+  email?: string;
+  picture?: {
+    data?: {
+      url?: string;
+    };
+  };
+  verified?: boolean;
+};
+
 async function fetchGoogleUserInfo(code: string): Promise<GoogleUserInfo> {
   const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
@@ -271,10 +309,51 @@ async function fetchGoogleUserInfo(code: string): Promise<GoogleUserInfo> {
   return (await userResponse.json()) as GoogleUserInfo;
 }
 
+async function fetchFacebookUserInfo(code: string): Promise<FacebookUserInfo> {
+  const tokenResponse = await fetch("https://graph.facebook.com/v20.0/oauth/access_token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: new URLSearchParams({
+      code,
+      client_id: process.env.FACEBOOK_CLIENT_ID || "",
+      client_secret: process.env.FACEBOOK_CLIENT_SECRET || "",
+      redirect_uri: process.env.FACEBOOK_REDIRECT_URI || ""
+    }).toString()
+  });
+
+  if (!tokenResponse.ok) {
+    const details = await tokenResponse.text();
+    throw new Error(`Facebook token exchange failed: ${details}`);
+  }
+
+  const tokenData = (await tokenResponse.json()) as { access_token?: string };
+  if (!tokenData.access_token) {
+    throw new Error("Facebook access token missing.");
+  }
+
+  const userResponse = await fetch("https://graph.facebook.com/v20.0/me?fields=id,name,email,picture.type(large),verified", {
+    headers: {
+      Authorization: `Bearer ${tokenData.access_token}`
+    }
+  });
+
+  if (!userResponse.ok) {
+    const details = await userResponse.text();
+    throw new Error(`Facebook userinfo failed: ${details}`);
+  }
+
+  return (await userResponse.json()) as FacebookUserInfo;
+}
+
 authRouter.get("/providers", (_req, res) => {
   res.json({
     google: {
       enabled: isGoogleAuthConfigured()
+    },
+    facebook: {
+      enabled: isFacebookAuthConfigured()
     }
   });
 });
@@ -428,6 +507,19 @@ authRouter.get("/google", (req, res) => {
   return res.redirect(googleAuthUrl(mode));
 });
 
+authRouter.get("/facebook", (req, res) => {
+  if (!isFacebookAuthConfigured()) {
+    return res.redirect(
+      authRedirectUrl("/auth/login", {
+        error: "facebook_not_configured"
+      })
+    );
+  }
+
+  const mode = req.query.mode === "register" ? "register" : "login";
+  return res.redirect(facebookAuthUrl(mode));
+});
+
 authRouter.get("/google/callback", async (req, res) => {
   try {
     if (!isGoogleAuthConfigured()) {
@@ -514,6 +606,91 @@ authRouter.get("/google/callback", async (req, res) => {
     return res.redirect(
       authRedirectUrl("/auth/login", {
         error: "google_login_failed"
+      })
+    );
+  }
+});
+authRouter.get("/facebook/callback", async (req, res) => {
+  try {
+    if (!isFacebookAuthConfigured()) {
+      return res.redirect(
+        authRedirectUrl("/auth/login", {
+          error: "facebook_not_configured"
+        })
+      );
+    }
+
+    const code = normalizeString(req.query.code);
+    if (!code) {
+      return res.redirect(
+        authRedirectUrl("/auth/login", {
+          error: "facebook_code_missing"
+        })
+      );
+    }
+
+    const facebookUser = await fetchFacebookUserInfo(code);
+    const email = normalizeEmail(facebookUser.email);
+    if (!email) {
+      return res.redirect(
+        authRedirectUrl("/auth/login", {
+          error: "facebook_email_missing"
+        })
+      );
+    }
+
+    let organizer = await prisma.organizer.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        phone: true,
+        emailVerifiedAt: true
+      }
+    });
+
+    if (!organizer) {
+      const hashed = await bcrypt.hash(generateRandomPassword(), 10);
+      organizer = await prisma.organizer.create({
+        data: {
+          email,
+          password: hashed,
+          name: cleanNullableString(facebookUser.name, 120),
+          avatarUrl: cleanAvatarUrl(facebookUser.picture?.data?.url),
+          referralCode: generateReferralCode(),
+          role: "organizer",
+          emailVerifiedAt: new Date()
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          phone: true,
+          emailVerifiedAt: true
+        }
+      });
+    } else if (!organizer.emailVerifiedAt) {
+      await prisma.organizer.update({
+        where: { id: organizer.id },
+        data: {
+          emailVerifiedAt: new Date()
+        }
+      });
+    }
+
+    const token = signToken({ id: organizer.id, email: organizer.email });
+    return res.redirect(
+      authRedirectUrl("/auth/callback", {
+        token,
+        next: "/dashboard"
+      })
+    );
+  } catch (err) {
+    console.error(err);
+    return res.redirect(
+      authRedirectUrl("/auth/login", {
+        error: "facebook_login_failed"
       })
     );
   }

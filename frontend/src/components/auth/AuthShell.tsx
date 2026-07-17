@@ -425,3 +425,41 @@ export function GoogleButton({
     </a>
   );
 }
+
+export function FacebookButton({
+  href,
+  disabled,
+  label
+}: {
+  href: string;
+  disabled?: boolean;
+  label: string;
+}) {
+  const commonClassName =
+    "flex w-full items-center justify-center gap-3 rounded-[18px] border border-slate-200 bg-white px-4 py-3.5 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50";
+
+  const content = (
+    <>
+      <span className="grid h-8 w-8 place-items-center rounded-full bg-[#1877F2] text-white">
+        <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true" fill="currentColor">
+          <path d="M13.5 22v-8h2.7l.4-3.1h-3.1V8.7c0-.9.2-1.6 1.7-1.6h1.5V4.2c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.8H8v3.1h2.5v8h3Z" />
+        </svg>
+      </span>
+      <span>{label}</span>
+    </>
+  );
+
+  if (disabled) {
+    return (
+      <button type="button" className={commonClassName + " cursor-not-allowed opacity-65"} disabled>
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <a href={href} className={commonClassName}>
+      {content}
+    </a>
+  );
+}

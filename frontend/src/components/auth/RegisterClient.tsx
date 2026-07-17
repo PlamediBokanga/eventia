@@ -5,10 +5,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { saveToken, getToken } from "@/lib/auth";
 import { API_URL } from "@/lib/config";
-import { AuthDivider, AuthNotice, AuthPopup, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
+import { AuthDivider, AuthNotice, AuthPopup, AuthShell, FacebookButton, GoogleButton } from "@/components/auth/AuthShell";
 
 type ProvidersResponse = {
   google?: {
+    enabled?: boolean;
+  };
+  facebook?: {
     enabled?: boolean;
   };
 };
@@ -64,10 +67,12 @@ export function RegisterClient() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleEnabled, setGoogleEnabled] = useState(false);
+  const [facebookEnabled, setFacebookEnabled] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
 
   const googleHref = useMemo(() => `${API_URL}/auth/google?mode=register`, []);
+  const facebookHref = useMemo(() => `${API_URL}/auth/facebook?mode=register`, []);
   const passwordChecks = useMemo(
     () => ({
       length: password.trim().length >= 6,
@@ -94,9 +99,15 @@ export function RegisterClient() {
         const res = await fetch(`${API_URL}/auth/providers`);
         if (!res.ok) return;
         const data = (await res.json()) as ProvidersResponse;
-        if (!ignore) setGoogleEnabled(Boolean(data.google?.enabled));
+        if (!ignore) {
+          setGoogleEnabled(Boolean(data.google?.enabled));
+          setFacebookEnabled(Boolean(data.facebook?.enabled));
+        }
       } catch {
-        if (!ignore) setGoogleEnabled(false);
+        if (!ignore) {
+          setGoogleEnabled(false);
+          setFacebookEnabled(false);
+        }
       }
     }
     loadProviders();
@@ -224,6 +235,7 @@ export function RegisterClient() {
               <div className="grid gap-2 sm:grid-cols-3">
                 <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Profil pro</div>
                 <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Google SSO</div>
+                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Facebook SSO</div>
                 <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Mot de passe fort</div>
               </div>
             </div>
@@ -465,3 +477,4 @@ export function RegisterClient() {
     </AuthShell>
   );
 }
+

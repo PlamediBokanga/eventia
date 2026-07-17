@@ -5,10 +5,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { saveToken, getToken } from "@/lib/auth";
 import { API_URL } from "@/lib/config";
-import { AuthDivider, AuthNotice, AuthPopup, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
+import { AuthDivider, AuthNotice, AuthPopup, AuthShell, FacebookButton, GoogleButton } from "@/components/auth/AuthShell";
 
 type ProvidersResponse = {
   google?: {
+    enabled?: boolean;
+  };
+  facebook?: {
     enabled?: boolean;
   };
 };
@@ -31,6 +34,14 @@ function resolveLoginError(errorCode: string | null) {
       return "Votre adresse Google doit etre verifiee pour continuer.";
     case "google_login_failed":
       return "Impossible de terminer la connexion Google pour le moment.";
+    case "facebook_not_configured":
+      return "La connexion Facebook n''est pas encore configuree sur ce serveur.";
+    case "facebook_code_missing":
+      return "Connexion Facebook interrompue. Reessayez.";
+    case "facebook_email_missing":
+      return "Votre compte Facebook doit exposer une adresse email.";
+    case "facebook_login_failed":
+      return "Impossible de terminer la connexion Facebook pour le moment.";
     default:
       return null;
   }
@@ -45,10 +56,12 @@ export function LoginClient() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(resolveLoginError(searchParams.get("error")));
   const [googleEnabled, setGoogleEnabled] = useState(false);
+  const [facebookEnabled, setFacebookEnabled] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState("");
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
 
   const googleHref = useMemo(() => `${API_URL}/auth/google?mode=login`, []);
+  const facebookHref = useMemo(() => `${API_URL}/auth/facebook?mode=login`, []);
   const loginHintTone = message ? "warning" : googleEnabled ? "success" : "info";
 
   useEffect(() => {
@@ -64,9 +77,15 @@ export function LoginClient() {
         const res = await fetch(`${API_URL}/auth/providers`);
         if (!res.ok) return;
         const data = (await res.json()) as ProvidersResponse;
-        if (!ignore) setGoogleEnabled(Boolean(data.google?.enabled));
+        if (!ignore) {
+          setGoogleEnabled(Boolean(data.google?.enabled));
+          setFacebookEnabled(Boolean(data.facebook?.enabled));
+        }
       } catch {
-        if (!ignore) setGoogleEnabled(false);
+        if (!ignore) {
+          setGoogleEnabled(false);
+          setFacebookEnabled(false);
+        }
       }
     }
     loadProviders();
@@ -159,11 +178,18 @@ export function LoginClient() {
             </div>
           }
          />
-        <GoogleButton
-          href={googleHref}
-          disabled={!googleEnabled}
-          label={googleEnabled ? "Continuer avec Google" : "Connexion Google bientot disponible"}
-        />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <GoogleButton
+            href={googleHref}
+            disabled={!googleEnabled}
+            label={googleEnabled ? "Continuer avec Google" : "Connexion Google bientot disponible"}
+          />
+          <FacebookButton
+            href={facebookHref}
+            disabled={!facebookEnabled}
+            label={facebookEnabled ? "Continuer avec Facebook" : "Connexion Facebook bientot disponible"}
+          />
+        </div>
 
         <AuthDivider label="ou avec votre email" />
 
@@ -252,4 +278,6 @@ export function LoginClient() {
     </AuthShell>
   );
 }
+
+
 

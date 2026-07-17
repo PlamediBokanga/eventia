@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { Header } from "@/components/layout/Header";
@@ -61,6 +61,7 @@ export default function DashboardStatsPage() {
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [stats, setStats] = useState<EventStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     async function load() {
