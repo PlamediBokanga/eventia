@@ -9,9 +9,115 @@ import jwt from "jsonwebtoken";
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
+import { appConfig } from "../config";
+import { clearSessionCookie, setSessionCookie } from "../session";
 
 export const authRouter = Router();
 const loginRateLimiter = createSimpleRateLimiter(10 * 60 * 1000, 7);
+const OAUTH_STATE_COOKIE = "eventia_oauth_state";
+const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
+const OAUTH_EXCHANGE_TTL_MS = 2 * 60 * 1000;
+const oauthExchangeCodes = new Map<string, { token: string; next: string; expiresAt: number }>();
+
+type OAuthMode = "login" | "register";
+type OAuthProvider = "google" | "facebook";
+
+function parseCookieHeader(value: string | undefined) {
+  const cookies: Record<string, string> = {};
+  if (!value) return cookies;
+
+  value.split(";").forEach(part => {
+    const trimmed = part.trim();
+    if (!trimmed) return;
+    const separatorIndex = trimmed.indexOf("=");
+    if (separatorIndex <= 0) return;
+    const key = trimmed.slice(0, separatorIndex);
+    const rawValue = trimmed.slice(separatorIndex + 1);
+    cookies[key] = decodeURIComponent(rawValue);
+  });
+
+  return cookies;
+}
+
+function buildOauthState(provider: OAuthProvider, mode: OAuthMode) {
+  const nonce = crypto.randomBytes(16).toString("hex");
+  const issuedAt = Date.now().toString();
+  const payload = `${provider}:${mode}:${nonce}:${issuedAt}`;
+  const signature = crypto.createHmac("sha256", appConfig.jwtSecret).update(payload).digest("hex");
+  return `${payload}:${signature}`;
+}
+
+function verifyOauthState(rawState: string | undefined, provider: OAuthProvider) {
+  if (!rawState) return null;
+
+  const parts = rawState.split(":");
+  if (parts.length !== 5) return null;
+
+  const [providerName, mode, nonce, issuedAt, signature] = parts;
+  if (providerName !== provider) return null;
+  if (mode !== "login" && mode !== "register") return null;
+  if (!/^[a-f0-9]{32}$/i.test(nonce)) return null;
+  if (!/^\d{10,}$/.test(issuedAt)) return null;
+  if (!/^[a-f0-9]{64}$/i.test(signature)) return null;
+
+  const payload = `${providerName}:${mode}:${nonce}:${issuedAt}`;
+  const expectedSignature = crypto.createHmac("sha256", appConfig.jwtSecret).update(payload).digest("hex");
+  const providedBuffer = Buffer.from(signature, "utf8");
+  const expectedBuffer = Buffer.from(expectedSignature, "utf8");
+  if (providedBuffer.length !== expectedBuffer.length) return null;
+  if (!crypto.timingSafeEqual(providedBuffer, expectedBuffer)) return null;
+
+  const ageMs = Date.now() - Number(issuedAt);
+  if (!Number.isFinite(ageMs) || ageMs < 0 || ageMs > OAUTH_STATE_TTL_MS) return null;
+
+  return { mode: mode as OAuthMode };
+}
+
+function oauthCookieOptions(req: AuthRequest) {
+  const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase();
+  const secure = req.secure || req.protocol === "https" || forwardedProto === "https";
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure,
+    path: "/auth",
+    maxAge: OAUTH_STATE_TTL_MS
+  };
+}
+
+function readOauthStateCookie(req: AuthRequest) {
+  return parseCookieHeader(req.headers.cookie)[OAUTH_STATE_COOKIE] || "";
+}
+
+function issueOauthExchangeCode(token: string, next = "/dashboard") {
+  const now = Date.now();
+  for (const [key, value] of oauthExchangeCodes.entries()) {
+    if (value.expiresAt <= now) {
+      oauthExchangeCodes.delete(key);
+    }
+  }
+
+  const code = crypto.randomBytes(24).toString("hex");
+  oauthExchangeCodes.set(code, {
+    token,
+    next,
+    expiresAt: now + OAUTH_EXCHANGE_TTL_MS
+  });
+  return code;
+}
+
+function consumeOauthExchangeCode(code: string) {
+  const found = oauthExchangeCodes.get(code);
+  if (!found) return null;
+
+  oauthExchangeCodes.delete(code);
+  if (found.expiresAt <= Date.now()) {
+    return null;
+  }
+
+  return found;
+}
+
 
 function normalizeEmail(value: unknown) {
   if (typeof value !== "string") return "";
@@ -144,9 +250,9 @@ function uploadBaseUrl(req: AuthRequest) {
 
 function frontendBaseUrl() {
   return (
-    process.env.FRONTEND_APP_URL?.replace(/\/+$/, "") ||
-    process.env.CORS_ORIGIN?.replace(/\/+$/, "") ||
-    "http://localhost:3000"
+    appConfig.frontendAppUrl?.replace(/\/+$/, "") ||
+    appConfig.frontendUrl?.replace(/\/+$/, "") ||
+    appConfig.corsOrigin.replace(/\/+$/, "")
   );
 }
 
@@ -166,14 +272,7 @@ function isFacebookAuthConfigured() {
   );
 }
 
-function buildGoogleState(mode: "login" | "register") {
-  return crypto
-    .createHmac("sha256", process.env.JWT_SECRET || "dev-secret-change-me")
-    .update(`${mode}:${Date.now()}`)
-    .digest("hex");
-}
-
-function googleAuthUrl(mode: "login" | "register") {
+function googleAuthUrl(mode: OAuthMode, state: string) {
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID || "",
     redirect_uri: process.env.GOOGLE_REDIRECT_URI || "",
@@ -182,25 +281,18 @@ function googleAuthUrl(mode: "login" | "register") {
     access_type: "online",
     include_granted_scopes: "true",
     prompt: "select_account",
-    state: buildGoogleState(mode)
+    state
   });
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 }
 
-function buildFacebookState(mode: "login" | "register") {
-  return crypto
-    .createHmac("sha256", process.env.JWT_SECRET || "dev-secret-change-me")
-    .update(`facebook:${mode}:${Date.now()}`)
-    .digest("hex");
-}
-
-function facebookAuthUrl(mode: "login" | "register") {
+function facebookAuthUrl(mode: OAuthMode, state: string) {
   const params = new URLSearchParams({
     client_id: process.env.FACEBOOK_CLIENT_ID || "",
     redirect_uri: process.env.FACEBOOK_REDIRECT_URI || "",
     response_type: "code",
     scope: "email,public_profile",
-    state: buildFacebookState(mode)
+    state
   });
   return `https://www.facebook.com/v20.0/dialog/oauth?${params.toString()}`;
 }
@@ -220,30 +312,32 @@ function generateRandomPassword() {
   return crypto.randomBytes(24).toString("hex");
 }
 
-const PASSWORD_RESET_SECRET =
-  process.env.PASSWORD_RESET_SECRET || process.env.JWT_SECRET || "dev-secret-change-me";
+function passwordResetSecret() {
+  return appConfig.passwordResetSecret;
+}
 
 function signPasswordResetToken(payload: { id: number; email: string }) {
-  return jwt.sign(payload, PASSWORD_RESET_SECRET, { expiresIn: "30m" });
+  return jwt.sign(payload, passwordResetSecret(), { expiresIn: "30m" });
 }
 
 function verifyPasswordResetToken(token: string) {
-  return jwt.verify(token, PASSWORD_RESET_SECRET) as { id: number; email: string };
+  return jwt.verify(token, passwordResetSecret()) as { id: number; email: string };
 }
 
 function passwordResetLink(token: string) {
   return `${frontendBaseUrl()}/auth/reset-password?token=${encodeURIComponent(token)}`;
 }
 
-const EMAIL_VERIFICATION_SECRET =
-  process.env.EMAIL_VERIFICATION_SECRET || process.env.JWT_SECRET || "dev-secret-change-me";
+function emailVerificationSecret() {
+  return appConfig.emailVerificationSecret;
+}
 
 function signEmailVerificationToken(payload: { id: number; email: string }) {
-  return jwt.sign(payload, EMAIL_VERIFICATION_SECRET, { expiresIn: "24h" });
+  return jwt.sign(payload, emailVerificationSecret(), { expiresIn: "24h" });
 }
 
 function verifyEmailVerificationToken(token: string) {
-  return jwt.verify(token, EMAIL_VERIFICATION_SECRET) as { id: number; email: string };
+  return jwt.verify(token, emailVerificationSecret()) as { id: number; email: string };
 }
 
 function emailVerificationLink(token: string) {
@@ -356,6 +450,26 @@ authRouter.get("/providers", (_req, res) => {
       enabled: isFacebookAuthConfigured()
     }
   });
+});
+
+authRouter.post("/oauth/exchange", async (req, res) => {
+  try {
+    const code = normalizeString(req.body?.code);
+    if (!code) {
+      return res.status(400).json({ message: "Code OAuth manquant." });
+    }
+
+    const exchange = consumeOauthExchangeCode(code);
+    if (!exchange) {
+      return res.status(400).json({ message: "Code OAuth invalide ou expire." });
+    }
+
+    setSessionCookie(res, req, exchange.token);
+    return res.json({ sessionEstablished: true, next: exchange.next });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Impossible de finaliser la session OAuth." });
+  }
 });
 
 authRouter.post("/password/forgot", async (req, res) => {
@@ -503,8 +617,10 @@ authRouter.get("/google", (req, res) => {
     );
   }
 
-  const mode = req.query.mode === "register" ? "register" : "login";
-  return res.redirect(googleAuthUrl(mode));
+  const mode: OAuthMode = req.query.mode === "register" ? "register" : "login";
+  const state = buildOauthState("google", mode);
+  res.cookie(OAUTH_STATE_COOKIE, state, oauthCookieOptions(req as AuthRequest));
+  return res.redirect(googleAuthUrl(mode, state));
 });
 
 authRouter.get("/facebook", (req, res) => {
@@ -516,11 +632,27 @@ authRouter.get("/facebook", (req, res) => {
     );
   }
 
-  const mode = req.query.mode === "register" ? "register" : "login";
-  return res.redirect(facebookAuthUrl(mode));
+  const mode: OAuthMode = req.query.mode === "register" ? "register" : "login";
+  const state = buildOauthState("facebook", mode);
+  res.cookie(OAUTH_STATE_COOKIE, state, oauthCookieOptions(req as AuthRequest));
+  return res.redirect(facebookAuthUrl(mode, state));
 });
 
 authRouter.get("/google/callback", async (req, res) => {
+  const authReq = req as AuthRequest;
+  const state = normalizeString(req.query.state);
+  const cookieState = readOauthStateCookie(authReq);
+  const validatedState = verifyOauthState(state, "google");
+  res.clearCookie(OAUTH_STATE_COOKIE, oauthCookieOptions(authReq));
+
+  if (!validatedState || !cookieState || cookieState !== state) {
+    return res.redirect(
+      authRedirectUrl("/auth/login", {
+        error: "google_state_invalid"
+      })
+    );
+  }
+
   try {
     if (!isGoogleAuthConfigured()) {
       return res.redirect(
@@ -595,9 +727,10 @@ authRouter.get("/google/callback", async (req, res) => {
     }
 
     const token = signToken({ id: activeOrganizer.id, email: activeOrganizer.email });
+    const exchangeCode = issueOauthExchangeCode(token, "/dashboard");
     return res.redirect(
       authRedirectUrl("/auth/callback", {
-        token,
+        code: exchangeCode,
         next: "/dashboard"
       })
     );
@@ -611,6 +744,20 @@ authRouter.get("/google/callback", async (req, res) => {
   }
 });
 authRouter.get("/facebook/callback", async (req, res) => {
+  const authReq = req as AuthRequest;
+  const state = normalizeString(req.query.state);
+  const cookieState = readOauthStateCookie(authReq);
+  const validatedState = verifyOauthState(state, "facebook");
+  res.clearCookie(OAUTH_STATE_COOKIE, oauthCookieOptions(authReq));
+
+  if (!validatedState || !cookieState || cookieState !== state) {
+    return res.redirect(
+      authRedirectUrl("/auth/login", {
+        error: "facebook_state_invalid"
+      })
+    );
+  }
+
   try {
     if (!isFacebookAuthConfigured()) {
       return res.redirect(
@@ -680,9 +827,10 @@ authRouter.get("/facebook/callback", async (req, res) => {
     }
 
     const token = signToken({ id: organizer.id, email: organizer.email });
+    const exchangeCode = issueOauthExchangeCode(token, "/dashboard");
     return res.redirect(
       authRedirectUrl("/auth/callback", {
-        token,
+        code: exchangeCode,
         next: "/dashboard"
       })
     );
@@ -816,8 +964,9 @@ authRouter.post("/register", async (req, res) => {
     }
 
     const token = signToken({ id: organizer.id, email: organizer.email });
+    setSessionCookie(res, req, token);
 
-    res.status(201).json({ organizer, token });
+    res.status(201).json({ organizer, sessionEstablished: true });
   } catch (err) {
     console.error(err);
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -931,6 +1080,7 @@ authRouter.post("/login", async (req, res) => {
     });
 
     const token = signToken({ id: organizer.id, email: organizer.email });
+    setSessionCookie(res, req, token);
 
     res.json({
       organizer: {
@@ -939,7 +1089,7 @@ authRouter.post("/login", async (req, res) => {
         name: organizer.name,
         phone: organizer.phone
       },
-      token
+      sessionEstablished: true
     });
   } catch (err) {
     console.error(err);
@@ -1473,6 +1623,7 @@ authRouter.delete("/sessions", authMiddleware, async (req, res) => {
     if (!organizerId) {
       return res.status(401).json({ message: "Organisateur non authentifie." });
     }
+    clearSessionCookie(res, req);
     return res.json({ message: "Deconnexion demandee." });
   } catch (err) {
     console.error(err);

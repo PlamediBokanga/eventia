@@ -2,7 +2,6 @@
 
 import { Editor } from "@tinymce/tinymce-react";
 import { API_URL } from "@/lib/config";
-import { getAuthHeaders } from "@/lib/auth";
 
 export function TinyMceEditor({
   value,
@@ -17,9 +16,9 @@ export function TinyMceEditor({
     const dataUrl = `data:image/png;base64,${blobInfo.base64()}`;
     const res = await fetch(`${API_URL}/events/upload-cover`, {
       method: "POST",
+      credentials: "include",
       headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders()
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         fileName: blobInfo.filename(),

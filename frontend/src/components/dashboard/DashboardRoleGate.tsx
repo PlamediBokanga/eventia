@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { authFetch, type OrganizerProfile } from "@/lib/dashboard";
-import { clearToken } from "@/lib/authClient";
+import { logoutSession } from "@/lib/authClient";
 import { ROLE_META, type DashboardRole } from "@/components/layout/dashboardNav";
 import { EmptyState } from "@/components/ui/EmptyState";
 
@@ -83,7 +83,7 @@ export function DashboardRoleGate({
   return <>{children}</>;
 }
 
-export function clearAllSessionsAndLogout() {
-  clearToken();
+export async function clearAllSessionsAndLogout() {
+  await logoutSession();
   window.location.href = "/auth/login";
 }

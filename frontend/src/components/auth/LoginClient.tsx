@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { saveToken, getToken } from "@/lib/auth";
+import { hasActiveSession } from "@/lib/auth";
 import { API_URL } from "@/lib/config";
 import { AuthDivider, AuthNotice, AuthPopup, AuthShell, FacebookButton, GoogleButton } from "@/components/auth/AuthShell";
 
@@ -18,7 +18,6 @@ type ProvidersResponse = {
 
 type LoginResponse = {
   message?: string;
-  token?: string;
   code?: string;
   verificationRequired?: boolean;
   verificationUrl?: string;
@@ -65,16 +64,25 @@ export function LoginClient() {
   const loginHintTone = message ? "warning" : googleEnabled ? "success" : "info";
 
   useEffect(() => {
-    if (getToken()) {
-      router.replace("/dashboard");
+    let alive = true;
+
+    async function checkSession() {
+      if (await hasActiveSession()) {
+        if (alive) router.replace("/dashboard");
+      }
     }
+
+    void checkSession();
+    return () => {
+      alive = false;
+    };
   }, [router]);
 
   useEffect(() => {
     let ignore = false;
     async function loadProviders() {
       try {
-        const res = await fetch(`${API_URL}/auth/providers`);
+        const res = await fetch(`${API_URL}/auth/providers`, { credentials: "include" });
         if (!res.ok) return;
         const data = (await res.json()) as ProvidersResponse;
         if (!ignore) {
@@ -102,6 +110,7 @@ export function LoginClient() {
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json"
         },
@@ -125,12 +134,6 @@ export function LoginClient() {
         return;
       }
 
-      if (!data?.token) {
-        setMessage("Reponse serveur incomplete. Aucun token de session recu.");
-        return;
-      }
-
-      saveToken(data.token);
       router.push("/dashboard");
     } catch (err) {
       console.error(err);
@@ -278,6 +281,7 @@ export function LoginClient() {
     </AuthShell>
   );
 }
+
 
 
 

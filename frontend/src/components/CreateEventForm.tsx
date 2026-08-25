@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { API_URL } from "@/lib/config";
-import { getAuthHeaders, getToken } from "@/lib/authClient";
 import { sanitizeInvitationHtml } from "@/lib/invitationSanitizer";
 
 export function CreateEventForm() {
@@ -26,12 +25,6 @@ export function CreateEventForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    const token = getToken();
-    if (!token) {
-      setMessage("Connexion requise. Connectez-vous d'abord dans l'espace organisateur.");
-      return;
-    }
-
     setLoading(true);
     setMessage(null);
 
@@ -39,9 +32,9 @@ export function CreateEventForm() {
       const cleanedInvitation = sanitizeInvitationHtml(invitationMessage);
       const res = await fetch(`${API_URL}/events`, {
         method: "POST",
+        credentials: "include",
         headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders()
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           name,

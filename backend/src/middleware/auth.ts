@@ -1,5 +1,7 @@
-import type { Request, Response, NextFunction } from "express";
+﻿import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { appConfig } from "../config";
+import { readSessionToken } from "../session";
 
 export interface AuthRequest extends Request {
   user?: {
@@ -8,33 +10,32 @@ export interface AuthRequest extends Request {
   };
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
+function getJwtSecret() {
+  return appConfig.jwtSecret;
+}
 
 export function authMiddleware(
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ) {
-  const header = req.headers.authorization;
-  if (!header?.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Token manquant." });
+  const token = readSessionToken(req);
+  if (!token) {
+    return res.status(401).json({ message: "Session manquante." });
   }
 
-  const token = header.substring("Bearer ".length);
-
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as {
+    const payload = jwt.verify(token, getJwtSecret()) as {
       id: number;
       email: string;
     };
     req.user = { id: payload.id, email: payload.email };
     next();
   } catch {
-    return res.status(401).json({ message: "Token invalide ou expiré." });
+    return res.status(401).json({ message: "Session invalide ou expiree." });
   }
 }
 
 export function signToken(payload: { id: number; email: string }) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: "7d" });
 }
-

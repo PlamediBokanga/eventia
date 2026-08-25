@@ -745,6 +745,7 @@ invitationsRouter.get("/:token/pdf", async (req, res) => {
 
     async function drawCoverPage() {
       doc.rect(0, 0, pageW, pageH).fill("#F6F4F0");
+
       if (invitationData.guest.event.coverImageUrl) {
         try {
           const rawCoverUrl = invitationData.guest.event.coverImageUrl.trim();
@@ -753,70 +754,93 @@ invitationsRouter.get("/:token/pdf", async (req, res) => {
           doc.image(finalCover, 0, 0, { fit: [pageW, pageH], align: "center", valign: "center" });
         } catch (error) {
           console.error("Cover image failed:", error);
-          doc.rect(46, 120, contentW, 160).fill("#FFFFFF").stroke("#E5E7EB");
-          doc.fillColor(primary).font(fonts.bold).fontSize(12).text("Image non chargee", 64, 150);
-          doc
-            .font(fonts.regular)
-            .fontSize(10)
-            .fillColor(muted)
-            .text("Veuillez utiliser une image JPG ou PNG.", 64, 170);
         }
       }
-      doc.rect(0, 0, pageW, pageH).fillOpacity(0.35).fill("#0B1C2C").fillOpacity(1);
 
-      doc.fillColor("#FFFFFF").font(fonts.bold).fontSize(28);
-      doc.text(invitationData.guest.event.hostNames || invitationData.guest.event.name, 46, pageH - 220, {
-        width: contentW
-      });
-      doc.font(fonts.regular).fontSize(12).fillColor("#E5E7EB");
-      doc.text(
+      doc.rect(0, 0, pageW, pageH).fillOpacity(0.48).fill("#0B1C2C").fillOpacity(1);
+      doc.roundedRect(56, 62, pageW - 112, 42, 16).fillOpacity(0.18).fill("#FFFFFF").fillOpacity(1);
+      doc.fillColor("#FFFFFF").font(fonts.bold).fontSize(10).text("INVITATION OFFICIELLE", 72, 76);
+
+      const title = invitationData.guest.event.hostNames || invitationData.guest.event.name;
+      doc.fillColor("#FFFFFF").font(fonts.bold).fontSize(28).text(title, 72, 150, { width: pageW - 144 });
+      doc.font(fonts.regular).fontSize(12).fillColor("#E5E7EB").text(
         invitationData.guest.event.dateTime.toLocaleString("fr-FR"),
-        46,
-        pageH - 180,
-        { width: contentW }
+        72,
+        194,
+        { width: pageW - 144 }
       );
-      doc.font(fonts.regular).fontSize(11).fillColor("#E5E7EB");
-      doc.text(invitationData.guest.event.location, 46, pageH - 160, { width: contentW });
-      doc.fillColor(accent).font(fonts.bold).fontSize(11).text("INVITATION OFFICIELLE", 46, 52);
+      doc.font(fonts.regular).fontSize(11).fillColor("#E5E7EB").text(
+        invitationData.guest.event.location,
+        72,
+        214,
+        { width: pageW - 144 }
+      );
+
+      const year = invitationData.guest.event.dateTime.getFullYear().toString();
+      doc.roundedRect(72, pageH - 170, 110, 34, 17).fillOpacity(0.18).fill("#FFFFFF").fillOpacity(1);
+      doc.roundedRect(192, pageH - 170, 140, 34, 17).fillOpacity(0.18).fill("#FFFFFF").fillOpacity(1);
+      doc.fillColor("#FFFFFF").font(fonts.bold).fontSize(10).text(year, 72, pageH - 158, { width: 110, align: "center" });
+      doc.fillColor("#FFFFFF").font(fonts.bold).fontSize(10).text(invitationData.guest.event.type || "EVENT", 192, pageH - 158, { width: 140, align: "center" });
+
+      doc.roundedRect(56, pageH - 108, pageW - 112, 52, 18).fillOpacity(0.18).fill("#FFFFFF").fillOpacity(1);
+      doc.fillColor("#FFFFFF").font(fonts.regular).fontSize(10).text(
+        "A simple, elegant and modern invitation.",
+        72,
+        pageH - 90,
+        { width: pageW - 144, align: "center" }
+      );
     }
 
-    function drawInvitationPage() {
+    async function drawDetailsPage() {
       doc.addPage();
       doc.rect(0, 0, pageW, pageH).fill("#FFFFFF");
       doc.fillColor(accent).font(fonts.bold).fontSize(10).text("INVITATION OFFICIELLE", 46, 48);
-      doc.fillColor(primary).font(fonts.bold).fontSize(20).text("Message officiel", 46, 64);
+      doc.fillColor(primary).font(fonts.bold).fontSize(22).text("Details de l'invitation", 46, 66);
+      doc.font(fonts.regular).fontSize(11).fillColor(muted).text("Une presentation simple, claire et premium.", 46, 92);
 
-      const greetingTop = 120;
-      doc.roundedRect(46, greetingTop, contentW, 120, 14).fill(cardBg).stroke(cardBorder);
-      doc.fillColor(primary).font(fonts.bold).fontSize(12).text(
-        `Cher(e) ${invitationData.guest.fullName},`,
-        64,
-        greetingTop + 16
-      );
+      const greetingTop = 126;
+      doc.roundedRect(46, greetingTop, contentW, 112, 16).fill("#FAFAF9").stroke("#E5E7EB");
+      doc.fillColor(primary).font(fonts.bold).fontSize(13).text(`Bonjour ${invitationData.guest.fullName},`, 64, greetingTop + 16);
       doc.font(fonts.regular).fontSize(11).fillColor(text).text(
         `Vous etes invite(e) a ${invitationData.guest.event.name}.`,
         64,
-        greetingTop + 38,
+        greetingTop + 40,
         { width: contentW - 36 }
       );
       if (invitationData.guest.event.invitationMessage) {
         const msg = toPlainText(invitationData.guest.event.invitationMessage);
-        doc.font(fonts.italic).fontSize(10.5).fillColor(muted).text(msg, 64, greetingTop + 62, {
-          width: contentW - 36
-        });
+        doc.font(fonts.italic).fontSize(10.5).fillColor(muted).text(msg, 64, greetingTop + 66, { width: contentW - 36 });
       }
 
-      const infoTop = greetingTop + 150;
-      doc.roundedRect(46, infoTop, contentW, 150, 14).fill("#FFFFFF").stroke("#E5E7EB");
-      doc.fillColor(primary).font(fonts.bold).fontSize(11).text("Informations", 64, infoTop + 14);
-      doc.font(fonts.regular).fontSize(11).fillColor(text);
-      doc.text(`Date: ${invitationData.guest.event.dateTime.toLocaleString("fr-FR")}`, 64, infoTop + 40, {
-        width: contentW - 36
+      const cardsY = greetingTop + 138;
+      const cardWidth = (contentW - 18) / 2;
+      const cardHeight = 118;
+      const infoCards = [
+        { label: "Date", value: invitationData.guest.event.dateTime.toLocaleString("fr-FR") },
+        { label: "Lieu", value: invitationData.guest.event.location },
+        { label: "Adresse", value: invitationData.guest.event.address || "A confirmer" },
+        { label: "Invite", value: invitationData.guest.fullName }
+      ];
+
+      infoCards.forEach((card, index) => {
+        const col = index % 2;
+        const row = Math.floor(index / 2);
+        const x = 46 + col * (cardWidth + 18);
+        const y = cardsY + row * (cardHeight + 14);
+        doc.roundedRect(x, y, cardWidth, cardHeight, 16).fill("#FFFFFF").stroke("#E5E7EB");
+        doc.fillColor(accent).font(fonts.bold).fontSize(10).text(card.label.toUpperCase(), x + 14, y + 14);
+        doc.fillColor(text).font(fonts.bold).fontSize(12).text(card.value, x + 14, y + 36, { width: cardWidth - 28 });
       });
-      doc.text(`Lieu: ${invitationData.guest.event.location}`, 64, infoTop + 60, { width: contentW - 36 });
-      if (invitationData.guest.event.address) {
-        doc.text(`Adresse: ${invitationData.guest.event.address}`, 64, infoTop + 80, { width: contentW - 36 });
-      }
+
+      const noteY = cardsY + 2 * (cardHeight + 14) + 6;
+      doc.roundedRect(46, noteY, contentW, 92, 16).fill("#0B1C2C").stroke("#0B1C2C");
+      doc.fillColor("#FFFFFF").font(fonts.bold).fontSize(11).text("A retenir", 64, noteY + 14);
+      doc.font(fonts.regular).fontSize(10.5).fillColor("#E5E7EB").text(
+        "Confirmez votre presence, ajoutez votre calendrier et ouvrez le GPS en un clic.",
+        64,
+        noteY + 34,
+        { width: contentW - 36 }
+      );
     }
 
     async function drawQrPage() {
@@ -920,7 +944,7 @@ invitationsRouter.get("/:token/pdf", async (req, res) => {
     }
 
     await drawCoverPage();
-    drawInvitationPage();
+    await drawDetailsPage();
     await drawQrPage();
     await drawProgramPage();
 

@@ -1,3 +1,6 @@
+﻿process.env.JWT_SECRET ??= "test-jwt-secret";
+process.env.CORS_ORIGIN ??= "http://localhost:3000";
+
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createApp } from "../app";
@@ -8,9 +11,13 @@ import bcrypt from "bcryptjs";
 type MockMap = Record<string, unknown>;
 
 function authToken(userId: number, email = "test@example.com") {
-  return jwt.sign({ id: userId, email }, process.env.JWT_SECRET || "dev-secret-change-me", {
+  return jwt.sign({ id: userId, email }, process.env.JWT_SECRET as string, {
     expiresIn: "1h"
   });
+}
+
+function authCookie(userId: number, email = "test@example.com") {
+  return `eventia_session=${authToken(userId, email)}`;
 }
 
 function deepSet(target: Record<string, any>, path: string, value: unknown) {
@@ -66,13 +73,14 @@ async function withServer(fn: (baseUrl: string) => Promise<void>) {
 
 test("403 quand un organisateur accede a un evenement qui ne lui appartient pas", async () => {
   const restore = applyPrismaMocks({
-    "event.findUnique": async () => ({ id: 1, organizerId: 999 })
+    "event.findUnique": async () => ({ id: 1, organizerId: 999 }),
+    "eventCoOrganizer.findFirst": async () => null
   });
 
   try {
     await withServer(async baseUrl => {
       const res = await fetch(`${baseUrl}/events/1`, {
-        headers: { Authorization: `Bearer ${authToken(1)}` }
+        headers: { Cookie: authCookie(1) }
       });
       const body = (await res.json()) as { message?: string };
       assert.equal(res.status, 403);
@@ -96,7 +104,7 @@ test("400 quand on assigne une table d'un autre evenement", async () => {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken(1)}`
+          Cookie: authCookie(1)
         },
         body: JSON.stringify({ tableId: 999 })
       });
@@ -139,7 +147,8 @@ test("400 quand un invite envoie une boisson hors evenement", async () => {
 
 test("429 apres trop de tentatives de login", async () => {
   const restorePrisma = applyPrismaMocks({
-    "organizer.findUnique": async () => null
+    "organizer.findUnique": async () => null,
+    "organizerLogin.create": async () => ({ id: 1 })
   });
   const originalCompare = (bcrypt as unknown as { compare: unknown }).compare;
   (bcrypt as unknown as { compare: unknown }).compare = async () => false;
@@ -165,4 +174,3 @@ test("429 apres trop de tentatives de login", async () => {
     (bcrypt as unknown as { compare: unknown }).compare = originalCompare;
   }
 });
-

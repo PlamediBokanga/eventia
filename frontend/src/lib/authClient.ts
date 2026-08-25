@@ -1,25 +1,21 @@
-const TOKEN_KEY = "eventia_token";
+import { API_URL } from "./config";
 
-export function saveToken(token: string) {
+export async function hasActiveSession() {
+  if (typeof window === "undefined") return false;
+  try {
+    const res = await fetch(`${API_URL}/auth/me`, {
+      credentials: "include"
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function logoutSession() {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(TOKEN_KEY, token);
+  await fetch(`${API_URL}/auth/sessions`, {
+    method: "DELETE",
+    credentials: "include"
+  }).catch(() => undefined);
 }
-
-export function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(TOKEN_KEY);
-}
-
-export function clearToken() {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(TOKEN_KEY);
-}
-
-export function getAuthHeaders(): Record<string, string> {
-  const token = getToken();
-  if (!token) return {};
-  return {
-    Authorization: `Bearer ${token}`
-  };
-}
-

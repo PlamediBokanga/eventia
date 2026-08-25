@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import cors from "cors";
 import path from "path";
 import { eventsRouter } from "./routes/events";
@@ -6,6 +6,7 @@ import { guestsRouter } from "./routes/guests";
 import { authRouter } from "./routes/auth";
 import { invitationsRouter } from "./routes/invitations";
 import { paymentsRouter } from "./routes/payments";
+import { appConfig } from "./config";
 
 export function createApp() {
   const app = express();
@@ -13,7 +14,8 @@ export function createApp() {
 
   app.use(
     cors({
-      origin: process.env.CORS_ORIGIN || "*"
+      origin: appConfig.corsOrigin,
+      credentials: true
     })
   );
 

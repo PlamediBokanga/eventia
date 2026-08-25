@@ -6,15 +6,14 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "node ./node_modules/prisma/build/index.js generate && tsc",
-    "test": "tsc && node --test dist/tests/security.test.js",
+    "test": "node ./node_modules/prisma/build/index.js generate && tsc && node --test dist/tests/security.test.js",
     "prestart": "node ./node_modules/prisma/build/index.js migrate deploy",
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "node ./node_modules/prisma/build/index.js migrate deploy",
     "prisma:dbpush": "node ./node_modules/prisma/build/index.js db push",
-    "prisma:dbpush:force": "node ./node_modules/prisma/build/index.js db push --accept-data-loss",
-    "clean:invitation-html": "node scripts/cleanup-invitation-html.js"
+    "prisma:dbpush:force": "node ./node_modules/prisma/build/index.js db push --accept-data-loss"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",

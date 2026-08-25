@@ -1,12 +1,13 @@
 import dotenv from "dotenv";
 import { createApp } from "./app";
+import { appConfig, validateConfig } from "./config";
 
 dotenv.config();
+validateConfig();
 
 const app = createApp();
-const port = process.env.PORT || 4000;
+const port = appConfig.port;
 
 app.listen(port, () => {
   console.log(`EVENTIA backend ecoute sur le port ${port}`);
 });
-

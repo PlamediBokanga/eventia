@@ -1,7 +1,6 @@
-"use client";
+﻿"use client";
 
 import { API_URL } from "@/lib/config";
-import { getAuthHeaders } from "@/lib/auth";
 
 export type EventItem = {
   id: number;
@@ -267,9 +266,9 @@ export function setSelectedEventId(eventId: number) {
 export async function authFetch(path: string, init?: RequestInit) {
   return fetch(`${API_URL}${path}`, {
     ...init,
+    credentials: "include",
     headers: {
-      ...(init?.headers ?? {}),
-      ...getAuthHeaders()
+      ...(init?.headers ?? {})
     }
   });
 }

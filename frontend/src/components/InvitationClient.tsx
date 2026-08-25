@@ -155,6 +155,11 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
     window.URL.revokeObjectURL(url);
   }
 
+  function downloadInvitationPdf() {
+    if (typeof window === "undefined") return;
+    window.open(`${API_URL}/invitations/${initial.invitation.token}/pdf`, "_blank", "noopener,noreferrer");
+  }
+
   async function handleConfirm() {
     try {
       setLoadingAction("confirm");
@@ -374,18 +379,12 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
                   </div>
                 ) : null}
               </div>
-              <div className="grid gap-2 sm:grid-cols-3 md:w-[330px] md:grid-cols-1">
+              <div className="grid gap-2 sm:grid-cols-2 md:w-[330px]">
                 <button type="button" onClick={downloadIcs} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">Ajouter au calendrier</button>
-                <a href={mapLinks.google} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">Ouvrir dans Google Maps</a>
-                <div className="mb-2 grid grid-cols-3 gap-2">
-            <button type="button" onClick={downloadIcs} className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-semibold text-slate-900 transition active:scale-[0.99]">Calendrier</button>
-            <a href={mapLinks.google} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-center text-[11px] font-semibold text-slate-900 transition active:scale-[0.99]">Google Maps</a>
-            <a href={mapLinks.waze} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-center text-[11px] font-semibold text-slate-900 transition active:scale-[0.99]">Waze</a>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-                  <a href={mapLinks.apple} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-3 py-3 text-center text-xs font-medium text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">Apple Maps</a>
-                  <a href={mapLinks.waze} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-3 py-3 text-center text-xs font-medium text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">Waze</a>
-                </div>
+                <a href={mapLinks.google} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">Google Maps</a>
+                <a href={mapLinks.apple} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">Apple Maps</a>
+                <a href={mapLinks.waze} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">Waze</a>
+                <a href={`${API_URL}/invitations/${initial.invitation.token}/pdf`} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-950 bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-md sm:col-span-2">Telecharger PDF</a>
               </div>
             </div>
           </div>
@@ -427,7 +426,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
                 <h2 className="mt-2 text-2xl font-semibold text-slate-900">Votre QR code</h2>
                 <p className="mt-2 text-sm text-slate-600">{isConfirmed ? "Le pass est disponible. Presenter ce code a l'entree pour un acces rapide." : "Confirmez votre presence pour generer votre pass d'acces."}</p>
               </div>
-              {isConfirmed ? <button type="button" onClick={downloadIcs} className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5">Export PDF / Agenda</button> : null}
+              {isConfirmed ? <button type="button" onClick={downloadInvitationPdf} className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5">Telecharger PDF</button> : null}
             </div>
             <div className="mt-5 flex justify-center">
               {isConfirmed ? (

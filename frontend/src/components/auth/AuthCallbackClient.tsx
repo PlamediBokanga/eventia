@@ -1,23 +1,55 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { saveToken } from "@/lib/auth";
+import { API_URL } from "@/lib/config";
 
 export function AuthCallbackClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = useMemo(() => searchParams.get("token"), [searchParams]);
+  const code = useMemo(() => searchParams.get("code"), [searchParams]);
   const next = useMemo(() => searchParams.get("next") || "/dashboard", [searchParams]);
+  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token) {
-      router.replace("/auth/login?error=google_login_failed");
-      return;
+    let cancelled = false;
+
+    async function exchangeCode() {
+      if (!code) {
+        router.replace("/auth/login?error=google_login_failed");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/auth/oauth/exchange`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ code })
+        });
+
+        const data = (await res.json().catch(() => null)) as { next?: string; message?: string } | null;
+        if (!res.ok) {
+          throw new Error(data?.message || "OAuth exchange failed.");
+        }
+
+        if (cancelled) return;
+        router.replace(data?.next || next);
+      } catch (error) {
+        console.error(error);
+        if (cancelled) return;
+        setMessage("Impossible de finaliser la connexion securisee. Reessayez.");
+        router.replace("/auth/login?error=google_login_failed");
+      }
     }
-    saveToken(token);
-    router.replace(next);
-  }, [next, router, token]);
+
+    void exchangeCode();
+    return () => {
+      cancelled = true;
+    };
+  }, [code, next, router]);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_#14203a_0%,_#0b1220_38%,_#090f1a_100%)] px-4 py-6 text-white md:px-6 md:py-8">
@@ -36,15 +68,15 @@ export function AuthCallbackClient() {
                   Connexion en cours
                 </h1>
                 <p className="mt-4 max-w-md text-sm leading-7 text-slate-300">
-                  Votre session Google est en cours de validation. Nous securisons le token puis redirigeons vers votre espace organisateur.
+                  Votre session OAuth est en cours de validation. Nous echangeons un code temporaire securise puis redirigeons vers votre espace organisateur.
                 </p>
               </div>
               <div className="grid gap-4">
                 <div className="rounded-[24px] border border-white/10 bg-white/6 p-4 text-sm text-slate-200 backdrop-blur-md">
-                  Google OAuth
+                  OAuth verifie
                 </div>
                 <div className="rounded-[24px] border border-white/10 bg-white/6 p-4 text-sm text-slate-200 backdrop-blur-md">
-                  Session securisee
+                  Code a usage unique
                 </div>
                 <div className="rounded-[24px] border border-white/10 bg-white/6 p-4 text-sm text-slate-200 backdrop-blur-md">
                   Redirection automatique
@@ -66,14 +98,16 @@ export function AuthCallbackClient() {
                 Patientez quelques secondes pendant que nous ouvrons votre session et preparons votre dashboard.
               </p>
 
+              {message ? <p className="mt-6 text-sm text-amber-200">{message}</p> : null}
+
               <div className="mt-8 grid w-full gap-3 text-left">
                 <div className="rounded-[22px] border border-white/10 bg-white/6 px-4 py-4 shadow-[0_20px_50px_rgba(0,0,0,0.16)] backdrop-blur-md">
                   <p className="text-[10px] uppercase tracking-[0.34em] text-white/45">Etape 1</p>
-                  <p className="mt-1 text-sm font-medium text-white">Verification du token</p>
+                  <p className="mt-1 text-sm font-medium text-white">Verification du callback OAuth</p>
                 </div>
                 <div className="rounded-[22px] border border-white/10 bg-white/6 px-4 py-4 shadow-[0_20px_50px_rgba(0,0,0,0.16)] backdrop-blur-md">
                   <p className="text-[10px] uppercase tracking-[0.34em] text-white/45">Etape 2</p>
-                  <p className="mt-1 text-sm font-medium text-white">Ouverture de votre session</p>
+                  <p className="mt-1 text-sm font-medium text-white">Echange du code temporaire</p>
                 </div>
                 <div className="rounded-[22px] border border-white/10 bg-white/6 px-4 py-4 shadow-[0_20px_50px_rgba(0,0,0,0.16)] backdrop-blur-md">
                   <p className="text-[10px] uppercase tracking-[0.34em] text-white/45">Etape 3</p>
@@ -81,7 +115,7 @@ export function AuthCallbackClient() {
                 </div>
               </div>
 
-              <p className="mt-8 text-xs uppercase tracking-[0.28em] text-white/45">EVENTIA • Organizer suite</p>
+              <p className="mt-8 text-xs uppercase tracking-[0.28em] text-white/45">EVENTIA | Organizer suite</p>
             </section>
           </div>
         </div>

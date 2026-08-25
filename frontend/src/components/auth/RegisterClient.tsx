@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { saveToken, getToken } from "@/lib/auth";
+import { hasActiveSession } from "@/lib/auth";
 import { API_URL } from "@/lib/config";
 import { AuthDivider, AuthNotice, AuthPopup, AuthShell, FacebookButton, GoogleButton } from "@/components/auth/AuthShell";
 
@@ -87,16 +87,25 @@ export function RegisterClient() {
   const accountMeta = getAccountTypeMeta(accountType);
 
   useEffect(() => {
-    if (getToken()) {
-      router.replace("/dashboard");
+    let alive = true;
+
+    async function checkSession() {
+      if (await hasActiveSession()) {
+        if (alive) router.replace("/dashboard");
+      }
     }
+
+    void checkSession();
+    return () => {
+      alive = false;
+    };
   }, [router]);
 
   useEffect(() => {
     let ignore = false;
     async function loadProviders() {
       try {
-        const res = await fetch(`${API_URL}/auth/providers`);
+        const res = await fetch(`${API_URL}/auth/providers`, { credentials: "include" });
         if (!res.ok) return;
         const data = (await res.json()) as ProvidersResponse;
         if (!ignore) {
@@ -154,6 +163,7 @@ export function RegisterClient() {
     try {
       const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json"
         },
@@ -174,7 +184,6 @@ export function RegisterClient() {
 
       const data = (await res.json().catch(() => null)) as {
         message?: string;
-        token?: string;
         verificationRequired?: boolean;
         verificationUrl?: string;
       } | null;
@@ -184,15 +193,12 @@ export function RegisterClient() {
         return;
       }
 
-      if (!data?.token) {
+      if (data?.verificationRequired) {
         setMessage(data?.message || "Compte cree. Verifiez votre email pour activer l'acces.");
-        if (data?.verificationRequired) {
-          setVerificationUrl(data?.verificationUrl || null);
-        }
+        setVerificationUrl(data?.verificationUrl || null);
         return;
       }
 
-      saveToken(data.token);
       router.push("/dashboard");
     } catch (err) {
       console.error(err);

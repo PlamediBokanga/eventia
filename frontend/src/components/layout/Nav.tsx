@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { clearToken } from "@/lib/authClient";
+import { logoutSession } from "@/lib/authClient";
 import { authFetch, type OrganizerProfile } from "@/lib/dashboard";
 import { getVisibleMenuSections, NavIcon, ROLE_META, type DashboardRole } from "./dashboardNav";
 
@@ -35,8 +35,8 @@ export function Nav() {
   const menuSections = useMemo(() => getVisibleMenuSections(role), [role]);
   const roleMeta = ROLE_META[role];
 
-  function handleLogout() {
-    clearToken();
+  async function handleLogout() {
+    await logoutSession();
     router.push("/auth/login");
   }
 
