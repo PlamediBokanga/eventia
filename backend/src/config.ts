@@ -21,12 +21,27 @@ function requireSecret(name: string) {
   return value;
 }
 
+function parseOriginList(value: string | null) {
+  if (!value) return [];
+  return value
+    .split(",")
+    .map(origin => origin.trim().replace(/\/+$/, ""))
+    .filter(Boolean);
+}
+
 export const appConfig = {
   get port() {
     return Number(process.env.PORT || 4000);
   },
   get corsOrigin() {
     return requireEnv("CORS_ORIGIN");
+  },
+  get corsOrigins() {
+    const direct = parseOriginList(readEnv("CORS_ORIGIN"));
+    if (direct.length > 0) return direct;
+
+    const fallback = parseOriginList(readEnv("FRONTEND_URL") || readEnv("FRONTEND_APP_URL"));
+    return fallback.length > 0 ? fallback : ["http://localhost:3000"];
   },
   get jwtSecret() {
     return requireSecret("JWT_SECRET");
@@ -50,6 +65,7 @@ export const appConfig = {
 
 export function validateConfig() {
   void appConfig.corsOrigin;
+  void appConfig.corsOrigins;
   void appConfig.jwtSecret;
   void appConfig.passwordResetSecret;
   void appConfig.emailVerificationSecret;
