@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import { prisma } from "../prisma";
 import PDFDocument from "pdfkit";
 import fs from "fs/promises";
@@ -16,7 +16,7 @@ function isValidToken(token: string) {
 
 function buildInvitationUrl(token: string) {
   const appUrl = process.env.FRONTEND_URL || process.env.APP_URL || "http://localhost:3000";
-  return `${appUrl.replace(/\/+$/, "")}/invitation/${token}`;
+  return `${appUrl.replace(/\/+$/, "")}/invite/${token}/invitation`;
 }
 
 function buildQrCodeUrl(content: string) {
@@ -32,6 +32,21 @@ function toCalendarDate(date: Date) {
   return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
 }
 
+function normalizeStoredPublicUrl(value: unknown) {
+  if (typeof value !== "string") return null;
+  const cleaned = value.trim();
+  if (!cleaned) return null;
+  if (cleaned.startsWith("/uploads/")) return cleaned;
+  try {
+    const url = new URL(cleaned);
+    if (url.pathname.startsWith("/uploads/")) {
+      return `${url.pathname}${url.search}${url.hash}`;
+    }
+  } catch {
+    // fall through to the cleaned value below
+  }
+  return cleaned;
+}
 function buildGoogleCalendarUrl(event: {
   name: string;
   dateTime: Date;
@@ -289,9 +304,9 @@ invitationsRouter.get("/:token", async (req, res) => {
         details: invitation.guest.event.details,
         program: invitation.guest.event.program,
         invitationMessage: invitation.guest.event.invitationMessage,
-        coverImageUrl: invitation.guest.event.coverImageUrl,
+        coverImageUrl: normalizeStoredPublicUrl(invitation.guest.event.coverImageUrl),
         hostNames: invitation.guest.event.hostNames,
-        logoUrl: invitation.guest.event.logoUrl,
+        logoUrl: normalizeStoredPublicUrl(invitation.guest.event.logoUrl),
         themePreset: invitation.guest.event.themePreset,
         primaryColor: invitation.guest.event.primaryColor,
         accentColor: invitation.guest.event.accentColor,
@@ -723,9 +738,16 @@ invitationsRouter.get("/:token/pdf", async (req, res) => {
 
     const doc = new PDFDocument({ size: "A4", margin: 46 });
     res.setHeader("Content-Type", "application/pdf");
+    const safeFileName = [invitationData.guest.fullName, invitationData.guest.event.name]
+      .filter(Boolean)
+      .join("-")
+      .replace(/[^a-zA-Z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .toLowerCase() || `invitation-${invitationData.token}`;
+
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="invitation-${invitationData.guest.fullName}.pdf"`
+      `attachment; filename="${safeFileName}.pdf"`
     );
     doc.pipe(res);
 
@@ -956,3 +978,5 @@ invitationsRouter.get("/:token/pdf", async (req, res) => {
     }
   }
 });
+
+
