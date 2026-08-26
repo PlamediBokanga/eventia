@@ -167,33 +167,20 @@ export default function DashboardCheckinPage() {
       readerRef.current = null;
       return;
     }
+
     const reader = new BrowserMultiFormatReader();
     readerRef.current = reader;
     let cancelled = false;
+    let activeStream: MediaStream | null = null;
 
     async function start() {
-      if (!videoRef.current) return;
+      const video = videoRef.current;
+      if (!video) return;
+
       try {
-        let deviceId: string | undefined = undefined;
-        try {
-          const devices = await BrowserMultiFormatReader.listVideoInputDevices();
-          if (devices.length > 0) {
-            const preferred = devices.find(d => /back|rear|environment/i.test(d.label));
-            deviceId = (preferred ?? devices[devices.length - 1]).deviceId;
-          }
-        } catch {
-          deviceId = undefined;
-        }
-
-        const constraints = {
-          audio: false,
-          video: {
-            facingMode: { ideal: "environment" }
-          }
-        } as MediaStreamConstraints;
-
         const handleScanFrame = (result?: { getText: () => string } | null, err?: unknown) => {
           if (cancelled) return;
+
           if (result) {
             const text = result.getText();
             const token = extractToken(text);
@@ -202,26 +189,39 @@ export default function DashboardCheckinPage() {
               void handleScan(token);
             }
           }
+
           const errName = err instanceof Error ? err.name : "";
           if (err && errName !== "NotFoundException" && errName !== "ChecksumException" && errName !== "FormatException") {
             safeCameraToast(getCameraErrorMessage(err));
           }
         };
 
-        if (deviceId) {
-          await reader.decodeFromVideoDevice(deviceId, videoRef.current, handleScanFrame);
-          return;
+        if (!navigator.mediaDevices?.getUserMedia) {
+          throw new Error("getUserMedia indisponible");
         }
 
         try {
-          await reader.decodeFromConstraints(constraints, videoRef.current, handleScanFrame);
-        } catch (constraintErr) {
-          try {
-            await reader.decodeFromVideoDevice(undefined, videoRef.current, handleScanFrame);
-          } catch (deviceErr) {
-            throw constraintErr instanceof Error ? constraintErr : deviceErr;
-          }
+          activeStream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: { facingMode: { ideal: "environment" } }
+          });
+        } catch {
+          activeStream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
         }
+
+        if (cancelled) {
+          activeStream.getTracks().forEach(track => track.stop());
+          activeStream = null;
+          return;
+        }
+
+        video.srcObject = activeStream;
+        await video.play().catch(() => undefined);
+        void reader.decodeFromVideoElement(video, handleScanFrame).catch(err => {
+          if (!cancelled) {
+            safeCameraToast(getCameraErrorMessage(err));
+          }
+        });
       } catch (startErr) {
         safeCameraToast(getCameraErrorMessage(startErr));
       }
@@ -231,6 +231,10 @@ export default function DashboardCheckinPage() {
     return () => {
       cancelled = true;
       stopScanner(reader);
+      activeStream?.getTracks().forEach(track => track.stop());
+      if (videoRef.current?.srcObject) {
+        videoRef.current.srcObject = null;
+      }
     };
   }, [scanning, mode, showResultModal]);
 
