@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
@@ -43,6 +43,26 @@ function createId() {
     return (crypto as Crypto).randomUUID();
   }
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function getCameraErrorMessage(err: unknown) {
+  const name = err instanceof Error ? err.name : "";
+  switch (name) {
+    case "NotAllowedError":
+      return "Autorisation camera refusee. Autorisez la camera dans les reglages du navigateur.";
+    case "NotFoundError":
+      return "Aucune camera detectee sur cet appareil.";
+    case "NotReadableError":
+      return "Camera deja utilisee par une autre application.";
+    case "SecurityError":
+      return "Camera disponible uniquement dans un contexte securise (HTTPS).";
+    case "OverconstrainedError":
+      return "Aucune camera compatible n'a ete trouvee sur ce mobile.";
+    case "AbortError":
+      return "L'initialisation de la camera a ete interrompue.";
+    default:
+      return "Camera indisponible sur cet appareil ou dans ce navigateur.";
+  }
 }
 
 export default function DashboardCheckinPage() {
@@ -165,7 +185,14 @@ export default function DashboardCheckinPage() {
           deviceId = undefined;
         }
 
-        await reader.decodeFromVideoDevice(deviceId, videoRef.current, (result, err) => {
+        const constraints = {
+          audio: false,
+          video: {
+            facingMode: { ideal: "environment" }
+          }
+        } as MediaStreamConstraints;
+
+        const handleScanFrame = (result?: { getText: () => string } | null, err?: unknown) => {
           if (cancelled) return;
           if (result) {
             const text = result.getText();
@@ -175,18 +202,28 @@ export default function DashboardCheckinPage() {
               void handleScan(token);
             }
           }
-          if (err && err.name !== "NotFoundException" && err.name !== "ChecksumException" && err.name !== "FormatException") {
-            if (err.name === "NotAllowedError") {
-              safeCameraToast("Autorisation camera refusee. Autorisez la camera dans le navigateur.");
-            } else if (err.name === "NotReadableError") {
-              safeCameraToast("Camera utilisee par une autre application.");
-            } else {
-              safeCameraToast("Camera indisponible.");
-            }
+          const errName = err instanceof Error ? err.name : "";
+          if (err && errName !== "NotFoundException" && errName !== "ChecksumException" && errName !== "FormatException") {
+            safeCameraToast(getCameraErrorMessage(err));
           }
-        });
-      } catch {
-        safeCameraToast("Impossible d'acceder a la camera.");
+        };
+
+        if (deviceId) {
+          await reader.decodeFromVideoDevice(deviceId, videoRef.current, handleScanFrame);
+          return;
+        }
+
+        try {
+          await reader.decodeFromConstraints(constraints, videoRef.current, handleScanFrame);
+        } catch (constraintErr) {
+          try {
+            await reader.decodeFromVideoDevice(undefined, videoRef.current, handleScanFrame);
+          } catch (deviceErr) {
+            throw constraintErr instanceof Error ? constraintErr : deviceErr;
+          }
+        }
+      } catch (startErr) {
+        safeCameraToast(getCameraErrorMessage(startErr));
       }
     }
 
@@ -641,7 +678,13 @@ export default function DashboardCheckinPage() {
                 <div className="scan-line" />
                 <div className="scan-frame" />
               </div>
-              <video ref={videoRef} className="h-[360px] w-full rounded-[28px] object-cover opacity-95" />
+              <video
+                ref={videoRef}
+                className="h-[360px] w-full rounded-[28px] object-cover opacity-95"
+                autoPlay
+                muted
+                playsInline
+              />
             </div>
           <p className="text-sm text-slate-600">{scanHint}</p>
 
