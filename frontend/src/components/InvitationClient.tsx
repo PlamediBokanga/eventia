@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { API_URL } from "@/lib/config";
@@ -166,7 +166,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
       setFeedback(null);
       await callPost(`/invitations/${initial.invitation.token}/confirm`, { plusOneCount, allergies, mealPreference });
       setGuestStatus("CONFIRMED");
-      setFeedback("Merci. Votre presence est confirmee.");
+      setFeedback("Merci. Votre présence est confirmée.");
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Impossible de confirmer pour le moment. Reessayez plus tard.");
     } finally {
@@ -180,7 +180,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
       setFeedback(null);
       await callPost(`/invitations/${initial.invitation.token}/cancel`, { plusOneCount, allergies, mealPreference });
       setGuestStatus("CANCELED");
-      setFeedback("Votre absence a bien ete enregistree.");
+      setFeedback("Votre absence a bien été enregistrée.");
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Impossible d'enregistrer l'annulation. Reessayez plus tard.");
     } finally {
@@ -197,7 +197,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
       setLoadingAction("guestbook");
       setFeedback(null);
       await callPost(`/invitations/${initial.invitation.token}/guestbook`, { message });
-      setFeedback("Merci pour votre message.");
+      setFeedback("Votre message a bien été envoyé.");
       setMessage("");
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Impossible d'enregistrer votre message. Reessayez plus tard.");
@@ -217,7 +217,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
       await callPost(`/invitations/${initial.invitation.token}/drinks`, {
         choices: selectedDrinks.map(id => ({ drinkOptionId: id, quantity: 1 }))
       });
-      setFeedback("Vos preferences de boissons ont ete enregistrees.");
+      setFeedback("Vos préférences de boissons ont été enregistrées.");
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Impossible d'enregistrer vos boissons. Reessayez plus tard.");
     } finally {
@@ -272,7 +272,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
     programItems.length > 0
       ? programItems
       : initial.event.program || initial.event.details
-        ? [{ id: 0, timeLabel: timeLabel || "Programme", title: initial.event.program ? "Deroulement de l'evenement" : "Informations", description: initial.event.program || initial.event.details || null, order: 0 }]
+        ? [{ id: 0, timeLabel: timeLabel || "Programme", title: initial.event.program ? "Programme de l'evenement" : "Informations", description: initial.event.program || initial.event.details || null, order: 0 }]
         : [];
 
   const shellTheme = isCorporateEvent
@@ -352,8 +352,8 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
 
       <div className="grid gap-5 lg:grid-cols-[1.2fr,0.8fr]">
         <div className="space-y-5">
-          <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
-            <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Message d'accueil</p>
+          <div className="rounded-[28px] border border-white/60 bg-white/86 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Accès invité</p>
             <p className="mt-3 text-base text-slate-700 md:text-lg">
               Cher(e) <span className="font-semibold text-slate-900">{initial.guest.fullName}</span>, vous etes invite(e) a vivre un moment special autour de <span className="font-semibold text-slate-900">{initial.event.name}</span>.
             </p>
@@ -364,10 +364,10 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
             ) : null}
           </div>
 
-          <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+          <div className="rounded-[28px] border border-white/60 bg-white/86 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div className="space-y-3">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Date et lieu</p>
+                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Détails essentiels</p>
                 <div>
                   <p className="text-sm font-semibold text-slate-500">{dateLabel}</p>
                   <p className="mt-1 text-2xl font-semibold text-slate-900">{timeLabel ? `${timeLabel} · ` : ""}{initial.event.location}</p>
@@ -384,16 +384,16 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
                 <a href={mapLinks.google} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">Google Maps</a>
                 <a href={mapLinks.apple} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">Apple Maps</a>
                 <a href={mapLinks.waze} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">Waze</a>
-                <a href={`${API_URL}/invitations/${initial.invitation.token}/pdf`} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-950 bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-md sm:col-span-2">Telecharger PDF</a>
+                <a href={`${API_URL}/invitations/${initial.invitation.token}/pdf`} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-950 bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-md sm:col-span-2">Télécharger PDF</a>
               </div>
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+          <div className="rounded-[28px] border border-white/60 bg-white/86 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Deroulement</p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-900">Timeline de la soiree</h2>
+                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Programme</p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-900">Timeline de la cérémonie</h2>
               </div>
               <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">{programTimeline.length} etapes</div>
             </div>
@@ -405,7 +405,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
                       <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-lg shadow-sm">{getTimelineIcon(item.title, index)}</div>
                       {index < programTimeline.length - 1 ? <div className="mt-2 h-full w-px border-l-2 border-dashed border-slate-300" /> : null}
                     </div>
-                    <div className="rounded-[22px] border border-slate-200/80 bg-slate-50/90 px-4 py-4 shadow-sm">
+                    <div className="rounded-[22px] border border-slate-200/80 bg-white/92 px-4 py-4 shadow-sm">
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{item.timeLabel}</p>
                       <h3 className="mt-1 text-base font-semibold text-slate-900">{item.title}</h3>
                       {item.description ? <p className="mt-2 text-sm leading-6 text-slate-600">{item.description}</p> : null}
@@ -419,14 +419,14 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
           </div>
         </div>
         <div className="space-y-5">
-          <div id="invitation-qr" className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+          <div id="invitation-qr" className="rounded-[28px] border border-white/60 bg-white/86 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Pass d'acces</p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-900">Votre QR code</h2>
+                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Pass d'accès</p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-900">Votre pass d'accès</h2>
                 <p className="mt-2 text-sm text-slate-600">{isConfirmed ? "Le pass est disponible. Presenter ce code a l'entree pour un acces rapide." : "Confirmez votre presence pour generer votre pass d'acces."}</p>
               </div>
-              {isConfirmed ? <button type="button" onClick={downloadInvitationPdf} className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5">Telecharger PDF</button> : null}
+              {isConfirmed ? <button type="button" onClick={downloadInvitationPdf} className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5">Télécharger PDF</button> : null}
             </div>
             <div className="mt-5 flex justify-center">
               {isConfirmed ? (
@@ -442,7 +442,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+          <div className="rounded-[28px] border border-white/60 bg-white/86 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">RSVP</p>
@@ -459,7 +459,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
               <input className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400" value={allergies} onChange={e => setAllergies(e.target.value)} placeholder="Allergies" />
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <button className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 transition hover:-translate-y-0.5 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60" type="button" onClick={handleConfirm} disabled={loadingAction === "confirm"}>{loadingAction === "confirm" ? "Confirmation..." : "Je confirme ma presence"}</button>
+              <button className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 transition hover:-translate-y-0.5 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60" type="button" onClick={handleConfirm} disabled={loadingAction === "confirm"}>{loadingAction === "confirm" ? "Confirmation..." : "Je confirme ma présence"}</button>
               <button className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60" type="button" onClick={handleCancel} disabled={loadingAction === "cancel"}>{loadingAction === "cancel" ? "Enregistrement..." : "Je ne pourrai pas venir"}</button>
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
@@ -470,9 +470,9 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
             </div>
           </div>
           {mode === "full" && initial.drinks.length > 0 && (
-            <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
-              <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Boissons</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Choix preferes</h2>
+            <div className="rounded-[28px] border border-white/60 bg-white/86 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+              <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Préférences</p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Choix de boissons</h2>
               <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {initial.drinks.map(drink => {
                   const active = selectedDrinks.includes(drink.id);
@@ -491,8 +491,8 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
           )}
 
           {mode === "full" && (initial.gifts?.length ?? 0) > 0 && (
-            <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
-              <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Cadeaux</p>
+            <div className="rounded-[28px] border border-white/60 bg-white/86 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+              <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Cadeaux et contributions</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-900">Liste de cadeaux</h2>
               <div className="mt-4 space-y-3">
                 {initial.gifts?.map(gift => (
@@ -507,8 +507,8 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
           )}
 
           {mode === "full" && (
-            <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
-              <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Souvenirs</p>
+            <div className="rounded-[28px] border border-white/60 bg-white/86 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+              <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Galerie médias</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-900">Album photo et video</h2>
               <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-[auto,1fr]">
                 <select className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900" value={memoryType} onChange={e => setMemoryType(e.target.value as "IMAGE" | "VIDEO") }>
@@ -541,9 +541,9 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
           )}
 
           {mode === "full" && (
-            <div className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+            <div className="rounded-[28px] border border-white/60 bg-white/86 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
               <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Livre d'or</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Laisser un message</h2>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Laisser un mot</h2>
               <textarea className="mt-4 w-full rounded-[22px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400" rows={4} value={message} onChange={e => setMessage(e.target.value)} placeholder="Laissez un mot aux organisateurs..." />
               <div className="mt-3 flex justify-end">
                 <button type="button" className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:opacity-60" onClick={handleGuestbook} disabled={loadingAction === "guestbook"}>{loadingAction === "guestbook" ? "Envoi..." : "Envoyer le message"}</button>
@@ -551,20 +551,20 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
             </div>
           )}
 
-          {feedback ? <div className="rounded-[24px] border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-700 shadow-sm backdrop-blur-xl" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>{feedback}</div> : null}
+          {feedback ? <div className="rounded-[24px] border border-white/60 bg-white/92 px-4 py-3 text-sm text-slate-700 shadow-sm backdrop-blur-xl" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>{feedback}</div> : null}
         </div>
       </div>
       <div className="fixed inset-x-3 bottom-4 z-50 md:hidden">
         <div className="rounded-[28px] border border-white/40 bg-white/88 p-3 shadow-2xl shadow-black/10 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
           <div className="mb-3 flex items-center justify-between gap-3 px-1">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">RSVP mobile</p>
+              <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">RSVP rapide</p>
               <p className="mt-1 text-xs text-slate-600">{countdownText || dateLabel}</p>
             </div>
             <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${isConfirmed ? "bg-emerald-100 text-emerald-700" : guestStatus === "CANCELED" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"}`}>{guestStatus === "PENDING" && "En attente"}{guestStatus === "CONFIRMED" && "Confirme"}{guestStatus === "CANCELED" && "Annule"}</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <button className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition active:scale-[0.99] motion-safe:animate-pulse disabled:opacity-60" type="button" onClick={handleConfirm} disabled={loadingAction === "confirm"}>{loadingAction === "confirm" ? "..." : isConfirmed ? "Voir le pass" : "Confirmer ma presence"}</button>
+            <button className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition active:scale-[0.99] motion-safe:animate-pulse disabled:opacity-60" type="button" onClick={handleConfirm} disabled={loadingAction === "confirm"}>{loadingAction === "confirm" ? "..." : isConfirmed ? "Ouvrir le pass" : "Confirmer ma presence"}</button>
             <button className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-sm transition active:scale-[0.99] disabled:opacity-60" type="button" onClick={handleCancel} disabled={loadingAction === "cancel"}>{loadingAction === "cancel" ? "..." : "Je ne pourrai pas venir"}</button>
           </div>
         </div>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -11,12 +11,10 @@ import { normalizePublicUrl } from "@/lib/url";
 function formatCountdown(target: Date, now: Date) {
   const diff = target.getTime() - now.getTime();
   if (diff <= 0) return "C'est aujourd'hui";
-
   const mins = Math.floor(diff / 60000);
   const days = Math.floor(mins / 1440);
   const hours = Math.floor((mins % 1440) / 60);
   const minutes = mins % 60;
-
   if (days > 0) return `Plus que ${days} jour${days > 1 ? "s" : ""}, ${hours} h ${minutes} min`;
   if (hours > 0) return `Plus que ${hours} h ${minutes} min`;
   return `Plus que ${minutes} min`;
@@ -96,13 +94,13 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
     if (!now || Number.isNaN(eventDate.getTime())) return "";
     return formatCountdown(eventDate, new Date(now));
   }, [eventDate, now]);
-
+  const heroTitle = data.event.hostNames || data.event.name;
   const primaryHref = `/invite/${token}/invitation`;
   const guestStatusLabel =
     data.guest.status === "CONFIRMED"
-      ? "Pr?sence confirm?e"
+      ? "Pr?sent"
       : data.guest.status === "CANCELED"
-        ? "Pr?sence refus?e"
+        ? "Absent"
         : "R?ponse attendue";
 
   useEffect(() => {
@@ -139,7 +137,7 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
               <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-950 via-slate-800 to-slate-600 text-white">
                 <div className="max-w-xl px-6 text-center">
                   <p className="text-[11px] uppercase tracking-[0.35em] text-white/70">Annonce officielle</p>
-                  <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">{data.event.hostNames || data.event.name}</h1>
+                  <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">{heroTitle}</h1>
                   {countdownText ? (
                     <div className="mt-5 inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-white/90 backdrop-blur-md">
                       {countdownText}
@@ -148,7 +146,6 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
                 </div>
               </div>
             )}
-
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
 
             {logoUrl ? (
@@ -164,7 +161,7 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
             <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
               <div className="max-w-3xl space-y-3 text-white">
                 <p className="text-[11px] uppercase tracking-[0.32em] text-white/70">Votre invitation</p>
-                <h1 className="text-3xl font-semibold leading-tight sm:text-5xl">{data.event.hostNames || data.event.name}</h1>
+                <h1 className="text-3xl font-semibold leading-tight sm:text-5xl">{heroTitle}</h1>
                 <p className="max-w-2xl text-sm text-white/85 sm:text-lg">
                   {dateText} {timeText ? `- ${timeText}` : ""} . {data.event.location}
                 </p>
@@ -176,9 +173,7 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
                 <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-medium uppercase tracking-[0.24em] text-white/80">
                   <span className="rounded-full border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-md">{guestStatusLabel}</span>
                   <span className="rounded-full border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-md">{data.guest.fullName}</span>
-                  {addressParts.main ? (
-                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-md">{addressParts.main}</span>
-                  ) : null}
+                  {addressParts.main ? <span className="rounded-full border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-md">{addressParts.main}</span> : null}
                 </div>
               </div>
             </div>
@@ -188,10 +183,7 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
         <div className="space-y-4 p-4 sm:p-6">
           <InviteSteps token={token} current="landing" />
 
-          <div
-            className="rounded-[28px] border border-slate-200/70 bg-white/90 p-5 shadow-lg shadow-slate-200/40"
-            style={{ backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)" }}
-          >
+          <section className="rounded-[28px] border border-slate-200/70 bg-white/90 p-5 shadow-lg shadow-slate-200/40" style={{ backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)" }}>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-3">
                 <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Aper?u rapide</p>
@@ -209,18 +201,10 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
                 <Link href={primaryHref} className="rounded-2xl bg-slate-950 px-4 py-3 text-center text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-lg">
                   Ouvrir l'invitation
                 </Link>
-                <button
-                  type="button"
-                  onClick={() => setShowCover(true)}
-                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md"
-                >
+                <button type="button" onClick={() => setShowCover(true)} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">
                   Voir la couverture
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowActions(v => !v)}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-center text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:shadow-md"
-                >
+                <button type="button" onClick={() => setShowActions(v => !v)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-center text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:shadow-md">
                   {showActions ? "Masquer les actions" : "Actions rapides"}
                 </button>
               </div>
@@ -239,9 +223,9 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
                 </button>
               </div>
             ) : null}
-          </div>
+          </section>
 
-          <div className="grid gap-3 sm:grid-cols-3" style={{ animation: "fadeInUp 0.6s ease both" }}>
+          <section className="grid gap-3 sm:grid-cols-3" style={{ animation: "fadeInUp 0.6s ease both" }}>
             <div className="rounded-[24px] border border-slate-200 bg-white/90 p-4 shadow-sm">
               <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Date</p>
               <p className="mt-2 text-base font-semibold text-slate-900">{dateText}</p>
@@ -255,9 +239,9 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
               <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Invit?</p>
               <p className="mt-2 text-base font-semibold text-slate-900">{data.guest.fullName}</p>
             </div>
-          </div>
+          </section>
 
-          <div id="invitation-preview" className="rounded-[28px] border border-slate-200/70 bg-white/90 p-5 shadow-lg shadow-slate-200/40">
+          <section id="invitation-preview" className="rounded-[28px] border border-slate-200/70 bg-white/90 p-5 shadow-lg shadow-slate-200/40">
             <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Acc?s direct</p>
             <h2 className="mt-2 text-2xl font-semibold text-slate-900">Passez ? l'invitation compl?te</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -267,37 +251,24 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
               <Link href={primaryHref} className="rounded-2xl bg-slate-950 px-4 py-3 text-center text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-lg">
                 Voir mon invitation
               </Link>
-              <a
-                href="#invitation-preview"
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md"
-              >
+              <a href="#invitation-preview" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">
                 Aper?u d?taill?
               </a>
             </div>
-          </div>
+          </section>
         </div>
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/30 bg-white/78 px-3 py-3 shadow-[0_-10px_40px_rgba(15,23,42,0.12)] backdrop-blur-xl md:hidden">
         <div className="mx-auto flex max-w-2xl flex-col gap-2">
-          <a
-            href={primaryHref}
-            className="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 transition active:scale-[0.99]"
-          >
+          <a href={primaryHref} className="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 transition active:scale-[0.99]">
             Ouvrir l'invitation
           </a>
           <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setShowCover(true)}
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition active:scale-[0.99]"
-            >
+            <button type="button" onClick={() => setShowCover(true)} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition active:scale-[0.99]">
               Voir la couverture
             </button>
-            <a
-              href={primaryHref}
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-center text-sm font-semibold text-slate-700 transition active:scale-[0.99]"
-            >
+            <a href={primaryHref} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-center text-sm font-semibold text-slate-700 transition active:scale-[0.99]">
               Details complets
             </a>
           </div>
@@ -317,23 +288,10 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
 
       {showCover && coverImageUrl ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
-          <button
-            type="button"
-            aria-label="Fermer"
-            onClick={() => setShowCover(false)}
-            className="absolute inset-0"
-          />
+          <button type="button" aria-label="Fermer" onClick={() => setShowCover(false)} className="absolute inset-0" />
           <div className="relative z-10 w-full max-w-4xl">
-            <img
-              src={coverImageUrl}
-              alt={`Photo de ${data.event.name}`}
-              className="max-h-[85vh] w-full rounded-2xl object-contain bg-black"
-            />
-            <button
-              type="button"
-              onClick={() => setShowCover(false)}
-              className="absolute right-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-text shadow-sm"
-            >
+            <img src={coverImageUrl} alt={`Photo de ${data.event.name}`} className="max-h-[85vh] w-full rounded-2xl object-contain bg-black" />
+            <button type="button" onClick={() => setShowCover(false)} className="absolute right-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-text shadow-sm">
               Fermer
             </button>
           </div>
