@@ -2,6 +2,7 @@
 
 export const SESSION_COOKIE_NAME = "eventia_session";
 const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
 function parseCookieHeader(value: string | undefined) {
   const cookies: Record<string, string> = {};
@@ -22,10 +23,10 @@ function parseCookieHeader(value: string | undefined) {
 
 export function sessionCookieOptions(req: Request) {
   const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase();
-  const secure = req.secure || req.protocol === "https" || forwardedProto === "https";
+  const secure = IS_PRODUCTION || req.secure || req.protocol === "https" || forwardedProto === "https";
   return {
     httpOnly: true,
-    sameSite: "lax" as const,
+    sameSite: IS_PRODUCTION ? ("none" as const) : ("lax" as const),
     secure,
     path: "/",
     maxAge: SESSION_MAX_AGE_MS
