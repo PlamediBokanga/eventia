@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { hasActiveSession } from "@/lib/auth";
+import { hasActiveSession, storeSessionToken } from "@/lib/auth";
 import { API_URL } from "@/lib/config";
 import { AuthDivider, AuthNotice, AuthPopup, AuthShell, FacebookButton, GoogleButton } from "@/components/auth/AuthShell";
 
@@ -186,6 +186,7 @@ export function RegisterClient() {
         message?: string;
         verificationRequired?: boolean;
         verificationUrl?: string;
+        token?: string;
       } | null;
 
       if (!res.ok) {
@@ -199,6 +200,9 @@ export function RegisterClient() {
         return;
       }
 
+      if (data?.token) {
+        storeSessionToken(data.token);
+      }
       router.push("/dashboard");
     } catch (err) {
       console.error(err);
@@ -217,7 +221,7 @@ export function RegisterClient() {
       sideCopy="Le meme produit, mais avec des entrees differentes selon le contexte d'utilisation: evenement prive, agence multi-client ou corporate."
       sideStats={[
         { value: "3", label: "Profils de compte clairs des l'inscription" },
-        { value: "SSO", label: "Google compatible et flux sécurisé" },
+        { value: "SSO", label: "Google compatible et flux sÃ©curisÃ©" },
         { value: "6+", label: "Mot de passe fort oblige" }
       ]}
       footer={

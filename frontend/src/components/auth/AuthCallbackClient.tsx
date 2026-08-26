@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { API_URL } from "@/lib/config";
+import { storeSessionToken } from "@/lib/auth";
 
 export function AuthCallbackClient() {
   const router = useRouter();
@@ -30,12 +31,15 @@ export function AuthCallbackClient() {
           body: JSON.stringify({ code })
         });
 
-        const data = (await res.json().catch(() => null)) as { next?: string; message?: string } | null;
+        const data = (await res.json().catch(() => null)) as { next?: string; message?: string; token?: string } | null;
         if (!res.ok) {
           throw new Error(data?.message || "OAuth exchange failed.");
         }
 
         if (cancelled) return;
+        if (data?.token) {
+          storeSessionToken(data.token);
+        }
         router.replace(data?.next || next);
       } catch (error) {
         console.error(error);
@@ -123,3 +127,4 @@ export function AuthCallbackClient() {
     </main>
   );
 }
+

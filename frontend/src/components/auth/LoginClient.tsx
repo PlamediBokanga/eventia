@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { hasActiveSession } from "@/lib/auth";
+import { hasActiveSession, storeSessionToken } from "@/lib/auth";
 import { API_URL } from "@/lib/config";
 import { AuthDivider, AuthNotice, AuthPopup, AuthShell, FacebookButton, GoogleButton } from "@/components/auth/AuthShell";
 
@@ -21,6 +21,7 @@ type LoginResponse = {
   code?: string;
   verificationRequired?: boolean;
   verificationUrl?: string;
+  token?: string;
 };
 
 function resolveLoginError(errorCode: string | null) {
@@ -134,6 +135,9 @@ export function LoginClient() {
         return;
       }
 
+      if (data?.token) {
+        storeSessionToken(data.token);
+      }
       router.push("/dashboard");
     } catch (err) {
       console.error(err);
@@ -250,7 +254,7 @@ export function LoginClient() {
             <Link href="/auth/forgot-password" className="font-medium text-slate-900 hover:text-accent">
               Mot de passe oublie
             </Link>
-            <span className="text-slate-300">•</span>
+            <span className="text-slate-300">â€¢</span>
             <Link href="/auth/register" className="font-medium text-slate-900 hover:text-accent">
               Creer un nouvel espace
             </Link>

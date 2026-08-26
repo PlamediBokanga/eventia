@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../prisma";
@@ -465,7 +465,7 @@ authRouter.post("/oauth/exchange", async (req, res) => {
     }
 
     setSessionCookie(res, req, exchange.token);
-    return res.json({ sessionEstablished: true, next: exchange.next });
+    return res.json({ sessionEstablished: true, token: exchange.token, next: exchange.next });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Impossible de finaliser la session OAuth." });
@@ -966,7 +966,7 @@ authRouter.post("/register", async (req, res) => {
     const token = signToken({ id: organizer.id, email: organizer.email });
     setSessionCookie(res, req, token);
 
-    res.status(201).json({ organizer, sessionEstablished: true });
+    res.status(201).json({ organizer, sessionEstablished: true, token });
   } catch (err) {
     console.error(err);
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -1089,13 +1089,14 @@ authRouter.post("/login", async (req, res) => {
         name: organizer.name,
         phone: organizer.phone
       },
-      sessionEstablished: true
+      sessionEstablished: true,
+      token
     });
   } catch (err) {
     console.error(err);
     res
       .status(500)
-      .json({ message: "Erreur lors de la connexion de lÃ¢â‚¬â„¢organisateur." });
+      .json({ message: "Erreur lors de la connexion de lÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢organisateur." });
   }
 });
 
@@ -1673,4 +1674,6 @@ authRouter.get("/me/stats", authMiddleware, async (req, res) => {
     return res.status(500).json({ message: "Erreur lors du chargement des statistiques." });
   }
 });
+
+
 

@@ -1,4 +1,4 @@
-﻿import type { Request, Response } from "express";
+import type { Request, Response } from "express";
 
 export const SESSION_COOKIE_NAME = "eventia_session";
 const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
@@ -21,6 +21,13 @@ function parseCookieHeader(value: string | undefined) {
   return cookies;
 }
 
+function parseBearerToken(value: string | undefined) {
+  if (!value) return "";
+  const [scheme, token] = value.split(" ");
+  if (scheme?.toLowerCase() !== "bearer" || !token) return "";
+  return token.trim();
+}
+
 export function sessionCookieOptions(req: Request) {
   const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase();
   const secure = IS_PRODUCTION || req.secure || req.protocol === "https" || forwardedProto === "https";
@@ -34,7 +41,9 @@ export function sessionCookieOptions(req: Request) {
 }
 
 export function readSessionToken(req: Request) {
-  return parseCookieHeader(req.headers.cookie)[SESSION_COOKIE_NAME] || "";
+  const cookieToken = parseCookieHeader(req.headers.cookie)[SESSION_COOKIE_NAME] || "";
+  if (cookieToken) return cookieToken;
+  return parseBearerToken(req.get("authorization") || req.headers.authorization);
 }
 
 export function setSessionCookie(res: Response, req: Request, token: string) {

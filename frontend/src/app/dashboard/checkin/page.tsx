@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
@@ -515,7 +515,8 @@ export default function DashboardCheckinPage() {
       <section className="rounded-[32px] border border-white/70 bg-white/84 p-4 space-y-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Controle des entrees</p>`r`n            <h2 className="mt-2 text-3xl font-semibold text-slate-900">Scanner des invitations</h2>
+            <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Controle des entrees</p>
+            <h2 className="mt-2 text-3xl font-semibold text-slate-900">Scanner des invitations</h2>
             <p className="text-small text-textSecondary">
               Scannez rapidement les QR codes, affichez le resultat en plein ecran et suivez l'affluence en temps reel.
             </p>
@@ -985,3 +986,4 @@ export default function DashboardCheckinPage() {
     </DashboardRoleGate>
   );
 }
+

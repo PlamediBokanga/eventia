@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { API_URL } from "@/lib/config";
+import { getStoredSessionToken } from "@/lib/authClient";
 
 export type EventItem = {
   id: number;
@@ -264,11 +265,15 @@ export function setSelectedEventId(eventId: number) {
 }
 
 export async function authFetch(path: string, init?: RequestInit) {
+  const token = getStoredSessionToken();
   return fetch(`${API_URL}${path}`, {
     ...init,
     credentials: "include",
     headers: {
-      ...(init?.headers ?? {})
+      ...(init?.headers ?? {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
     }
   });
 }
+
+
