@@ -4,33 +4,52 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { EventPicker } from "@/components/layout/EventPicker";
+import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { authFetch, getSelectedEventId, setSelectedEventId, type EventItem } from "@/lib/dashboard";
 import { normalizePublicUrl } from "@/lib/url";
+
+const THEME_LABELS: Record<string, string> = {
+  classic: "Classique",
+  elegant: "Élégant",
+  vibrant: "Vibrant",
+  minimal: "Minimaliste"
+};
 
 export default function DashboardInvitationsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+
+  async function loadEvents() {
+    setLoading(true);
+    setLoadError(false);
+    try {
+      const res = await authFetch("/events");
+      if (!res.ok) {
+        setLoadError(true);
+        return;
+      }
+      const data = (await res.json()) as EventItem[];
+      setEvents(data);
+      if (data.length > 0) {
+        const savedId = getSelectedEventId();
+        const chosen = (savedId && data.find(e => e.id === savedId)) || data[0];
+        setSelectedEvent(chosen);
+        setSelectedEventId(chosen.id);
+      } else {
+        setSelectedEvent(null);
+      }
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    async function init() {
-      try {
-        const res = await authFetch("/events");
-        if (!res.ok) return;
-        const data = (await res.json()) as EventItem[];
-        setEvents(data);
-        if (data.length > 0) {
-          const savedId = getSelectedEventId();
-          const chosen = (savedId && data.find(e => e.id === savedId)) || data[0];
-          setSelectedEvent(chosen);
-          setSelectedEventId(chosen.id);
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-    void init();
+    void loadEvents();
   }, []);
 
   const coverImage = useMemo(() => normalizePublicUrl(selectedEvent?.coverImageUrl), [selectedEvent?.coverImageUrl]);
@@ -50,19 +69,25 @@ export default function DashboardInvitationsPage() {
     <main className="space-y-6 pb-8 font-sans">
       <Header title="Invitations" description="Prévisualisez votre invitation et accédez rapidement au partage des liens individuels." />
 
-      <div className="grid gap-4 xl:grid-cols-[0.95fr,1.05fr]">
-        <section className="overflow-hidden rounded-[28px] border border-white/40 bg-white/85 shadow-xl shadow-slate-200/50 backdrop-blur-xl">
-          <div className="border-b border-slate-200/70 bg-white/70 px-5 py-5">
-            <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Gestion</p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-900">Choisir un événement</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Les invitations sont liées à un événement. Sélectionnez celui que vous souhaitez consulter.
-            </p>
+      <div className="grid items-start gap-5 xl:grid-cols-[minmax(260px,0.72fr)_minmax(0,1.28fr)]">
+        <section className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-200 px-5 py-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Contexte</p>
+            <h2 className="mt-1 text-lg font-semibold text-slate-900">Événement</h2>
+            <p className="mt-1 text-sm leading-5 text-slate-600">Choisissez l’événement dont vous voulez vérifier l’invitation.</p>
+            <label htmlFor="invitation-event-picker" className="mt-3 block text-xs font-medium text-slate-700">Liste de vos événements</label>
           </div>
-          <div className="p-4">
+          <div className="p-4 sm:p-5">
             {loading ? (
-              <div className="rounded-[22px] border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-sm text-slate-600">
+              <div className="animate-pulse rounded-xl bg-slate-100 px-4 py-8 text-center text-sm text-slate-600" role="status">
                 Chargement des événements…
+              </div>
+            ) : loadError ? (
+              <div className="space-y-3 rounded-xl border border-rose-200 bg-rose-50 p-4" role="alert">
+                <p className="text-sm font-medium text-rose-900">Impossible de charger les événements.</p>
+                <Button type="button" variant="ghost" className="min-h-10" onClick={() => void loadEvents()}>
+                  Réessayer
+                </Button>
               </div>
             ) : events.length === 0 ? (
               <EmptyState
@@ -71,6 +96,7 @@ export default function DashboardInvitationsPage() {
               />
             ) : (
               <EventPicker
+                id="invitation-event-picker"
                 events={events}
                 selectedEventId={selectedEvent?.id}
                 onSelect={event => {
@@ -82,13 +108,13 @@ export default function DashboardInvitationsPage() {
           </div>
         </section>
 
-        <section className="overflow-hidden rounded-[28px] border border-white/40 bg-white/85 shadow-xl shadow-slate-200/50 backdrop-blur-xl">
-          <div className="border-b border-slate-200/70 bg-white/70 px-5 py-5">
-            <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Aperçu</p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-900">Aperçu et partage</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Un aperçu des éléments visibles par vos invités.
-            </p>
+        <section className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-col gap-1 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Aperçu invité</p>
+              <h2 className="mt-1 text-lg font-semibold text-slate-900">Invitation sélectionnée</h2>
+            </div>
+            {selectedEvent ? <p className="text-sm text-slate-500">{selectedEvent.name}</p> : null}
           </div>
 
           {!selectedEvent ? (
@@ -98,26 +124,26 @@ export default function DashboardInvitationsPage() {
               </div>
             </div>
           ) : (
-            <div className="p-5 space-y-5">
-              <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-slate-950 text-white shadow-lg">
-                <div className="relative h-56 sm:h-64">
+            <div className="space-y-5 p-4 sm:p-5">
+              <div className="overflow-hidden rounded-[22px] border border-slate-200 bg-slate-950 text-white shadow-sm">
+                <div className="relative h-56 sm:h-72">
                   {coverImage ? (
                     <img src={coverImage} alt={`Couverture ${selectedEvent.name}`} className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-950 via-slate-800 to-slate-600">
                       <div className="px-6 text-center">
-                        <p className="text-[11px] uppercase tracking-[0.35em] text-white/70">Invitation premium</p>
-                        <h3 className="mt-3 text-3xl font-semibold">{selectedEvent.name}</h3>
-                        <p className="mt-2 text-sm text-white/80">Aucune image de couverture configuree.</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">Aperçu de l’invitation</p>
+                        <h3 className="mt-3 text-2xl font-semibold sm:text-3xl">{selectedEvent.name}</h3>
+                        <p className="mt-2 text-sm text-white/80">Ajoutez une image de couverture depuis l’éditeur d’événement.</p>
                       </div>
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 p-5">
                     <div className="max-w-2xl space-y-2">
-                      <p className="text-[11px] uppercase tracking-[0.32em] text-white/70">Invitation officielle</p>
-                      <h3 className="text-3xl font-semibold leading-tight">{selectedEvent.hostNames || selectedEvent.name}</h3>
-                      <p className="text-sm text-white/85">{dateLabel || "Date non definie"}</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/75">Invitation officielle</p>
+                      <h3 className="break-words text-2xl font-semibold leading-tight sm:text-3xl">{selectedEvent.hostNames || selectedEvent.name}</h3>
+                      <p className="text-sm text-white/90">{dateLabel || "Date non définie"}</p>
                     </div>
                   </div>
                   {logoImage ? (
@@ -128,44 +154,36 @@ export default function DashboardInvitationsPage() {
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Mode</p>
-                  <p className="mt-2 text-sm font-semibold text-slate-900">{selectedEvent.seatingMode ?? "TABLE"}</p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p className="text-xs font-medium text-slate-500">Placement</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-900">{selectedEvent.seatingMode === "ZONE" ? "Zones / sections" : selectedEvent.seatingMode === "NONE" ? "Sans placement" : "Tables"}</p>
                 </div>
-                <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Theme</p>
-                  <p className="mt-2 text-sm font-semibold text-slate-900">{selectedEvent.themePreset ?? "classic"}</p>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p className="text-xs font-medium text-slate-500">Thème</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-900">{THEME_LABELS[selectedEvent.themePreset ?? "classic"] ?? "Personnalisé"}</p>
                 </div>
-                <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Lieu</p>
-                  <p className="mt-2 text-sm font-semibold text-slate-900">{selectedEvent.location}</p>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 sm:col-span-2 lg:col-span-1">
+                  <p className="text-xs font-medium text-slate-500">Lieu</p>
+                  <p className="mt-1 break-words text-sm font-semibold text-slate-900">{selectedEvent.location || "À préciser"}</p>
                 </div>
               </div>
 
-              <div className="rounded-[24px] border border-slate-200 bg-slate-50/90 p-4">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Actions rapides</p>
-                <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row">
                   <Link
                     href="/dashboard/events"
-                    className="rounded-2xl bg-slate-950 px-4 py-3 text-center text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-lg"
+                    className="inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-950 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-300"
                   >
-                    Ouvrir l'?diteur
+                    Modifier l’invitation
                   </Link>
                   <Link
                     href="/dashboard/guests"
-                    className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md"
+                    className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200"
                   >
-                    Aller aux invit?s
+                    Gérer les invités et les liens
                   </Link>
                 </div>
-              </div>
-
-              <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Bon r?flexe</p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Le partage individuel des liens se fait dans l'onglet Invit?s. Depuis cette page, vous gardez une vue d'ensemble et un acc?s rapide ? l'?dition.
-                </p>
               </div>
             </div>
           )}
