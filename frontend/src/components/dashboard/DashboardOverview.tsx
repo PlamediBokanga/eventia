@@ -2,566 +2,239 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Header } from "@/components/layout/Header";
 import { EventPicker } from "@/components/layout/EventPicker";
-import { EmptyState } from "@/components/ui/EmptyState";
-import {
-  authFetch,
-  getSelectedEventId,
-  setSelectedEventId,
-  type EventItem,
-  type EventStats,
-  type OrganizerProfile
-} from "@/lib/dashboard";
-import { ROLE_META, type DashboardRole } from "@/components/layout/dashboardNav";
+import { NavIcon } from "@/components/layout/dashboardNav";
+import { authFetch, getSelectedEventId, setSelectedEventId, type EventItem, type EventStats, type OrganizerProfile } from "@/lib/dashboard";
 
-function StatIcon({ kind }: { kind: "guests" | "ok" | "cancel" | "pending" }) {
-  if (kind === "ok") {
-    return (
-      <svg viewBox="0 0 24 24" className="h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="m20 6-11 11-5-5" />
-      </svg>
-    );
-  }
-  if (kind === "cancel") {
-    return (
-      <svg viewBox="0 0 24 24" className="h-4 w-4 text-rose-500" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M18 6 6 18M6 6l12 12" />
-      </svg>
-    );
-  }
-  if (kind === "pending") {
-    return (
-      <svg viewBox="0 0 24 24" className="h-4 w-4 text-amber-500" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 7v5l3 3" />
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4 text-slate-950" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="8.5" cy="7" r="3" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a3 3 0 0 1 0 5.75" />
-    </svg>
-  );
-}
+type DashboardRole = "user" | "organizer" | "agency" | "company" | "superadmin";
 
-function formatCountdown(dateTime?: string | null) {
-  if (!dateTime) return "Date inconnue";
-  const target = new Date(dateTime).getTime();
-  const diff = target - Date.now();
-  if (!Number.isFinite(diff)) return "Date inconnue";
-  if (diff <= 0) return "Evenement termine";
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-  if (days > 0) return `${days} jour${days > 1 ? "s" : ""}`;
-  if (hours > 0) return `${hours} heure${hours > 1 ? "s" : ""}`;
-  return `${Math.max(1, minutes)} minute${minutes > 1 ? "s" : ""}`;
-}
-
-function metricTone(value: number) {
-  if (value >= 80) return "emerald";
-  if (value >= 50) return "sky";
-  if (value >= 25) return "amber";
-  return "slate";
-}
-
-function formatPercent(value: number) {
-  return `${Math.max(0, Math.min(100, Math.round(value)))}%`;
-}
-
-function ActionLink({ href, label, variant = "soft" }: { href: string; label: string; variant?: "soft" | "solid" }) {
-  return (
-    <Link
-      href={href}
-      className={`inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold transition ${
-        variant === "solid"
-          ? "bg-slate-950 text-white shadow-lg shadow-slate-950/15 hover:-translate-y-0.5 hover:bg-slate-900"
-          : "border border-slate-200 bg-white text-slate-900 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50"
-      }`}
-    >
-      {label}
-    </Link>
-  );
-}
-
-const ROLE_ROUTES = [
-  {
-    role: "Visiteur / invite",
-    headline: "Invitation, RSVP, QR et acces public",
-    route: "/dashboard/invitations",
-    accent: "from-sky-500 to-cyan-500",
-    bullets: ["Lien prive", "RSVP confirme/refuse", "QR apres validation"]
-  },
-  {
-    role: "Organisateur",
-    headline: "Creer, gerer, mesurer",
-    route: "/dashboard/events",
-    accent: "from-slate-900 to-slate-700",
-    bullets: ["Evenements prives/publics", "Invites et plan de salle", "KPI et facturation"]
-  },
-  {
-    role: "Staff / Check-in",
-    headline: "Scan QR et controle d'entree",
-    route: "/dashboard/checkin",
-    accent: "from-emerald-500 to-teal-500",
-    bullets: ["Scan rapide", "Anti-doublon", "Validation temps reel"]
-  },
-  {
-    role: "Agence / entreprise",
-    headline: "Multi-evenements et acces par role",
-    route: "/dashboard/settings",
-    accent: "from-violet-500 to-fuchsia-500",
-    bullets: ["Collaborateurs", "Permissions", "Multi-tenant"]
-  },
-  {
-    role: "Comptable",
-    headline: "Recettes, depenses et exports",
-    route: "/dashboard/billing",
-    accent: "from-amber-500 to-orange-500",
-    bullets: ["Abonnements", "Paiements", "Solde et exports"]
-  },
-  {
-    role: "Super admin",
-    headline: "Gouvernance et commissions",
-    route: "/dashboard/admin",
-    accent: "from-rose-500 to-red-500",
-    bullets: ["Validation", "Commissions", "Vue globale"]
-  }
-] as const;
-
-const PRODUCT_P0 = [
-  "Authentification organisateur",
-  "Creation d'evenement",
-  "Mode prive / public gratuit / public payant",
-  "Invitation privee",
-  "Inscription publique",
-  "Paiement",
-  "QR code",
-  "Scan QR",
-  "Dashboard",
-  "Gestion invites",
-  "Plan de salle"
-];
-
-const ROLE_HOME: Record<DashboardRole, { eyebrow: string; title: string; description: string; cta: string; href: string }> = {
-  user: {
-    eyebrow: "Acces general",
-    title: "Vos invitations et l'espace public",
-    description: "Parcourez les invitations, confirmez votre presence et ouvrez les espaces partages.",
-    cta: "Voir mes invitations",
-    href: "/dashboard/invitations"
-  },
-  organizer: {
-    eyebrow: "Espace organisateur",
-    title: "Piloter les evenements de bout en bout",
-    description: "Creation, gestion des invites, QR, statistiques et facturation regroupes au meme endroit.",
-    cta: "Ouvrir les evenements",
-    href: "/dashboard/events"
-  },
-  agency: {
-    eyebrow: "Espace agence",
-    title: "Gerer plusieurs clients avec methode",
-    description: "Centralisez les dossiers, les acces d'equipe et les campagnes sur plusieurs evenements.",
-    cta: "Voir les parametres",
-    href: "/dashboard/settings"
-  },
-  company: {
-    eyebrow: "Espace entreprise",
-    title: "Une vitrine corporate, claire et sobre",
-    description: "Composez des evenements internes ou publics avec un cadre premium et un controle fin.",
-    cta: "Aller au billing",
-    href: "/dashboard/billing"
-  },
-  superadmin: {
-    eyebrow: "Supervision plateforme",
-    title: "Voir la sante produit, les paiements et les commissions",
-    description: "Un tableau de bord de gouvernance pour suivre la monetisation et les comptes.",
-    cta: "Ouvrir la gouvernance",
-    href: "/dashboard/admin"
-  }
+const ROLE_LABELS: Record<DashboardRole, string> = {
+  user: "Compte standard",
+  organizer: "Organisateur",
+  agency: "Agence",
+  company: "Entreprise",
+  superadmin: "Super administrateur"
 };
 
-export function DashboardOverview({ title, role: roleProp }: { title: string; role?: DashboardRole }) {
+const QUICK_ACTIONS = [
+  { href: "/dashboard/guests", label: "Gérer les invités", detail: "Invitations et réponses", icon: "users" },
+  { href: "/dashboard/invitations", label: "Voir les invitations", detail: "Accès et diffusion", icon: "mail" },
+  { href: "/dashboard/checkin", label: "Ouvrir le contrôle d’accès", detail: "Scanner les entrées", icon: "qr" },
+  { href: "/dashboard/stats", label: "Consulter les statistiques", detail: "Suivre la participation", icon: "chart" }
+] as const;
+
+function dateLabel(value?: string | null) {
+  if (!value) return "Date à confirmer";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "Date à confirmer";
+  return new Intl.DateTimeFormat("fr-FR", { dateStyle: "long", timeStyle: "short" }).format(date);
+}
+
+function MetricCard({ label, value, note, tone }: { label: string; value: string; note: string; tone: "navy" | "green" | "amber" | "blue" }) {
+  const tones = {
+    navy: "bg-slate-950 text-white",
+    green: "border-emerald-200 bg-emerald-50 text-emerald-950",
+    amber: "border-amber-200 bg-amber-50 text-amber-950",
+    blue: "border-sky-200 bg-sky-50 text-sky-950"
+  };
+  return (
+    <article className={`rounded-2xl border border-slate-200 p-5 shadow-sm ${tones[tone]}`}>
+      <p className={`text-sm font-medium ${tone === "navy" ? "text-white/70" : "text-slate-600"}`}>{label}</p>
+      <p className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">{value}</p>
+      <p className={`mt-1 text-xs ${tone === "navy" ? "text-white/60" : "text-slate-600"}`}>{note}</p>
+    </article>
+  );
+}
+
+export function DashboardOverview({ title: _title, role: roleProp }: { title: string; role?: DashboardRole }) {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [stats, setStats] = useState<EventStats | null>(null);
   const [profile, setProfile] = useState<OrganizerProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
-  const role = roleProp ?? (profile?.role as DashboardRole | undefined) ?? "organizer";
-  const roleMeta = ROLE_META[role];
-  const roleHome = ROLE_HOME[role];
-
-  function seatingModeLabel(mode: "TABLE" | "ZONE" | "NONE") {
-    if (mode === "ZONE") return "Mode: Zones / Sections";
-    if (mode === "NONE") return "Mode: Sans tables / sections";
-    return "Mode: Tables";
-  }
+  const role = roleProp ?? ((profile?.role as DashboardRole | undefined) || "organizer");
 
   useEffect(() => {
-    async function load() {
+    let active = true;
+    async function loadDashboard() {
+      setLoading(true);
+      setLoadError("");
       try {
-        const [eventsRes, meRes] = await Promise.all([authFetch("/events"), authFetch("/auth/me")]);
-        if (eventsRes.ok) {
-          const data = (await eventsRes.json()) as EventItem[];
-          setEvents(data);
-
-          if (data.length > 0) {
-            const savedId = getSelectedEventId();
-            const chosen = (savedId && data.find(e => e.id === savedId)) || data[0];
-            setSelectedEvent(chosen);
-            setSelectedEventId(chosen.id);
-          }
-        }
-        if (meRes.ok) {
-          const payload = (await meRes.json()) as { organizer?: OrganizerProfile };
+        const [eventsRes, profileRes] = await Promise.all([authFetch("/events"), authFetch("/auth/me")]);
+        if (!active) return;
+        if (!eventsRes.ok) throw new Error("Impossible de charger les événements.");
+        const items = (await eventsRes.json()) as EventItem[];
+        setEvents(items);
+        if (profileRes.ok) {
+          const payload = (await profileRes.json()) as { organizer?: OrganizerProfile };
           setProfile(payload.organizer ?? null);
         }
+        if (items.length) {
+          const savedId = getSelectedEventId();
+          const current = (savedId && items.find(item => item.id === savedId)) || items[0];
+          setSelectedEvent(current);
+          setSelectedEventId(current.id);
+        } else {
+          setSelectedEvent(null);
+          setStats(null);
+        }
+      } catch (error) {
+        if (active) setLoadError(error instanceof Error ? error.message : "Une erreur est survenue au chargement.");
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     }
-    void load();
+    void loadDashboard();
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {
     if (!selectedEvent) return;
-    const eventId = selectedEvent.id;
-
+    let active = true;
+    setStatsLoading(true);
+    setStats(null);
     async function loadStats() {
-      const res = await authFetch(`/events/${eventId}/stats`);
-      if (!res.ok) {
-        setStats(null);
-        return;
+      try {
+        const response = await authFetch(`/events/${selectedEvent!.id}/stats`);
+        if (!response.ok) throw new Error("Les statistiques de cet événement sont indisponibles.");
+        const data = (await response.json()) as EventStats;
+        if (active) setStats(data);
+      } catch (error) {
+        if (active) setLoadError(error instanceof Error ? error.message : "Impossible de charger les statistiques.");
+      } finally {
+        if (active) setStatsLoading(false);
       }
-      setStats((await res.json()) as EventStats);
     }
-
     void loadStats();
+    return () => { active = false; };
   }, [selectedEvent?.id]);
 
-  const totalGuests = stats?.guests.total ?? 0;
-  const confirmed = stats?.guests.confirmed ?? 0;
-  const canceled = stats?.guests.canceled ?? 0;
-  const pending = stats?.guests.pending ?? 0;
-  const responseRate = totalGuests > 0 ? (confirmed / totalGuests) * 100 : 0;
-  const canceledRate = totalGuests > 0 ? (canceled / totalGuests) * 100 : 0;
-  const pendingRate = totalGuests > 0 ? (pending / totalGuests) * 100 : 0;
+  const guestCounts = stats?.guests;
+  const totalGuests = guestCounts?.total ?? 0;
+  const confirmed = guestCounts?.confirmed ?? 0;
+  const pending = guestCounts?.pending ?? 0;
   const invitationsSent = stats?.invitations?.sent ?? 0;
-  const invitationsTotal = stats?.invitations?.total ?? totalGuests;
-  const drinkTotal = stats?.drinks.reduce((sum, drink) => sum + (drink.totalQuantity ?? 0), 0) ?? 0;
-  const topDrinks = stats?.drinks
-    ? [...stats.drinks].sort((a, b) => (b.totalQuantity ?? 0) - (a.totalQuantity ?? 0)).slice(0, 3)
-    : [];
-  const seatingMode = selectedEvent?.seatingMode ?? "TABLE";
-  const seatingLabel = seatingMode === "ZONE" ? "Zones" : seatingMode === "NONE" ? "Sans tables" : "Tables";
-  const countdownLabel = selectedEvent ? formatCountdown(selectedEvent.dateTime) : "";
-  const eventMeta = useMemo(() => {
-    if (!selectedEvent) return [];
-    return [
-      selectedEvent.type || "Evenement",
-      selectedEvent.location,
-      selectedEvent.dateTime ? new Date(selectedEvent.dateTime).toLocaleDateString("fr-FR") : null
-    ].filter(Boolean) as string[];
-  }, [selectedEvent]);
+  const invitationTotal = stats?.invitations?.total ?? totalGuests;
+  const responseRate = totalGuests ? Math.round((confirmed / totalGuests) * 100) : 0;
+  const tableSummary = useMemo(() => (stats?.tables ?? []).slice(0, 5), [stats?.tables]);
+  const displayName = profile?.name?.trim().split(/\s+/)[0];
+  const formattedCounts = (value: number) => statsLoading ? "—" : new Intl.NumberFormat("fr-FR").format(value);
 
   return (
-    <main className="page-enter relative space-y-6 overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(15,23,42,0.06),transparent_26%),radial-gradient(circle_at_top_right,rgba(14,165,233,0.08),transparent_22%),linear-gradient(180deg,rgba(248,250,252,0.9),rgba(255,255,255,0.98))]" />
-      <Header title={title} />
+    <main className="space-y-7 pb-8 font-sans">
+      <header className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{ROLE_LABELS[role] ?? ROLE_LABELS.organizer}</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">{displayName ? `Bonjour ${displayName}` : "Tableau de bord"}</h1>
+          <p className="mt-1 text-sm text-slate-600">Les informations essentielles pour piloter votre événement.</p>
+        </div>
+        <Link href="/dashboard/events" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900">
+          + Créer un événement
+        </Link>
+      </header>
 
-      <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-white/85 p-5 shadow-[0_24px_90px_rgba(15,23,42,0.08)] backdrop-blur-xl md:p-7">
-        <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#0f172a,#0ea5e9,#14b8a6,#f59e0b)]" />
-        <div className="absolute -right-20 top-10 h-48 w-48 rounded-full bg-sky-400/10 blur-3xl" />
-        <div className="absolute -left-24 bottom-0 h-56 w-56 rounded-full bg-slate-900/5 blur-3xl" />
+      {loadError ? (
+        <div role="alert" className="flex flex-col gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900 sm:flex-row sm:items-center sm:justify-between">
+          <span>{loadError}</span>
+          <button type="button" onClick={() => window.location.reload()} className="min-h-10 rounded-lg border border-rose-300 bg-white px-3 font-semibold text-rose-900 hover:bg-rose-100">Réessayer</button>
+        </div>
+      ) : null}
 
-        <div className="relative mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[26px] border border-slate-200 bg-slate-50 px-4 py-3">
+      <section aria-label="Événement sélectionné" className="grid gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.72fr)] lg:items-center">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Événement actif</p>
+          {loading ? <div className="mt-3 h-8 w-2/3 animate-pulse rounded-lg bg-slate-100" /> : events.length ? (
+            <>
+              <h2 className="mt-2 truncate text-2xl font-semibold text-slate-950">{selectedEvent?.name}</h2>
+              <p className="mt-1 text-sm text-slate-600">{dateLabel(selectedEvent?.dateTime)}{selectedEvent?.location ? ` · ${selectedEvent.location}` : ""}</p>
+            </>
+          ) : (
+            <>
+              <h2 className="mt-2 text-xl font-semibold text-slate-950">Aucun événement pour le moment</h2>
+              <p className="mt-1 text-sm text-slate-600">Créez un événement pour suivre les réponses et organiser les invités.</p>
+            </>
+          )}
+        </div>
+        {events.length > 1 ? (
           <div>
-            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Espace connecté</p>
-            <p className="mt-1 text-sm font-semibold text-slate-900">{roleMeta.label}</p>
+            <label htmlFor="dashboard-event-picker" className="mb-2 block text-xs font-semibold text-slate-600">Changer d’événement</label>
+            <EventPicker id="dashboard-event-picker" events={events} selectedEventId={selectedEvent?.id} onSelect={event => { setSelectedEvent(event); setSelectedEventId(event.id); }} />
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-600">
-            <span className="rounded-full bg-white px-3 py-1 shadow-sm">{roleHome.eyebrow}</span>
-            <span className="rounded-full bg-slate-950 px-3 py-1 text-white">{role}</span>
+        ) : null}
+      </section>
+
+      <section aria-label="Indicateurs de l’événement" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard label="Invités" value={formattedCounts(totalGuests)} note="Invités enregistrés" tone="navy" />
+        <MetricCard label="Présences confirmées" value={formattedCounts(confirmed)} note={`${responseRate}% du total des invités`} tone="green" />
+        <MetricCard label="Réponses attendues" value={formattedCounts(pending)} note="Invitations encore en attente" tone="amber" />
+        <MetricCard label="Invitations envoyées" value={statsLoading ? "—" : `${formattedCounts(invitationsSent)} / ${formattedCounts(invitationTotal)}`} note="Progression de la diffusion" tone="blue" />
+      </section>
+
+      <section aria-labelledby="dashboard-actions-title">
+        <div className="mb-3 flex items-end justify-between gap-3">
+          <div>
+            <h2 id="dashboard-actions-title" className="text-lg font-semibold text-slate-950">Accès rapides</h2>
+            <p className="mt-1 text-sm text-slate-600">Les actions les plus utilisées pour votre événement.</p>
           </div>
         </div>
-
-        <div className="relative grid gap-6 xl:grid-cols-[1.15fr,0.85fr]">
-          <div className="space-y-5">
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              Vue executif
-            </div>
-
-            <div className="space-y-3">
-              <p className="text-[11px] uppercase tracking-[0.34em] text-slate-500">Pilotage</p>
-              <h1 className="max-w-2xl text-3xl font-semibold leading-tight text-slate-950 md:text-5xl">
-                {roleHome.title}
-              </h1>
-              <p className="max-w-2xl text-sm leading-7 text-slate-600 md:text-base">
-                {roleHome.description}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <ActionLink href={roleHome.href} label={roleHome.cta} variant="solid" />
-              <ActionLink href="/dashboard/profile" label="Profil" />
-              <ActionLink href="/dashboard/settings" label="Parametres" />
-            </div>
-
-            {selectedEvent ? (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
-                  <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Evenement actif</p>
-                  <p className="mt-2 text-lg font-semibold text-slate-950">{selectedEvent.name}</p>
-                  <p className="mt-1 text-sm text-slate-600">{seatingModeLabel(selectedEvent.seatingMode ?? "TABLE")}</p>
-                </div>
-                <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
-                  <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Compte a rebours</p>
-                  <p className="mt-2 text-lg font-semibold text-slate-950">{countdownLabel || "Date inconnue"}</p>
-                  <p className="mt-1 text-sm text-slate-600">Jusqu'a l'ouverture de l'evenement</p>
-                </div>
-                <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
-                  <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Lieu</p>
-                  <p className="mt-2 text-lg font-semibold text-slate-950">{selectedEvent.location}</p>
-                  <p className="mt-1 text-sm text-slate-600">{selectedEvent.dateTime ? new Date(selectedEvent.dateTime).toLocaleDateString("fr-FR") : ""}</p>
-                </div>
-                <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
-                  <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Etat</p>
-                  <p className="mt-2 text-lg font-semibold text-emerald-600">Actif</p>
-                  <p className="mt-1 text-sm text-slate-600">{eventMeta.join(" · ")}</p>
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-[28px] border border-dashed border-slate-300 bg-white/70 p-5">
-                {loading ? (
-                  <p className="text-sm text-slate-600">Chargement des evenements...</p>
-                ) : (
-                  <EmptyState
-                    title="Aucun evenement trouve"
-                    description="Cree un evenement pour activer cette vue de pilotage et afficher les statistiques en temps reel."
-                    action={<ActionLink href="/dashboard/events" label="Creer un evenement" variant="solid" />}
-                  />
-                )}
-              </div>
-            )}
-
-            <div className="rounded-[28px] border border-slate-200/80 bg-slate-50/80 p-4 md:p-5">
-              <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Structure produit</p>
-                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">Lecture par role, comme dans le cahier</h2>
-                </div>
-                <p className="max-w-2xl text-sm leading-6 text-slate-600">
-                  Eventia doit rester lisible par role. Le dashboard sert de passerelle vers les parcours invites, staff,
-                  agence, comptabilite et supervision.
-                </p>
-              </div>
-
-              <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {ROLE_ROUTES.map(item => (
-                  <Link
-                    key={item.role}
-                    href={item.route}
-                    className="group rounded-[24px] border border-white/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(15,23,42,0.08)]"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-[10px] uppercase tracking-[0.26em] text-slate-500">{item.role}</p>
-                        <h3 className="mt-2 text-lg font-semibold text-slate-950">{item.headline}</h3>
-                      </div>
-                      <span className={`h-3 w-3 rounded-full bg-gradient-to-br ${item.accent}`} />
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {item.bullets.map(bullet => (
-                        <span key={bullet} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
-                          {bullet}
-                        </span>
-                      ))}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-[28px] border border-slate-200/80 bg-white/95 p-4 shadow-sm">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Priorite P0</p>
-                  <h2 className="mt-2 text-xl font-semibold text-slate-950">Ce que le cahier demande en premier</h2>
-                </div>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
-                  Socle produit
-                </span>
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {PRODUCT_P0.map(item => (
-                  <span key={item} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              <Link href="/dashboard/invitations" className="rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Parcours invite</p>
-                <h3 className="mt-2 text-lg font-semibold text-slate-900">Invitation et RSVP</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-600">Designer la page publique, le message, le QR et les actions de confirmation.</p>
-              </Link>
-              <Link href="/dashboard/checkin" className="rounded-[26px] border border-slate-200/80 bg-slate-950 p-4 text-white shadow-[0_18px_40px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-white/55">Controle d'acces</p>
-                <h3 className="mt-2 text-lg font-semibold">Scan QR et doublons</h3>
-                <p className="mt-3 text-sm leading-6 text-white/75">Valider les entrees en direct et bloquer les scans repetes.</p>
-              </Link>
-              <Link href="/dashboard/tables" className="rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Plan de salle</p>
-                <h3 className="mt-2 text-lg font-semibold text-slate-900">Tables, zones et places</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-600">Gerer les configurations avec ou sans tables selon le format de l'evenement.</p>
-              </Link>
-              <Link href="/dashboard/stats" className="rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Reporting</p>
-                <h3 className="mt-2 text-lg font-semibold text-slate-900">Statistiques et KPI</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-600">Suivre les confirmations, scans, activite et performance globale.</p>
-              </Link>
-              <Link href="/dashboard/billing" className="rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Monetisation</p>
-                <h3 className="mt-2 text-lg font-semibold text-slate-900">Paiements et abonnements</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-600">Suivre les plans, les transactions et la rentabilite.</p>
-              </Link>
-              <Link href="/dashboard/admin" className="rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Super admin</p>
-                <h3 className="mt-2 text-lg font-semibold text-slate-900">Gouvernance et commissions</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-600">Valider les paiements, suivre les commissions et surveiller la plateforme.</p>
-              </Link>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="rounded-[28px] border border-slate-200/80 bg-white/90 p-4 shadow-[0_20px_50px_rgba(15,23,42,0.06)]">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Selection</p>
-                  <h2 className="mt-1 text-xl font-semibold text-slate-950">Choisir un evenement</h2>
-                </div>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold text-slate-600">
-                  {events.length} total
-                </span>
-              </div>
-              <div className="mt-4">
-                {loading ? (
-                  <p className="text-sm text-slate-600">Chargement...</p>
-                ) : events.length === 0 ? (
-                  <p className="text-sm text-slate-600">Aucun evenement disponible.</p>
-                ) : (
-                  <EventPicker
-                    events={events}
-                    selectedEventId={selectedEvent?.id}
-                    onSelect={event => {
-                      setSelectedEvent(event);
-                      setSelectedEventId(event.id);
-                    }}
-                  />
-                )}
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-              <div className="rounded-[28px] border border-slate-200/80 bg-slate-950 px-5 py-4 text-white shadow-[0_20px_50px_rgba(15,23,42,0.18)]">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-white/55">Taux de reponse</p>
-                <p className="mt-2 text-3xl font-semibold">{formatPercent(responseRate)}</p>
-                <p className="mt-1 text-sm text-white/70">Confirmations parmi les invites crees</p>
-              </div>
-              <div className="rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_20px_50px_rgba(15,23,42,0.06)]">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Invitations envoyees</p>
-                <p className="mt-2 text-3xl font-semibold text-slate-950">
-                  {invitationsSent}/{invitationsTotal}
-                </p>
-                <p className="mt-1 text-sm text-slate-600">Invitees touches par les campagnes</p>
-              </div>
-              <div className="rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_20px_50px_rgba(15,23,42,0.06)]">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Tables occupees</p>
-                <p className="mt-2 text-3xl font-semibold text-slate-950">{stats?.tables.length ?? 0}</p>
-                <p className="mt-1 text-sm text-slate-600">Organisation visible pendant le jour J</p>
-              </div>
-            </div>
-          </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {QUICK_ACTIONS.map(action => (
+            <Link key={action.href} href={action.href} className="group flex min-h-24 items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700"><NavIcon type={action.icon} /></span>
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-slate-900">{action.label}</span>
+                <span className="mt-1 block text-xs text-slate-500">{action.detail}</span>
+              </span>
+              <span aria-hidden="true" className="ml-auto text-slate-400 transition group-hover:translate-x-0.5">→</span>
+            </Link>
+          ))}
         </div>
       </section>
 
       {selectedEvent ? (
-        <section className="relative grid gap-4 md:grid-cols-3">
-          <div className="rounded-[28px] border border-slate-200/80 bg-white/90 p-4 shadow-sm backdrop-blur-xl">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Invites</p>
-                <h3 className="mt-2 text-xl font-semibold text-slate-950">Progression</h3>
-              </div>
-              <StatIcon kind="guests" />
+        <section className="grid gap-4 lg:grid-cols-2">
+          <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div><h2 className="text-lg font-semibold text-slate-950">Réponses des invités</h2><p className="mt-1 text-sm text-slate-600">État des confirmations pour cet événement.</p></div>
+              <Link href="/dashboard/guests" className="text-sm font-semibold text-slate-700 underline decoration-slate-300 underline-offset-4 hover:text-slate-950">Voir les invités</Link>
             </div>
-            <div className="mt-4 space-y-3">
-              <div>
-                <div className="mb-1 flex items-center justify-between text-sm font-medium text-slate-600">
-                  <span>Confirmes</span>
-                  <span>{confirmed}/{totalGuests}</span>
-                </div>
-                <div className="h-2 rounded-full bg-slate-100">
-                  <div className="h-full rounded-full bg-emerald-500" style={{ width: formatPercent(responseRate) }} />
-                </div>
-              </div>
-              <div>
-                <div className="mb-1 flex items-center justify-between text-sm font-medium text-slate-600">
-                  <span>Annules</span>
-                  <span>{canceled}/{totalGuests}</span>
-                </div>
-                <div className="h-2 rounded-full bg-slate-100">
-                  <div className="h-full rounded-full bg-rose-500" style={{ width: formatPercent(canceledRate) }} />
-                </div>
-              </div>
-              <div>
-                <div className="mb-1 flex items-center justify-between text-sm font-medium text-slate-600">
-                  <span>En attente</span>
-                  <span>{pending}/{totalGuests}</span>
-                </div>
-                <div className="h-2 rounded-full bg-slate-100">
-                  <div className="h-full rounded-full bg-amber-500" style={{ width: formatPercent(pendingRate) }} />
-                </div>
-              </div>
+            <div className="mt-5 space-y-4">
+              {[
+                { label: "Confirmées", count: confirmed, color: "bg-emerald-600" },
+                { label: "En attente", count: pending, color: "bg-amber-500" },
+                { label: "Refusées", count: guestCounts?.canceled ?? 0, color: "bg-slate-400" }
+              ].map(item => {
+                const percent = totalGuests ? Math.round((item.count / totalGuests) * 100) : 0;
+                return <div key={item.label}>
+                  <div className="mb-1.5 flex justify-between text-sm"><span className="text-slate-600">{item.label}</span><span className="font-medium tabular-nums text-slate-900">{formattedCounts(item.count)} <span className="text-slate-500">({statsLoading ? "—" : `${percent}%`})</span></span></div>
+                  <div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${item.color} transition-[width] duration-500`} style={{ width: `${statsLoading ? 0 : percent}%` }} /></div>
+                </div>;
+              })}
             </div>
-          </div>
+          </article>
 
-          <div className="rounded-[28px] border border-slate-200/80 bg-white/90 p-4 shadow-sm backdrop-blur-xl md:col-span-2">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Boissons</p>
-                <h3 className="mt-2 text-xl font-semibold text-slate-950">Distribution et stocks</h3>
+          <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div><h2 className="text-lg font-semibold text-slate-950">Disposition des tables</h2><p className="mt-1 text-sm text-slate-600">Occupation des espaces configurés.</p></div>
+              <Link href="/dashboard/tables" className="text-sm font-semibold text-slate-700 underline decoration-slate-300 underline-offset-4 hover:text-slate-950">Gérer les tables</Link>
+            </div>
+            {statsLoading ? <p className="mt-5 text-sm text-slate-500">Chargement des données…</p> : tableSummary.length ? (
+              <div className="mt-4 divide-y divide-slate-100">
+                {tableSummary.map(table => {
+                  const capacity = Math.max(0, table.capacity);
+                  const percent = capacity ? Math.min(100, Math.round((table.guestCount / capacity) * 100)) : 0;
+                  return <div key={table.id} className="flex items-center gap-3 py-3 first:pt-1 last:pb-0">
+                    <div className="min-w-0 flex-1"><div className="flex justify-between gap-3 text-sm"><span className="truncate font-medium text-slate-900">{table.label}</span><span className="shrink-0 tabular-nums text-slate-600">{table.guestCount}{capacity ? ` / ${capacity}` : ""}</span></div><div className="mt-2 h-1.5 rounded-full bg-slate-100"><div className="h-full rounded-full bg-slate-800" style={{ width: `${percent}%` }} /></div></div>
+                  </div>;
+                })}
               </div>
-              <span className="rounded-full bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
-                {drinkTotal} total
-              </span>
-            </div>
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
-              {topDrinks.length === 0 ? (
-                <div className="md:col-span-3">
-                  <EmptyState title="Aucune boisson" description="Ajoute des boissons pour suivre la consommation et les stocks." />
-                </div>
-              ) : (
-                topDrinks.map(drink => (
-                  <div key={drink.id} className="rounded-[24px] border border-slate-200/80 bg-slate-50 p-4">
-                    <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">{drink.category}</p>
-                    <p className="mt-2 text-lg font-semibold text-slate-950">{drink.name}</p>
-                    <p className="mt-1 text-sm text-slate-600">Quantite totale: {drink.totalQuantity}</p>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+            ) : <div className="mt-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-600">Aucune table configurée pour cet événement.</div>}
+          </article>
         </section>
       ) : null}
     </main>
   );
 }
-

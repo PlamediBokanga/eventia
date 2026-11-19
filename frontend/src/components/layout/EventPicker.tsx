@@ -1,25 +1,27 @@
 import type { EventItem } from "@/lib/dashboard";
 
 export function EventPicker({
+  id,
   events,
   selectedEventId,
   onSelect
 }: {
   events: EventItem[];
+  id?: string;
   selectedEventId?: number | null;
   onSelect: (event: EventItem) => void;
 }) {
   if (events.length === 0) {
     return <p className="text-small">Aucun evenement disponible.</p>;
   }
-
-  const selected = events.find(event => event.id === selectedEventId) ?? events[0];
+  const value = selectedEventId ?? events[0].id;
 
   return (
-    <div className="space-y-2">
+    <div>
       <select
-        className="w-full rounded-full border border-primary/20 bg-background/80 px-4 py-2 text-xs"
-        value={selectedEventId ?? selected.id}
+        id={id}
+        className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+        value={value}
         onChange={e => {
           const value = Number(e.target.value);
           const event = events.find(item => item.id === value);
@@ -33,17 +35,6 @@ export function EventPicker({
           </option>
         ))}
       </select>
-      {selected ? (
-        <div className="rounded-xl border border-primary/10 bg-background/70 px-3 py-2 text-[11px] text-text/60">
-          <div className="flex justify-between gap-2">
-            <span className="font-medium text-text">{selected.name}</span>
-            <span className="uppercase">{selected.type}</span>
-          </div>
-          <div>
-            {new Date(selected.dateTime).toLocaleString("fr-FR")} . {selected.location}
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

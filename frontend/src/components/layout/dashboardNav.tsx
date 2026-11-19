@@ -18,11 +18,11 @@ export type NavSection = {
 export const ROLE_META: Record<DashboardRole, { label: string; description: string }> = {
   user: {
     label: "Compte standard",
-    description: "Acces general"
+    description: "Accès général"
   },
   organizer: {
     label: "Organisateur",
-    description: "Pilotage d'evenements"
+    description: "Pilotage d’événements"
   },
   agency: {
     label: "Agence",
@@ -30,11 +30,11 @@ export const ROLE_META: Record<DashboardRole, { label: string; description: stri
   },
   company: {
     label: "Entreprise",
-    description: "Evenements corporate"
+    description: "Événements corporate"
   },
   superadmin: {
     label: "Super admin",
-    description: "Gouvernance plateforme"
+    description: "Gouvernance de la plateforme"
   }
 };
 
@@ -44,19 +44,19 @@ const ADMIN_ROLES: DashboardRole[] = ["superadmin"];
 
 export const MENU_SECTIONS: NavSection[] = [
   {
-    title: "Dashboard",
-    items: [{ href: "/dashboard", label: "Dashboard", icon: "home", roles: ALL_DASHBOARD_ROLES }]
+    title: "Vue d’ensemble",
+    items: [{ href: "/dashboard", label: "Vue d’ensemble", icon: "home", roles: ALL_DASHBOARD_ROLES }]
   },
   {
-    title: "Gestion evenement",
+    title: "Événement",
     items: [
-      { href: "/dashboard/events", label: "Evenements", icon: "calendar", roles: ALL_DASHBOARD_ROLES },
-      { href: "/dashboard/guests", label: "Invites", icon: "users", roles: ALL_DASHBOARD_ROLES },
+      { href: "/dashboard/events", label: "Événements", icon: "calendar", roles: ALL_DASHBOARD_ROLES },
+      { href: "/dashboard/guests", label: "Invités", icon: "users", roles: ALL_DASHBOARD_ROLES },
       { href: "/dashboard/tables", label: "Tables", icon: "grid", roles: ALL_DASHBOARD_ROLES }
     ]
   },
   {
-    title: "Experience invites",
+    title: "Expérience des invités",
     items: [
       { href: "/dashboard/invitations", label: "Invitations", icon: "mail", roles: ALL_DASHBOARD_ROLES },
       { href: "/dashboard/scanner", label: "Scanner QR", icon: "qr", roles: ALL_DASHBOARD_ROLES },
@@ -73,7 +73,7 @@ export const MENU_SECTIONS: NavSection[] = [
     ]
   },
   {
-    title: "Analyse",
+    title: "Pilotage",
     items: [{ href: "/dashboard/stats", label: "Statistiques", icon: "chart", roles: ALL_DASHBOARD_ROLES }]
   },
   {
@@ -85,11 +85,11 @@ export const MENU_SECTIONS: NavSection[] = [
     ]
   },
   {
-    title: "Parametres",
+    title: "Compte et préférences",
     items: [
       { href: "/dashboard/profile", label: "Profil", icon: "user", roles: ALL_DASHBOARD_ROLES },
-      { href: "/dashboard/settings", label: "Parametres", icon: "settings", roles: ALL_DASHBOARD_ROLES },
-      { href: "/dashboard/security", label: "Securite", icon: "shield", roles: ALL_DASHBOARD_ROLES }
+      { href: "/dashboard/settings", label: "Préférences", icon: "settings", roles: ALL_DASHBOARD_ROLES },
+      { href: "/dashboard/security", label: "Sécurité", icon: "shield", roles: ALL_DASHBOARD_ROLES }
     ]
   },
   {
