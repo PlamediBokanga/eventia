@@ -65,6 +65,30 @@ function getCameraErrorMessage(err: unknown) {
   }
 }
 
+function getCameraDiagnostic(err: unknown) {
+  const error = err as { name?: string; message?: string } | null;
+  const name = error?.name ?? "";
+  const detail = error?.message ? ` (${error.message})` : "";
+  switch (name) {
+    case "NotAllowedError":
+      return "Autorisation refusee. Autorisez la camera pour eventia-one.vercel.app dans les reglages du navigateur.";
+    case "NotFoundError":
+      return "Aucune camera detectee par le navigateur.";
+    case "NotReadableError":
+      return "Camera occupee ou bloquee par le systeme. Fermez les autres applications qui l'utilisent.";
+    case "SecurityError":
+      return "Acces bloque pour raisons de securite. Ouvrez Eventia en HTTPS dans Chrome ou Safari.";
+    case "OverconstrainedError":
+      return "La camera demandee ne correspond pas aux capacites de cet appareil. Relancez avec la camera par defaut.";
+    case "AbortError":
+      return "Demarrage camera interrompu. Appuyez sur Activer la camera pour reessayer.";
+    case "TypeError":
+      return "API camera absente ou contexte non securise. Ouvrez la page dans un navigateur complet en HTTPS.";
+    default:
+      return `Erreur camera${name ? ` (${name})` : ""}${detail}. Ouvrez cette page dans Chrome ou Safari et verifiez les permissions.`;
+  }
+}
+
 export default function DashboardCheckinPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
@@ -76,6 +100,7 @@ export default function DashboardCheckinPage() {
   const [manualToken, setManualToken] = useState("");
   const [manualQuery, setManualQuery] = useState("");
   const [scanHint, setScanHint] = useState("En attente d'un QR code...");
+  const [cameraDiagnostic, setCameraDiagnostic] = useState<string | null>(null);
   const [showResultModal, setShowResultModal] = useState(false);
   const [manualResults, setManualResults] = useState<
     Array<{
@@ -165,6 +190,7 @@ export default function DashboardCheckinPage() {
     if (!scanning || mode === "MANUAL" || showResultModal) {
       stopScanner(readerRef.current);
       readerRef.current = null;
+      setCameraDiagnostic(null);
       return;
     }
 
@@ -178,6 +204,7 @@ export default function DashboardCheckinPage() {
       if (!video) return;
 
       try {
+        setCameraDiagnostic(null);
         const handleScanFrame = (result?: { getText: () => string } | null, err?: unknown) => {
           if (cancelled) return;
 
@@ -197,7 +224,9 @@ export default function DashboardCheckinPage() {
         };
 
         if (!navigator.mediaDevices?.getUserMedia) {
-          throw new Error("getUserMedia indisponible");
+          const error = new TypeError("getUserMedia indisponible");
+          setCameraDiagnostic(getCameraDiagnostic(error));
+          throw error;
         }
 
         try {
@@ -205,8 +234,13 @@ export default function DashboardCheckinPage() {
             audio: false,
             video: { facingMode: { ideal: "environment" } }
           });
-        } catch {
-          activeStream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
+        } catch (rearCameraError) {
+          try {
+            activeStream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
+          } catch (cameraError) {
+            setCameraDiagnostic(getCameraDiagnostic(cameraError ?? rearCameraError));
+            throw cameraError;
+          }
         }
 
         if (cancelled) {
@@ -219,10 +253,12 @@ export default function DashboardCheckinPage() {
         await video.play().catch(() => undefined);
         void reader.decodeFromVideoElement(video, handleScanFrame).catch(err => {
           if (!cancelled) {
+            setCameraDiagnostic(getCameraDiagnostic(err));
             safeCameraToast(getCameraErrorMessage(err));
           }
         });
       } catch (startErr) {
+        setCameraDiagnostic(getCameraDiagnostic(startErr));
         safeCameraToast(getCameraErrorMessage(startErr));
       }
     }
@@ -691,6 +727,13 @@ export default function DashboardCheckinPage() {
               />
             </div>
           <p className="text-sm text-slate-600">{scanHint}</p>
+          {cameraDiagnostic && mode === "SCAN" && (
+            <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium leading-6 text-rose-950">
+              <p className="font-semibold">Diagnostic camera</p>
+              <p>{cameraDiagnostic}</p>
+              <p className="mt-1 text-xs font-normal text-rose-900">Sur Android: appuyez sur l’icone a gauche de l’adresse du site, puis autorisez Camera. Sur iPhone: Reglages &gt; Safari &gt; Camera.</p>
+            </div>
+          )}
 
           {mode === "MANUAL" ? (
             <div className="space-y-3">
