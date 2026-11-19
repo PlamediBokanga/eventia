@@ -7,6 +7,7 @@ import crypto from "crypto";
 import http from "http";
 import https from "https";
 import sharp from "sharp";
+import { getUploadDirectory, getUploadedFilePath } from "../uploads";
 
 export const invitationsRouter = Router();
 
@@ -134,8 +135,7 @@ async function fetchAssetBuffer(req: any, rawUrl: string): Promise<Buffer> {
   }
 
   if (trimmed.startsWith("/uploads/")) {
-    const filePath = path.join(process.cwd(), trimmed.replace(/^\//, ""));
-    return fs.readFile(filePath);
+    return fs.readFile(getUploadedFilePath(trimmed));
   }
 
   const absoluteUrl = resolveAbsoluteUrl(req, trimmed);
@@ -368,7 +368,7 @@ invitationsRouter.post("/:token/upload-media", async (req, res) => {
 
     const safeBase = String(fileName).replace(/[^a-zA-Z0-9._-]/g, "").slice(0, 40) || "memory";
     const filename = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}-${safeBase}.${parsed.ext}`;
-    const uploadDir = path.join(process.cwd(), "uploads");
+    const uploadDir = getUploadDirectory();
     await fs.mkdir(uploadDir, { recursive: true });
     await fs.writeFile(path.join(uploadDir, filename), parsed.buffer);
     const url = `/uploads/${filename}`;
@@ -829,11 +829,6 @@ invitationsRouter.get("/:token/pdf", async (req, res) => {
         greetingTop + 40,
         { width: contentW - 36 }
       );
-      if (invitationData.guest.event.invitationMessage) {
-        const msg = toPlainText(invitationData.guest.event.invitationMessage);
-        doc.font(fonts.italic).fontSize(10.5).fillColor(muted).text(msg, 64, greetingTop + 66, { width: contentW - 36 });
-      }
-
       const cardsY = greetingTop + 138;
       const cardWidth = (contentW - 18) / 2;
       const cardHeight = 118;
@@ -863,6 +858,20 @@ invitationsRouter.get("/:token/pdf", async (req, res) => {
         noteY + 34,
         { width: contentW - 36 }
       );
+    }
+
+    async function drawInvitationMessagePage() {
+      const message = invitationData.guest.event.invitationMessage;
+      if (!message) return;
+      doc.addPage();
+      doc.rect(0, 0, pageW, pageH).fill("#FFFFFF");
+      doc.fillColor(accent).font(fonts.bold).fontSize(10).text("MESSAGE DES ORGANISATEURS", 46, 50);
+      doc.fillColor(primary).font(fonts.bold).fontSize(20).text("Votre invitation", 46, 68);
+      doc.font(fonts.italic).fontSize(11).fillColor(text).text(toPlainText(message), 46, 112, {
+        width: contentW,
+        paragraphGap: 8,
+        lineGap: 3
+      });
     }
 
     async function drawQrPage() {
@@ -967,6 +976,7 @@ invitationsRouter.get("/:token/pdf", async (req, res) => {
 
     await drawCoverPage();
     await drawDetailsPage();
+    await drawInvitationMessagePage();
     await drawQrPage();
     await drawProgramPage();
 

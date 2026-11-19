@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { API_URL } from "@/lib/config";
 import { InviteSteps } from "@/components/layout/InviteSteps";
 import { getInvitationAnimationClass, getInvitationThemeStyle } from "@/lib/invitationTheme";
@@ -35,7 +36,8 @@ function formatTime(value: string) {
   });
 }
 
-export default function InviteChatPage({ params }: { params: { token: string } }) {
+export default function InviteChatPage() {
+  const { token } = useParams<{ token: string }>();
   const [meta, setMeta] = useState<InvitationData | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [text, setText] = useState("");
@@ -45,7 +47,7 @@ export default function InviteChatPage({ params }: { params: { token: string } }
 
   async function loadMeta() {
     try {
-      const res = await fetch(`${API_URL}/invitations/${params.token}`);
+      const res = await fetch(`${API_URL}/invitations/${token}`);
       if (!res.ok) return;
       setMeta((await res.json()) as InvitationData);
     } catch {
@@ -55,7 +57,7 @@ export default function InviteChatPage({ params }: { params: { token: string } }
 
   async function loadChat() {
     try {
-      const res = await fetch(`${API_URL}/invitations/${params.token}/chat`);
+      const res = await fetch(`${API_URL}/invitations/${token}/chat`);
       if (!res.ok) {
         setInfo("Chargement du chat impossible.");
         return;
@@ -75,14 +77,14 @@ export default function InviteChatPage({ params }: { params: { token: string } }
       }
     }
     void init();
-  }, [params.token]);
+  }, [token]);
 
   useEffect(() => {
     const id = window.setInterval(() => {
       void loadChat();
     }, 7000);
     return () => window.clearInterval(id);
-  }, [params.token]);
+  }, [token]);
 
   async function sendMessage(e: React.FormEvent) {
     e.preventDefault();
@@ -93,7 +95,7 @@ export default function InviteChatPage({ params }: { params: { token: string } }
     setSending(true);
     setInfo(null);
     try {
-      const res = await fetch(`${API_URL}/invitations/${params.token}/chat`, {
+      const res = await fetch(`${API_URL}/invitations/${token}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text })
@@ -120,7 +122,7 @@ export default function InviteChatPage({ params }: { params: { token: string } }
         className={`mx-auto flex w-full max-w-6xl flex-col gap-4 ${getInvitationAnimationClass(meta?.event.animationStyle)}`}
         style={getInvitationThemeStyle(meta?.event)}
       >
-        <InviteSteps token={params.token} current="chat" />
+        <InviteSteps token={token} current="chat" />
 
         <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -161,7 +163,7 @@ export default function InviteChatPage({ params }: { params: { token: string } }
               <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Mur de discussion</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-900">Messages recents</h2>
             </div>
-            <Link href={`/invite/${params.token}/guestbook`} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5">
+            <Link href={`/invite/${token}/guestbook`} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5">
               Livre d'or
             </Link>
           </div>
@@ -230,10 +232,10 @@ export default function InviteChatPage({ params }: { params: { token: string } }
         </section>
 
         <section className="grid gap-4 sm:grid-cols-2">
-          <Link href={`/invite/${params.token}/invitation`} className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 text-center text-sm font-semibold text-slate-900 shadow-sm transition hover:-translate-y-0.5">
+          <Link href={`/invite/${token}/invitation`} className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 text-center text-sm font-semibold text-slate-900 shadow-sm transition hover:-translate-y-0.5">
             Retour invitation
           </Link>
-          <Link href={`/invite/${params.token}/guestbook`} className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 text-center text-sm font-semibold text-slate-900 shadow-sm transition hover:-translate-y-0.5">
+          <Link href={`/invite/${token}/guestbook`} className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 text-center text-sm font-semibold text-slate-900 shadow-sm transition hover:-translate-y-0.5">
             Aller au livre d'or
           </Link>
         </section>

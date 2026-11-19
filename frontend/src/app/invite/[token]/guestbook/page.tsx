@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { API_URL } from "@/lib/config";
 import { InviteSteps } from "@/components/layout/InviteSteps";
 import type { InvitationData } from "@/components/InvitationClient";
@@ -17,7 +18,8 @@ function formatDateTime(value: string) {
   });
 }
 
-export default function InviteGuestbookPage({ params }: { params: { token: string } }) {
+export default function InviteGuestbookPage() {
+  const { token } = useParams<{ token: string }>();
   const [data, setData] = useState<InvitationData | null>(null);
   const [text, setText] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -28,15 +30,15 @@ export default function InviteGuestbookPage({ params }: { params: { token: strin
 
   useEffect(() => {
     async function load() {
-      const res = await fetch(`${API_URL}/invitations/${params.token}`);
+      const res = await fetch(`${API_URL}/invitations/${token}`);
       if (!res.ok) return;
       setData((await res.json()) as InvitationData);
     }
     void load();
-  }, [params.token]);
+  }, [token]);
 
   async function refreshInvitation() {
-    const res = await fetch(`${API_URL}/invitations/${params.token}`);
+    const res = await fetch(`${API_URL}/invitations/${token}`);
     if (!res.ok) return;
     setData((await res.json()) as InvitationData);
   }
@@ -50,7 +52,7 @@ export default function InviteGuestbookPage({ params }: { params: { token: strin
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch(`${API_URL}/invitations/${params.token}/guestbook`, {
+      const res = await fetch(`${API_URL}/invitations/${token}/guestbook`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text })
@@ -77,7 +79,7 @@ export default function InviteGuestbookPage({ params }: { params: { token: strin
         reader.onerror = () => reject(new Error("File read failed"));
         reader.readAsDataURL(file);
       });
-      const res = await fetch(`${API_URL}/invitations/${params.token}/upload-media`, {
+      const res = await fetch(`${API_URL}/invitations/${token}/upload-media`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fileName: file.name, dataUrl })
@@ -104,7 +106,7 @@ export default function InviteGuestbookPage({ params }: { params: { token: strin
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch(`${API_URL}/invitations/${params.token}/memories`, {
+      const res = await fetch(`${API_URL}/invitations/${token}/memories`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -137,7 +139,7 @@ export default function InviteGuestbookPage({ params }: { params: { token: strin
         className={`mx-auto flex w-full max-w-6xl flex-col gap-4 ${getInvitationAnimationClass(data?.event.animationStyle)}`}
         style={getInvitationThemeStyle(data?.event)}
       >
-        <InviteSteps token={params.token} current="guestbook" />
+        <InviteSteps token={token} current="guestbook" />
 
         <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -182,10 +184,10 @@ export default function InviteGuestbookPage({ params }: { params: { token: strin
             <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
               <span>{remaining} caracteres restants</span>
               <div className="flex flex-wrap gap-2">
-                <Link href={`/invite/${params.token}/invitation`} className="rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-900 transition hover:-translate-y-0.5">
+                <Link href={`/invite/${token}/invitation`} className="rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-900 transition hover:-translate-y-0.5">
                   Retour invitation
                 </Link>
-                <Link href={`/invite/${params.token}/chat`} className="rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-900 transition hover:-translate-y-0.5">
+                <Link href={`/invite/${token}/chat`} className="rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-900 transition hover:-translate-y-0.5">
                   Aller au chat
                 </Link>
               </div>

@@ -8,6 +8,7 @@ import crypto from "crypto";
 import sharp from "sharp";
 import type { AuthRequest } from "../middleware/auth";
 import { authMiddleware } from "../middleware/auth";
+import { getUploadDirectory } from "../uploads";
 
 export const eventsRouter = Router();
 
@@ -537,7 +538,7 @@ eventsRouter.post("/", authMiddleware, async (req, res) => {
         address: cleanOptionalText(address, 220),
         details: cleanOptionalText(details, 1200),
         program: cleanOptionalText(program, 2000),
-        invitationMessage: cleanOptionalInvitationHtml(invitationMessage, 4000),
+        invitationMessage: cleanOptionalInvitationHtml(invitationMessage, 20000),
         coverImageUrl: cleanOptionalText(coverImageUrl, 500),
         hostNames: cleanOptionalText(hostNames, 200),
         seatingMode: seatingModeFinal,
@@ -622,7 +623,7 @@ eventsRouter.post("/upload-cover", authMiddleware, async (req, res) => {
 
     const safeBase = String(fileName).replace(/[^a-zA-Z0-9._-]/g, "").slice(0, 40) || "cover";
     const filename = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}-${safeBase}.${finalExt}`;
-    const uploadDir = path.join(process.cwd(), "uploads");
+    const uploadDir = getUploadDirectory();
     await fs.mkdir(uploadDir, { recursive: true });
     await fs.writeFile(path.join(uploadDir, filename), finalBuffer);
 
@@ -816,7 +817,7 @@ eventsRouter.put("/:id", authMiddleware, async (req, res) => {
           program: typeof program === "string" || program === null ? cleanOptionalText(program, 2000) : undefined,
           invitationMessage:
             typeof invitationMessage === "string" || invitationMessage === null
-              ? cleanOptionalInvitationHtml(invitationMessage, 4000)
+              ? cleanOptionalInvitationHtml(invitationMessage, 20000)
               : undefined,
           coverImageUrl:
             typeof coverImageUrl === "string" || coverImageUrl === null

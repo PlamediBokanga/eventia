@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import path from "path";
+import { getUploadDirectory } from "./uploads";
 import { eventsRouter } from "./routes/events";
 import { guestsRouter } from "./routes/guests";
 import { authRouter } from "./routes/auth";
@@ -38,7 +38,7 @@ export function createApp() {
   );
 
   app.use(express.json({ limit: "8mb" }));
-  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+  app.use("/uploads", express.static(getUploadDirectory()));
 
   app.get("/health", (_req, res) => {
     res.json({ status: "ok", message: "EVENTIA backend fonctionne." });
