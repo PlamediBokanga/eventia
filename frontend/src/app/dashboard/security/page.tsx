@@ -113,45 +113,11 @@ export default function DashboardSecurityPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.08),transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] px-3 py-4 md:px-6 md:py-6">
+    <main className="space-y-6 pb-8 font-sans">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 md:gap-5">
-        <Header title="Securite" />
+      <Header title="Sécurité" description="Protégez votre compte, gérez votre mot de passe et vos alertes de sécurité." />
 
         <AccountSectionTabs active="security" />
-
-        <section className="overflow-hidden rounded-[32px] border border-slate-800/70 bg-[linear-gradient(135deg,rgba(2,6,23,0.98),rgba(15,23,42,0.96),rgba(30,41,59,0.96))] p-5 text-white shadow-2xl shadow-slate-900/30 md:p-6">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="space-y-3">
-              <p className="text-[11px] uppercase tracking-[0.32em] text-white/55">Protection du compte</p>
-              <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">Acces, sessions et alertes de securite</h1>
-              <p className="max-w-2xl text-sm leading-6 text-white/72">
-                Un espace isole pour renforcer l'acces au compte sans melanger les donnees de profil ni les parametres produits.
-              </p>
-              <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.18em]">
-                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">Mot de passe</span>
-                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">Sessions</span>
-                <span className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1.5 text-emerald-100">Alerte active</span>
-              </div>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[420px]">
-              <div className="rounded-[22px] border border-white/10 bg-white/8 px-4 py-3 backdrop-blur">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-white/50">Bloc</p>
-                <p className="mt-1 text-lg font-semibold">Mot de passe</p>
-                <p className="mt-1 text-xs text-white/60">Renover et verrouiller</p>
-              </div>
-              <div className="rounded-[22px] border border-white/10 bg-white/8 px-4 py-3 backdrop-blur">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-white/50">Bloc</p>
-                <p className="mt-1 text-lg font-semibold">Sessions</p>
-                <p className="mt-1 text-xs text-white/60">Vue et deconnexion</p>
-              </div>
-              <div className="rounded-[22px] border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-emerald-50 backdrop-blur">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-emerald-100/60">Bloc</p>
-                <p className="mt-1 text-lg font-semibold">Alertes</p>
-                <p className="mt-1 text-xs text-emerald-50/70">Connexion suspecte</p>
-              </div>
-            </div>
-          </div>
-        </section>
 
         <div className="grid gap-4 lg:grid-cols-[1fr,0.95fr]">
           <section className="space-y-4 rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">

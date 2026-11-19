@@ -165,9 +165,9 @@ export default function DashboardProfilePage() {
   );
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.08),transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] px-3 py-4 md:px-6 md:py-6">
+    <main className="space-y-6 pb-8 font-sans">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 md:gap-5">
-        <Header title="Profil" />
+        <Header title="Profil" description="Gérez votre identité, vos coordonnées et les informations de votre organisation." />
 
         <AccountSectionTabs active="profile" />
 
@@ -177,9 +177,9 @@ export default function DashboardProfilePage() {
             <div className="space-y-5 p-6 md:p-8">
               <div className="space-y-3">
                 <p className="text-[11px] uppercase tracking-[0.32em] text-white/55">Compte organisateur</p>
-                <h1 className="max-w-2xl text-3xl font-semibold tracking-tight md:text-5xl">Votre profil Eventia, presente comme une vraie vitrine de marque.</h1>
+                <h2 className="max-w-2xl text-3xl font-semibold tracking-tight md:text-4xl">Votre espace organisateur</h2>
                 <p className="max-w-2xl text-sm leading-6 text-white/72">
-                  Centralisez votre identite, votre societe, votre image publique et vos chiffres d'activite dans un espace qui ressemble a un tableau de bord premium.
+                  Consultez vos informations de compte et votre activité, puis mettez à jour votre identité et vos coordonnées.
                 </p>
               </div>
 

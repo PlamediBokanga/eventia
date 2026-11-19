@@ -238,8 +238,8 @@ export default function DashboardChatPage() {
   }
 
   return (
-    <main className="space-y-4">
-      <Header title="Chat - Invites" />
+    <main className="space-y-6 pb-8 font-sans">
+      <Header title="Messagerie" description="Consultez les échanges avec les invités et répondez depuis un espace unique." />
       <div className="grid gap-4 lg:grid-cols-[1.1fr,2fr]">
         <section className="card p-4 space-y-4">
           <div className="flex flex-col gap-2">

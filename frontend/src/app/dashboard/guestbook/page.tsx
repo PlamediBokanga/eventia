@@ -183,8 +183,8 @@ export default function DashboardGuestBookPage() {
   }
 
   return (
-    <main className="space-y-4">
-      <Header title="Livre d'or" />
+    <main className="space-y-6 pb-8 font-sans">
+      <Header title="Livre d’or" description="Modérez et gérez les messages laissés par les invités." />
       <section className="card p-4 space-y-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-1">

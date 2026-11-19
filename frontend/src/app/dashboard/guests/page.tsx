@@ -930,8 +930,8 @@ export default function DashboardGuestsPage() {
   }, [guests]);
 
   return (
-    <main className="space-y-4">
-      <Header title="Invit?s" />
+    <main className="space-y-6 pb-8 font-sans">
+      <Header title="Invités" description="Gérez les coordonnées, confirmations, placements et invitations de vos participants." />
       <div className="grid gap-4">
         <section className="card p-4 space-y-3">
           {!selectedEvent ? (

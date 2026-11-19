@@ -306,8 +306,8 @@ export default function DashboardDrinksPage() {
   const totalGuests = stats?.guests.total ?? 0;
 
   return (
-    <main className="space-y-4">
-      <Header title="Gestion des boissons" />
+    <main className="space-y-6 pb-8 font-sans">
+      <Header title="Boissons" description="Configurez les choix proposés aux invités et suivez les quantités prévues." />
       <section className="card p-4 space-y-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>

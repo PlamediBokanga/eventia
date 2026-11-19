@@ -453,8 +453,8 @@ export default function DashboardTablesPage() {
   }
 
   return (
-    <main className="space-y-4">
-      <Header title="Plan de salle" />
+    <main className="space-y-6 pb-8 font-sans">
+      <Header title="Plan de salle" description="Organisez les tables ou les zones, suivez leur capacité et répartissez les invités." />
       <section className="card p-4 space-y-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>

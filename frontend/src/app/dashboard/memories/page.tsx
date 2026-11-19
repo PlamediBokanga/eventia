@@ -90,8 +90,8 @@ export default function DashboardMemoriesPage() {
   }
 
   return (
-    <main className="space-y-4">
-      <Header title="Album Souvenirs" />
+    <main className="space-y-6 pb-8 font-sans">
+      <Header title="Souvenirs" description="Retrouvez les photos et vidéos partagées autour de votre événement." />
       <div className="grid gap-4 lg:grid-cols-[1.1fr,1.9fr]">
         <section className="card p-4">
           {loading ? (

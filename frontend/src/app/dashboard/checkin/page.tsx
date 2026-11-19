@@ -587,13 +587,13 @@ export default function DashboardCheckinPage() {
       title="Controle des entrees"
       description="Cette page est reservee aux organisateurs, agences, entreprises et super admin."
     >
-    <main className={fullscreen ? "min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.08),transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] p-3 md:p-6" : "min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.08),transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] px-3 py-4 md:px-6 md:py-6"}>
-      <Header title="Scanner des invitations" />
+    <main className={fullscreen ? "min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.08),transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] p-3 md:p-6" : "space-y-6 pb-8 font-sans"}>
+      <Header title="Scanner QR" description="Contrôlez les accès et suivez les entrées de vos événements en temps réel." />
       <section className="rounded-[32px] border border-white/70 bg-white/84 p-4 space-y-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Controle des entrees</p>
-            <h2 className="mt-2 text-3xl font-semibold text-slate-900">Scanner des invitations</h2>
+            <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Contrôle des entrées</p>
+            <h2 className="mt-2 text-xl font-semibold text-slate-900">Sélection de l’événement</h2>
             <p className="text-small text-textSecondary">
               Scannez rapidement les QR codes, affichez le resultat en plein ecran et suivez l'affluence en temps reel.
             </p>

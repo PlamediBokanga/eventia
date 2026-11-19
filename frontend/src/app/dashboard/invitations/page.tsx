@@ -47,27 +47,27 @@ export default function DashboardInvitationsPage() {
     : "";
 
   return (
-    <main className="space-y-4">
-      <Header title="Invitations" />
+    <main className="space-y-6 pb-8 font-sans">
+      <Header title="Invitations" description="Prévisualisez votre invitation et accédez rapidement au partage des liens individuels." />
 
       <div className="grid gap-4 xl:grid-cols-[0.95fr,1.05fr]">
         <section className="overflow-hidden rounded-[28px] border border-white/40 bg-white/85 shadow-xl shadow-slate-200/50 backdrop-blur-xl">
           <div className="border-b border-slate-200/70 bg-white/70 px-5 py-5">
             <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Gestion</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-900">Choisir l'evenement</h2>
+            <h2 className="mt-2 text-xl font-semibold text-slate-900">Choisir un événement</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Les invitations sont li?es ? un ?v?nement actif. S?lectionnez celui que vous souhaitez partager.
+              Les invitations sont liées à un événement. Sélectionnez celui que vous souhaitez consulter.
             </p>
           </div>
           <div className="p-4">
             {loading ? (
               <div className="rounded-[22px] border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-sm text-slate-600">
-                Chargement des evenements...
+                Chargement des événements…
               </div>
             ) : events.length === 0 ? (
               <EmptyState
-                title="Aucun ?v?nement"
-                description="Cr?ez un ?v?nement pour configurer vos invitations."
+                title="Aucun événement"
+                description="Créez un événement pour configurer vos invitations."
               />
             ) : (
               <EventPicker
@@ -85,16 +85,16 @@ export default function DashboardInvitationsPage() {
         <section className="overflow-hidden rounded-[28px] border border-white/40 bg-white/85 shadow-xl shadow-slate-200/50 backdrop-blur-xl">
           <div className="border-b border-slate-200/70 bg-white/70 px-5 py-5">
             <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Aperçu</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-900">Aper?u et partage</h2>
+            <h2 className="mt-2 text-xl font-semibold text-slate-900">Aperçu et partage</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Un aperçu rapide des elements qui seront visibles par vos invites.
+              Un aperçu des éléments visibles par vos invités.
             </p>
           </div>
 
           {!selectedEvent ? (
             <div className="p-5">
               <div className="rounded-[22px] border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-sm text-slate-600">
-                S?lectionnez un ?v?nement pour voir son invitation.
+                Sélectionnez un événement pour voir son invitation.
               </div>
             </div>
           ) : (

@@ -102,11 +102,6 @@ export default function DashboardStatsPage() {
     return Math.max(...stats.confirmationsSeries.map(item => item.count));
   }, [stats?.confirmationsSeries]);
 
-  const tableLoad = useMemo(() => {
-    if (!stats?.tables?.length) return 0;
-    return stats.tables.reduce((total, table) => total + pct(table.guestCount, table.capacity || table.guestCount || 1), 0) / stats.tables.length;
-  }, [stats?.tables]);
-
   const confirmationsGrowth = useMemo(() => {
     if (!stats?.confirmationsSeries?.length) return 0;
     if (stats.confirmationsSeries.length === 1) return stats.confirmationsSeries[0].count;
@@ -122,35 +117,9 @@ export default function DashboardStatsPage() {
   }, [stats]);
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.08),transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] px-3 py-4 md:px-6 md:py-6">
+    <main className="space-y-6 pb-8 font-sans">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 md:gap-5">
-        <Header title="Statistiques" />
-
-        <section className="rounded-[32px] border border-white/70 bg-white/85 p-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="space-y-2">
-              <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Pilotage événement</p>
-              <h2 className="text-3xl font-semibold text-slate-900 md:text-4xl">Statistiques en temps réel</h2>
-              <p className="max-w-2xl text-sm leading-6 text-slate-600">
-                Suivi des confirmations, des scans QR, des tables, de l’activité et des revenus dans une vue claire, exploitable le jour J.
-              </p>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[460px]">
-              <div className="rounded-[22px] border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Participation</p>
-                <p className="mt-1 text-2xl font-semibold text-slate-900">{stats?.guests.attendanceRate ?? 0}%</p>
-              </div>
-              <div className="rounded-[22px] border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Tables remplies</p>
-                <p className="mt-1 text-2xl font-semibold text-slate-900">{Math.round(tableLoad)}%</p>
-              </div>
-              <div className="rounded-[22px] border border-slate-200/80 bg-slate-950 px-4 py-3 shadow-sm text-white">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-white/60">Prévision</p>
-                <p className="mt-1 text-2xl font-semibold">{stats ? estimatedAttendance : 0}</p>
-              </div>
-            </div>
-          </div>
-        </section>
+        <Header title="Statistiques" description="Suivez les réponses, la participation et l’organisation de votre événement." />
 
         <section className="rounded-[32px] border border-white/70 bg-white/85 p-4 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-5 space-y-3">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
