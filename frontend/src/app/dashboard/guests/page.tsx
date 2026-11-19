@@ -15,8 +15,8 @@ import { API_URL } from "@/lib/config";
 type TableItem = { id: number; label: string };
 
 function statusLabel(status: GuestItem["status"]) {
-  if (status === "CONFIRMED") return "Confirme";
-  if (status === "CANCELED") return "Annule";
+  if (status === "CONFIRMED") return "Confirmé";
+  if (status === "CANCELED") return "Annulé";
   return "En attente";
 }
 
@@ -130,9 +130,9 @@ export default function DashboardGuestsPage() {
   const { pushToast } = useToast();
 
   function seatingLabel(mode: "TABLE" | "ZONE" | "NONE") {
-    if (mode === "ZONE") return "Mode: Zones/Sections";
-    if (mode === "NONE") return "Mode: Sans tables/sections";
-    return "Mode: Tables";
+    if (mode === "ZONE") return "Placement par zones ou sections";
+    if (mode === "NONE") return "Sans placement";
+    return "Placement par tables";
   }
 
   async function copyInvitation(url?: string | null) {
@@ -933,28 +933,29 @@ export default function DashboardGuestsPage() {
     <main className="space-y-6 pb-8 font-sans">
       <Header title="Invités" description="Gérez les coordonnées, confirmations, placements et invitations de vos participants." />
       <div className="grid gap-4">
-        <section className="card p-4 space-y-3">
+        <section className="space-y-5 rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
           {!selectedEvent ? (
-            <p className="text-small">S?lectionnez un ?v?nement.</p>
+            <p className="text-sm text-slate-600">Sélectionnez un événement pour afficher sa liste d’invités.</p>
           ) : (
             <>
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <h2 className="title-4">Gestion des invit?s</h2>
-                  <p className="text-small text-textSecondary">Suivez les invit?s, les statuts RSVP, les tables et le partage individuel.</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Événement sélectionné</p>
+                  <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-900">{selectedEvent.name}</h2>
+                  <p className="mt-1 text-sm text-slate-600">Suivez les confirmations, les placements et le partage individuel.</p>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {loading ? (
                     <div className="min-w-[220px] rounded-full border border-primary/10 bg-background/70 px-3 py-2 text-[11px] text-text/60">
                       Chargement des evenements...
                     </div>
                   ) : events.length === 0 ? (
                     <div className="min-w-[220px] rounded-full border border-primary/10 bg-background/70 px-3 py-2 text-[11px] text-text/60">
-                      Aucun ?v?nement disponible
+                      Aucun événement disponible
                     </div>
                   ) : (
                     <select
-                      className="min-w-[220px] rounded-full border border-primary/20 bg-background/80 px-4 py-2 text-xs"
+                      className="min-h-10 min-w-[220px] rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
                       value={selectedEvent?.id ?? ""}
                       onChange={e => {
                         const value = Number(e.target.value);
@@ -971,10 +972,11 @@ export default function DashboardGuestsPage() {
                       ))}
                     </select>
                   )}
-                  <Button type="button" className="px-4 py-2 text-xs" onClick={openAdd}>
-                    + Ajouter un invit?
+                  <Button type="button" className="min-h-10 px-4 py-2 text-sm" onClick={openAdd}>
+                    + Ajouter un invité
                   </Button>
-                  <label className="btn-ghost px-3 py-2 text-xs cursor-pointer">
+                  <div className="flex flex-wrap items-center gap-2 border-slate-200 md:border-l md:pl-2">
+                  <label className="btn-ghost min-h-10 cursor-pointer px-3 py-2 text-sm">
                     {importing ? "Import..." : "Importer CSV"}
                     <input
                       type="file"
@@ -991,22 +993,22 @@ export default function DashboardGuestsPage() {
                   <Button
                     type="button"
                     variant="ghost"
-                    className="px-3 py-2 text-xs"
+                    className="min-h-10 px-3 py-2 text-sm"
                     onClick={downloadGuestsTemplate}
                   >
-                    Mod?le CSV
+                    Modèle CSV
                   </Button>
-                  <Button type="button" variant="ghost" className="px-3 py-2 text-xs" onClick={downloadGuestsPdf}>
+                  <Button type="button" variant="ghost" className="min-h-10 px-3 py-2 text-sm" onClick={downloadGuestsPdf}>
                     Exporter PDF
                   </Button>
-                  <Button type="button" variant="ghost" className="px-3 py-2 text-xs" onClick={downloadGuestsCsv}>
+                  <Button type="button" variant="ghost" className="min-h-10 px-3 py-2 text-sm" onClick={downloadGuestsCsv}>
                     Exporter CSV
                   </Button>
-                  <div className="flex items-center gap-1 rounded-full border border-primary/10 bg-background/70 px-1 py-1">
+                  <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1">
                     <button
                       type="button"
                       className={`rounded-full px-3 py-1 text-[11px] ${
-                        viewMode === "table" ? "bg-primary/10 text-text" : "text-text/60 hover:bg-primary/5"
+                        viewMode === "table" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:bg-white/70"
                       }`}
                       onClick={() => setViewMode("table")}
                     >
@@ -1015,42 +1017,43 @@ export default function DashboardGuestsPage() {
                     <button
                       type="button"
                       className={`rounded-full px-3 py-1 text-[11px] ${
-                        viewMode === "cards" ? "bg-primary/10 text-text" : "text-text/60 hover:bg-primary/5"
+                        viewMode === "cards" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:bg-white/70"
                       }`}
                       onClick={() => setViewMode("cards")}
                     >
                       Cartes
                     </button>
                   </div>
+                  </div>
                 </div>
               </div>
 
               {selectedEvent ? (
-                <p className="text-[11px] text-text/60">{seatingLabel(selectedEvent.seatingMode ?? "TABLE")}</p>
+                <p className="text-xs text-slate-500">{seatingLabel(selectedEvent.seatingMode ?? "TABLE")}</p>
               ) : null}
 
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-2xl border border-primary/10 bg-background/70 p-3">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">Total</p>
-                  <p className="mt-1 text-lg font-semibold">{stats.total}</p>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Total invités</p>
+                  <p className="mt-1 text-xl font-semibold tabular-nums text-slate-900">{stats.total}</p>
                 </div>
-                <div className="rounded-2xl border border-green-200 bg-green-50 p-3">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-green-700">Confirm?s</p>
-                  <p className="mt-1 text-lg font-semibold text-green-700">{stats.confirmed}</p>
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-800">Confirmés</p>
+                  <p className="mt-1 text-xl font-semibold tabular-nums text-emerald-900">{stats.confirmed}</p>
                 </div>
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-amber-700">En attente</p>
-                  <p className="mt-1 text-lg font-semibold text-amber-700">{stats.pending}</p>
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-800">En attente</p>
+                  <p className="mt-1 text-xl font-semibold tabular-nums text-amber-900">{stats.pending}</p>
                 </div>
-                <div className="rounded-2xl border border-red-200 bg-red-50 p-3">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-red-700">Annul?s</p>
-                  <p className="mt-1 text-lg font-semibold text-red-700">{stats.canceled}</p>
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-rose-800">Annulés</p>
+                  <p className="mt-1 text-xl font-semibold tabular-nums text-rose-900">{stats.canceled}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-[1.4fr,1fr,1fr,auto] gap-2 text-xs">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(220px,1.4fr)_minmax(150px,1fr)_minmax(160px,1fr)_auto]">
                 <Input
-                  placeholder="Rechercher un invit?..."
+                  placeholder="Rechercher un invité…"
                   value={search}
                   onChange={e => {
                     setSearch(e.target.value);
@@ -1058,7 +1061,8 @@ export default function DashboardGuestsPage() {
                   }}
                 />
                 <select
-                  className="rounded-xl border border-primary/20 bg-background/80 px-3 py-2"
+                  aria-label="Filtrer par statut"
+                  className="min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
                   value={status}
                   onChange={e => {
                     setStatus(e.target.value as typeof status);
@@ -1066,12 +1070,13 @@ export default function DashboardGuestsPage() {
                   }}
                 >
                   <option value="ALL">Tous les statuts</option>
-                  <option value="CONFIRMED">Confirmes</option>
+                  <option value="CONFIRMED">Confirmés</option>
                   <option value="PENDING">En attente</option>
-                  <option value="CANCELED">Annules</option>
+                  <option value="CANCELED">Annulés</option>
                 </select>
                 <select
-                  className="rounded-xl border border-primary/20 bg-background/80 px-3 py-2"
+                  aria-label="Filtrer par table ou zone"
+                  className="min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
                   value={tableFilter}
                   onChange={e => {
                     setTableFilter(e.target.value);
@@ -1089,7 +1094,8 @@ export default function DashboardGuestsPage() {
                   ))}
                 </select>
                 <select
-                  className="rounded-xl border border-primary/20 bg-background/80 px-3 py-2"
+                  aria-label="Nombre d’invités par page"
+                  className="min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
                   value={pageSize}
                   onChange={e => {
                     setPageSize(Number(e.target.value));
@@ -1115,8 +1121,8 @@ export default function DashboardGuestsPage() {
                 ) : sortedGuests.length === 0 ? (
                   <div className="p-3">
                     <EmptyState
-                      title="Aucun invite trouve"
-                      description="Ajoute un invite ou ajuste les filtres pour voir les resultats."
+                      title="Aucun invité trouvé"
+                      description="Ajoutez un invité ou ajustez les filtres pour afficher les résultats."
                     />
                   </div>
                 ) : (

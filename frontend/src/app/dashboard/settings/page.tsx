@@ -3,17 +3,13 @@
 import { useEffect, useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { AccountSectionTabs } from "@/components/dashboard/AccountSectionTabs";
-import { EventPicker } from "@/components/layout/EventPicker";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { authFetch, getSelectedEventId, setSelectedEventId, type EventItem, type OrganizerProfile, type OrganizerSettings, type ReferralCommission } from "@/lib/dashboard";
+import { authFetch, type OrganizerSettings, type ReferralCommission } from "@/lib/dashboard";
 import { useToast } from "@/components/ui/Toast";
 
 export default function DashboardSettingsPage() {
-  const [events, setEvents] = useState<EventItem[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
-  const [profile, setProfile] = useState<OrganizerProfile | null>(null);
   const [settings, setSettings] = useState<OrganizerSettings | null>(null);
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [commissions, setCommissions] = useState<ReferralCommission[]>([]);
@@ -26,23 +22,11 @@ export default function DashboardSettingsPage() {
   useEffect(() => {
     async function init() {
       try {
-        const [eventsRes, settingsRes, meRes, commissionsRes] = await Promise.all([
-          authFetch("/events"),
+        const [settingsRes, meRes, commissionsRes] = await Promise.all([
           authFetch("/auth/settings"),
           authFetch("/auth/me"),
           authFetch("/auth/commissions")
         ]);
-
-        if (eventsRes.ok) {
-          const eventData = (await eventsRes.json()) as EventItem[];
-          setEvents(eventData);
-          if (eventData.length > 0) {
-            const savedId = getSelectedEventId();
-            const chosen = (savedId && eventData.find(event => event.id === savedId)) || eventData[0];
-            setSelectedEvent(chosen);
-            setSelectedEventId(chosen.id);
-          }
-        }
 
         if (settingsRes.ok) {
           const payload = (await settingsRes.json()) as { settings: OrganizerSettings };
@@ -50,8 +34,7 @@ export default function DashboardSettingsPage() {
         }
 
         if (meRes.ok) {
-          const payload = (await meRes.json()) as { organizer?: OrganizerProfile };
-          setProfile(payload.organizer ?? null);
+          const payload = (await meRes.json()) as { organizer?: { referralCode?: string | null } };
           setReferralCode(payload.organizer?.referralCode ?? null);
         }
 
@@ -85,7 +68,7 @@ export default function DashboardSettingsPage() {
       }
       const payload = (await res.json()) as { settings: OrganizerSettings };
       setSettings(payload.settings);
-      pushToast("Parametres enregistres.");
+      pushToast("Préférences enregistrées.");
     } finally {
       setSavingSettings(false);
     }
@@ -115,30 +98,14 @@ export default function DashboardSettingsPage() {
 
         <AccountSectionTabs active="settings" />
 
-        <div className="grid gap-4 lg:grid-cols-[1fr,1.4fr]">
-          <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6 space-y-4">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Contexte evenement</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Choisir un evenement de reference</h2>
-            </div>
-            {loading ? (
-              <p className="text-sm text-slate-600">Chargement...</p>
-            ) : events.length === 0 ? (
-              <EmptyState title="Aucun evenement" description="Creez un evenement pour personnaliser vos parametres." />
-            ) : (
-              <EventPicker
-                events={events}
-                selectedEventId={selectedEvent?.id}
-                onSelect={event => {
-                  setSelectedEvent(event);
-                  setSelectedEventId(event.id);
-                }}
-              />
-            )}
-
-            <div className="rounded-[24px] border border-slate-200/80 bg-slate-50 p-4 space-y-3">
-              <p className="text-sm font-semibold text-slate-900">Programme partenaire</p>
-              <p className="text-sm leading-6 text-slate-600">Invitez d'autres organisateurs et suivez vos gains depuis le meme tableau de bord.</p>
+        <div className="grid gap-4 lg:grid-cols-[1.4fr,0.8fr]">
+          <section className="order-2 rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm md:p-6 lg:order-2">
+            <div className="space-y-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Programme partenaire</p>
+                <h2 className="mt-2 text-xl font-semibold text-slate-900">Invitez des organisateurs</h2>
+              </div>
+              <p className="text-sm leading-6 text-slate-600">Suivez votre code de parrainage et les commissions associées à vos invitations.</p>
               {referralCode ? (
                 <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
                   Code: <span className="font-semibold text-slate-900">{referralCode}</span>
@@ -154,7 +121,7 @@ export default function DashboardSettingsPage() {
                   <p className="mt-1 text-lg font-semibold text-slate-900">${commissionTotals.total}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                  <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Paye</p>
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Payé</p>
                   <p className="mt-1 text-lg font-semibold text-slate-900">${commissionTotals.paid}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
@@ -165,53 +132,53 @@ export default function DashboardSettingsPage() {
             </div>
           </section>
 
-          <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6 space-y-5">
-            {!selectedEvent ? (
-              <EmptyState title="Selection requise" description="Choisissez un evenement pour charger ses parametres." />
+          <section className="order-1 space-y-5 rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm md:p-6 lg:order-1">
+            {!settings ? (
+              <EmptyState title={loading ? "Chargement des préférences" : "Préférences indisponibles"} description={loading ? "Vos réglages sont en cours de chargement." : "Impossible de charger vos réglages pour le moment."} />
             ) : (
               <>
                 <div className="space-y-2">
-                  <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Notifications automatiques</p>
-                  <h2 className="text-2xl font-semibold text-slate-900">Programmation des messages</h2>
-                  <p className="text-sm leading-6 text-slate-600">
-                    Choisissez comment l'application vous previent pour vos evenements et vos messages.
-                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Préférences du compte</p>
+                  <h2 className="text-2xl font-semibold text-slate-900">Notifications et paramètres par défaut</h2>
+                  <p className="text-sm leading-6 text-slate-600">Les changements sont enregistrés uniquement après validation du formulaire.</p>
                 </div>
 
-                <form onSubmit={saveSettings} className="space-y-5">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {["7 jours avant", "3 jours avant", "1 jour avant", "Jour J"].map(label => (
-                      <label key={label} className="flex items-center justify-between gap-3 rounded-[18px] border border-slate-200/80 bg-slate-50 px-4 py-3 text-sm">
-                        <span>{label}</span>
-                        <input type="checkbox" defaultChecked className="accent-slate-900" />
-                      </label>
-                    ))}
-                  </div>
-
-                  <div className="rounded-[22px] border border-slate-200/80 bg-white p-4">
-                    <p className="text-sm font-semibold text-slate-900">Preferences generales</p>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">
-                      Le systeme utilise vos preferences pour generer des rappels coherents et professionnels.
-                    </p>
-                    <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-                      Apercu: rappel pour votre evenement <span className="font-semibold text-slate-900">{settings?.defaultEventType || "mariage"}</span> a <span className="font-semibold text-slate-900">{settings?.defaultEventTime || "18:00"}</span>.
+                <form onSubmit={saveSettings} className="space-y-6">
+                  <section className="space-y-3">
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-900">Canaux et alertes</h3>
+                      <p className="mt-1 text-sm text-slate-600">Choisissez les communications que vous souhaitez recevoir.</p>
                     </div>
-                    <p className="mt-3 text-sm text-slate-500">Variables: {"{event}"} {"{date}"} {"{location}"} {"{name}"}</p>
-                  </div>
-
-                  <div className="rounded-[22px] border border-slate-200/80 bg-slate-50 p-4 space-y-4">
-                    <p className="text-sm font-semibold text-slate-900">Parametres evenement par defaut</p>
-                    <div className="grid gap-3 sm:grid-cols-2 text-sm">
-                      {["WhatsApp", "SMS"].map(label => (
-                        <label key={label} className="flex items-center gap-2 rounded-[16px] border border-slate-200 bg-white px-3 py-2">
-                          <input type="checkbox" defaultChecked className="accent-slate-900" />
-                          <span>{label}</span>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {([
+                        ["emailNotifications", "Notifications par e-mail", "Informations et rappels importants."],
+                        ["messageNotifications", "Nouveaux messages", "Alertes lorsque des invités vous écrivent."],
+                        ["eventAlerts", "Alertes événement", "Mises à jour liées à vos événements."],
+                        ["marketingNotifications", "Actualités EVENTIA", "Conseils et nouveautés produit."],
+                      ] as const).map(([key, label, description]) => (
+                        <label key={key} className="flex min-h-[76px] items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 transition hover:border-slate-300">
+                          <span>
+                            <span className="block text-sm font-medium text-slate-900">{label}</span>
+                            <span className="mt-1 block text-xs leading-5 text-slate-500">{description}</span>
+                          </span>
+                          <input
+                            type="checkbox"
+                            className="peer sr-only"
+                            checked={settings[key]}
+                            onChange={e => setSettings(previous => previous ? { ...previous, [key]: e.target.checked } : previous)}
+                          />
+                          <span aria-hidden="true" className="relative h-6 w-11 shrink-0 rounded-full bg-slate-300 transition peer-checked:bg-slate-900 after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition peer-checked:after:translate-x-5 peer-focus-visible:ring-4 peer-focus-visible:ring-slate-200" />
                         </label>
                       ))}
                     </div>
-                  </div>
+                  </section>
 
-                  <div className="grid gap-4 md:grid-cols-2">
+                  <section className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-900">Langue et format</h3>
+                      <p className="mt-1 text-sm text-slate-600">Définissez les conventions utilisées dans votre espace.</p>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-700">Langue</label>
                       <Input value={settings?.language ?? ""} onChange={e => setSettings(prev => (prev ? { ...prev, language: e.target.value } : prev))} placeholder="fr" />
@@ -224,12 +191,21 @@ export default function DashboardSettingsPage() {
                       <label className="text-sm font-medium text-slate-700">Format date</label>
                       <Input value={settings?.dateFormat ?? ""} onChange={e => setSettings(prev => (prev ? { ...prev, dateFormat: e.target.value } : prev))} placeholder="DD/MM/YYYY" />
                     </div>
+                    </div>
+                  </section>
+
+                  <section className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-900">Valeurs d’événement par défaut</h3>
+                      <p className="mt-1 text-sm text-slate-600">Ces valeurs préremplissent la création de vos prochains événements.</p>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-700">Heure par defaut</label>
                       <Input value={settings?.defaultEventTime ?? ""} onChange={e => setSettings(prev => (prev ? { ...prev, defaultEventTime: e.target.value } : prev))} placeholder="18:00" />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Type evenement</label>
+                      <label className="text-sm font-medium text-slate-700">Type d’événement</label>
                       <Input value={settings?.defaultEventType ?? ""} onChange={e => setSettings(prev => (prev ? { ...prev, defaultEventType: e.target.value } : prev))} placeholder="mariage" />
                     </div>
                     <div className="space-y-2">
@@ -239,12 +215,13 @@ export default function DashboardSettingsPage() {
                         <input type="checkbox" className="accent-slate-900" checked={settings?.defaultQrEnabled ?? false} onChange={e => setSettings(prev => (prev ? { ...prev, defaultQrEnabled: e.target.checked } : prev))} />
                       </label>
                     </div>
-                  </div>
+                    </div>
+                  </section>
 
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="text-sm text-slate-500">Les parametres sont enregistres manuellement pour eviter tout changement involontaire.</p>
+                    <p className="text-sm text-slate-500">Enregistrement manuel : vos modifications restent en attente jusqu’à validation.</p>
                     <Button type="submit" className="rounded-2xl px-5 py-3 text-sm" disabled={savingSettings || !settings}>
-                      {savingSettings ? "Enregistrement..." : "Enregistrer les parametres"}
+                      {savingSettings ? "Enregistrement…" : "Enregistrer les préférences"}
                     </Button>
                   </div>
                 </form>
@@ -259,7 +236,7 @@ export default function DashboardSettingsPage() {
               <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Performance partenaire</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-900">Suivi des commissions</h2>
             </div>
-            <p className="text-sm text-slate-500">{commissions.length} mouvement(s) enregistres</p>
+            <p className="text-sm text-slate-500">{commissions.length} mouvement(s) enregistré(s)</p>
           </div>
           <div className="mt-4 overflow-hidden rounded-[24px] border border-slate-200/80 bg-slate-50">
             {commissions.length === 0 ? (
