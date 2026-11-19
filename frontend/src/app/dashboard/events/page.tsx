@@ -1,10 +1,7 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
-import { Header } from "@/components/layout/Header";
-import { EventPicker } from "@/components/layout/EventPicker";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { EmptyState } from "@/components/ui/EmptyState";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/Input";
 import { SafeHtml } from "@/components/ui/SafeHtml";
@@ -23,18 +20,18 @@ import { normalizePublicUrl } from "@/lib/url";
 const INVITATION_TEMPLATES = [
   {
     id: "wedding",
-    label: "Mariage Elegant",
-    html: `<h2>Invitation</h2><p>Chers invites,</p><p>Nous avons l'honneur de vous convier a notre celebration.</p><ul><li>Accueil des invites</li><li>Ceremonie</li><li>Reception</li></ul><p>Votre presence rendra ce moment inoubliable.</p>`
+    label: "Mariage élégant",
+    html: `<h2>Invitation</h2><p>Chers invités,</p><p>Nous avons l'honneur de vous convier à notre célébration.</p><ul><li>Accueil des invités</li><li>Cérémonie</li><li>Réception</li></ul><p>Votre présence rendra ce moment inoubliable.</p>`
   },
   {
     id: "birthday",
-    label: "Anniversaire Chic",
-    html: `<h2>Invitation Anniversaire</h2><p>Bonjour,</p><p>Vous etes cordialement invite(e) a partager un moment festif.</p><p><strong>Dress code:</strong> elegant et colore.</p><p>Merci de confirmer votre presence.</p>`
+    label: "Anniversaire chic",
+    html: `<h2>Invitation à un anniversaire</h2><p>Bonjour,</p><p>Vous êtes cordialement invité(e) à partager un moment festif.</p><p><strong>Tenue :</strong> élégante et colorée.</p><p>Merci de confirmer votre présence.</p>`
   },
   {
     id: "corporate",
-    label: "Evenement Corporate",
-    html: `<h2>Invitation Professionnelle</h2><p>Madame, Monsieur,</p><p>Nous avons le plaisir de vous inviter a cet evenement.</p><ul><li>Networking</li><li>Presentation</li><li>Cocktail</li></ul><p>Nous serions ravis de vous compter parmi nous.</p>`
+    label: "Événement professionnel",
+    html: `<h2>Invitation professionnelle</h2><p>Madame, Monsieur,</p><p>Nous avons le plaisir de vous inviter à cet événement.</p><ul><li>Rencontres professionnelles</li><li>Présentation</li><li>Cocktail</li></ul><p>Nous serions ravis de vous compter parmi nous.</p>`
   }
 ];
 
@@ -42,6 +39,8 @@ export default function DashboardEventsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [eventSearch, setEventSearch] = useState("");
+  const [activeSection, setActiveSection] = useState<"details" | "invitation" | "program" | "layout" | "design">("details");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -87,8 +86,23 @@ export default function DashboardEventsPage() {
   const [inviteToRemove, setInviteToRemove] = useState<{ id: number; email: string } | null>(null);
   const [coHostDeleteLoading, setCoHostDeleteLoading] = useState(false);
 
+  const visibleEvents = useMemo(() => {
+    const query = eventSearch.trim().toLocaleLowerCase("fr");
+    if (!query) return events;
+    return events.filter(event => `${event.name} ${event.type} ${event.location}`.toLocaleLowerCase("fr").includes(query));
+  }, [events, eventSearch]);
+
   async function loadEvents() {
-    const res = await authFetch("/events");
+    let res: Response;
+    try {
+      res = await authFetch("/events");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Le serveur ne répond pas.";
+      setLoadError(message);
+      setActionError(null);
+      pushToast(`Chargement des événements impossible. ${message}`, "error");
+      return;
+    }
     if (!res.ok) {
       const raw = await res.text().catch(() => "");
       let message = raw.trim();
@@ -98,7 +112,7 @@ export default function DashboardEventsPage() {
       } catch {
         // ignore non-JSON error bodies
       }
-      const friendlyMessage = message || "Impossible de charger les evenements.";
+      const friendlyMessage = message || "Impossible de charger les événements.";
       setLoadError(friendlyMessage);
       setActionError(null);
       console.error("GET /events failed", { status: res.status, message: friendlyMessage, raw });
@@ -179,6 +193,7 @@ export default function DashboardEventsPage() {
   }, [seatingMode]);
 
   function clearFormForCreate() {
+    setActiveSection("details");
     setName("");
     setType("mariage");
     setDateTime("");
@@ -251,9 +266,9 @@ export default function DashboardEventsPage() {
     setCoOrganizerEmail("");
     if (payload?.inviteLink) {
       setLastInviteLink(payload.inviteLink);
-      pushToast("Invitation creee.");
+      pushToast("Invitation créée.");
     } else {
-      pushToast("Co-organisateur ajoute.");
+      pushToast("Co-organisateur ajouté.");
     }
     await loadCoOrganizers(selectedEvent.id);
     await loadEvents();
@@ -271,7 +286,7 @@ export default function DashboardEventsPage() {
       setCoHostDeleteLoading(false);
       return;
     }
-    pushToast("Co-organisateur retire.");
+    pushToast("Co-organisateur retiré.");
     await loadCoOrganizers(selectedEvent.id);
     await loadEvents();
     setCoHostDeleteLoading(false);
@@ -289,7 +304,7 @@ export default function DashboardEventsPage() {
       setCoHostDeleteLoading(false);
       return;
     }
-    pushToast("Invitation retiree.");
+    pushToast("Invitation retirée.");
     await loadCoOrganizers(selectedEvent.id);
     setCoHostDeleteLoading(false);
   }
@@ -319,6 +334,7 @@ export default function DashboardEventsPage() {
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !type.trim() || !dateTime || !location.trim()) {
+      setActiveSection("details");
       pushToast("Nom, type, date et lieu sont obligatoires.", "error");
       return;
     }
@@ -355,14 +371,14 @@ export default function DashboardEventsPage() {
       if (!res.ok) {
         const payload = (await res.json().catch(() => null)) as { message?: string; details?: string } | null;
         const detail = payload?.details ? ` Detail: ${payload.details}` : payload?.message ? ` ${payload.message}` : "";
-        const message = `Creation impossible (HTTP ${res.status}).${detail}`;
+        const message = `Création impossible (HTTP ${res.status}).${detail}`;
         pushToast(message, "error");
         return;
       }
 
       const created = (await res.json()) as EventItem;
       setActionError(null);
-      pushToast("Evenement cree.");
+      pushToast("Événement créé.");
       await loadEvents();
       setSelectedEvent(created);
       setSelectedEventId(created.id);
@@ -374,6 +390,11 @@ export default function DashboardEventsPage() {
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedEvent) return;
+    if (!name.trim() || !type.trim() || !dateTime || !location.trim()) {
+      setActiveSection("details");
+      pushToast("Renseignez le nom, le type, la date et le lieu avant d’enregistrer.", "error");
+      return;
+    }
     setActionError(null);
     setSaving(true);
     try {
@@ -407,12 +428,12 @@ export default function DashboardEventsPage() {
       if (!res.ok) {
         const payload = (await res.json().catch(() => null)) as { message?: string; details?: string } | null;
         const detail = payload?.details ? ` Detail: ${payload.details}` : payload?.message ? ` ${payload.message}` : "";
-        const message = `Mise a jour impossible (HTTP ${res.status}).${detail}`;
+        const message = `Mise à jour impossible (HTTP ${res.status}).${detail}`;
         pushToast(message, "error");
         return;
       }
       setActionError(null);
-      pushToast("Evenement mis a jour.");
+      pushToast("Événement mis à jour.");
       await loadEvents();
     } finally {
       setSaving(false);
@@ -428,7 +449,7 @@ export default function DashboardEventsPage() {
         pushToast("Suppression impossible.", "error");
         return;
       }
-      pushToast("Evenement supprime.");
+      pushToast("Événement supprimé.");
       await loadEvents();
       clearFormForCreate();
     } finally {
@@ -469,7 +490,7 @@ export default function DashboardEventsPage() {
       }
       const payload = (await res.json()) as { url: string };
       setCoverImageUrl(payload.url);
-      pushToast("Photo telechargee.");
+      pushToast("Photo téléversée.");
     } catch {
       pushToast("Upload image impossible.", "error");
     } finally {
@@ -496,79 +517,122 @@ export default function DashboardEventsPage() {
 
   const previewCoverImageUrl = normalizePublicUrl(coverImageUrl);
 
+  const editorSections = [
+    { id: "details", label: "Informations", helper: "Nom, date et lieu" },
+    { id: "invitation", label: "Invitation", helper: "Message et aperçu" },
+    { id: "program", label: "Programme", helper: "Étapes et horaires" },
+    { id: "layout", label: "Placement", helper: "Tables et capacité" },
+    { id: "design", label: "Apparence", helper: "Thème et identité" }
+  ] as const;
+
   return (
-    <main className="space-y-4">
-      <Header title="Gestion Evenements" />
-      <div className="grid gap-4 lg:grid-cols-[1.1fr,1.9fr]">
-        <section className="card p-4 space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="title-4">Mes activites</h2>
-            <Button type="button" variant="ghost" className="px-3 py-2 text-xs" onClick={clearFormForCreate}>
-              Nouvelle activite
-            </Button>
+    <main className="space-y-6 pb-8 font-sans">
+      <header className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Gestion de vos activités</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Événements</h1>
+          <p className="mt-1 text-sm text-slate-600">Créez et gérez les informations, invitations et paramètres de chaque événement.</p>
+        </div>
+        <Button type="button" className="min-h-11 rounded-xl px-4 py-2.5 text-sm" onClick={clearFormForCreate}>
+          + Nouvel événement
+        </Button>
+      </header>
+
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(250px,0.72fr)_minmax(0,1.8fr)]">
+        <section aria-labelledby="events-list-title" className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:sticky lg:top-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 id="events-list-title" className="text-base font-semibold text-slate-950">Vos événements</h2>
+              <p className="mt-1 text-xs text-slate-500">{loading ? "Chargement…" : `${events.length} au total`}</p>
+            </div>
           </div>
+          {!loading && events.length > 0 ? (
+            <label className="mt-4 block">
+              <span className="sr-only">Rechercher un événement</span>
+              <Input value={eventSearch} onChange={event => setEventSearch(event.target.value)} placeholder="Rechercher un événement" className="min-h-10 rounded-xl text-sm" />
+            </label>
+          ) : null}
           {loading ? (
-            <p className="text-small">Chargement...</p>
+            <div className="mt-4 space-y-3" aria-label="Chargement des événements">
+              {[1, 2, 3].map(item => <div key={item} className="h-20 animate-pulse rounded-xl bg-slate-100" />)}
+            </div>
           ) : loadError ? (
-            <div role="alert" aria-live="assertive" className="rounded-3xl border-2 border-red-300 bg-gradient-to-br from-red-950 via-rose-950 to-slate-950 p-4 text-xs text-white shadow-2xl shadow-red-950/35 space-y-3 ring-1 ring-red-200/40">
-              <p className="text-[11px] font-black uppercase tracking-[0.24em] text-red-200">Erreur de chargement</p>
-              <p className="leading-6 break-words text-white font-semibold">{loadError}</p>
-              <Button type="button" variant="ghost" className="px-3 py-2 text-xs bg-white text-red-950 border border-red-200 font-bold hover:bg-red-50" onClick={() => void loadEvents()}>
-                Reessayer
+            <div role="alert" className="mt-4 space-y-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900">
+              <p className="font-semibold">Impossible de charger les événements</p>
+              <p className="break-words">{loadError}</p>
+              <Button type="button" variant="ghost" className="min-h-10 rounded-lg bg-white px-3 py-2 text-sm text-rose-900" onClick={() => void loadEvents()}>
+                Réessayer
               </Button>
             </div>
           ) : events.length === 0 ? (
-            <EmptyState
-              title="Aucun evenement"
-              description="Creez votre premiere activite depuis le formulaire a droite."
-            />
+            <div className="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5">
+              <p className="text-sm font-semibold text-slate-900">Aucun événement</p>
+              <p className="mt-1 text-sm leading-6 text-slate-600">Créez votre premier événement pour commencer à gérer les invitations.</p>
+              <Button type="button" className="mt-4 min-h-10 rounded-lg px-3 text-sm" onClick={clearFormForCreate}>Créer un événement</Button>
+            </div>
           ) : (
-            <EventPicker
-              events={events}
-              selectedEventId={selectedEvent?.id}
-              onSelect={event => {
-                setSelectedEvent(event);
-                setSelectedEventId(event.id);
-              }}
-            />
+            <div className="mt-3 max-h-[min(64vh,620px)] space-y-2 overflow-y-auto pr-1">
+              {visibleEvents.length ? visibleEvents.map(event => {
+                const active = selectedEvent?.id === event.id;
+                return <button key={event.id} type="button" aria-pressed={active} onClick={() => { setSelectedEvent(event); setSelectedEventId(event.id); setActiveSection("details"); }} className={`w-full rounded-xl border p-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 ${active ? "border-slate-900 bg-slate-950 text-white shadow-sm" : "border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50"}`}>
+                  <span className="block truncate text-sm font-semibold">{event.name}</span>
+                  <span className={`mt-1 block text-xs ${active ? "text-white/70" : "text-slate-500"}`}>{event.type || "Événement"} · {new Date(event.dateTime).toLocaleDateString("fr-FR")}</span>
+                  <span className={`mt-1 block truncate text-xs ${active ? "text-white/70" : "text-slate-500"}`}>{event.location}</span>
+                </button>;
+              }) : <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">Aucun résultat pour « {eventSearch} ».</p>}
+            </div>
           )}
         </section>
 
-        <section className="card p-4">
-          <h2 className="title-4 mb-3">
-            {selectedEvent ? "Modifier l'activite et l'invitation" : "Creer une activite et son invitation"}
-          </h2>
+        <section className="min-w-0 rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-200 px-4 py-4 sm:px-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{selectedEvent ? "Événement sélectionné" : "Nouvel événement"}</p>
+                <h2 className="mt-1 text-xl font-semibold text-slate-950">{selectedEvent ? `Modifier ${selectedEvent.name}` : "Créer un événement"}</h2>
+                <p className="mt-1 text-sm text-slate-600">Les champs marqués comme requis doivent être renseignés.</p>
+              </div>
+              {selectedEvent ? <Button type="button" variant="ghost" className="min-h-10 rounded-lg px-3 text-sm text-rose-700 hover:bg-rose-50" onClick={openDeleteConfirm}>Supprimer</Button> : null}
+            </div>
+          </div>
           {actionError ? (
             <div className="mb-3 rounded-3xl border-2 border-red-300 bg-gradient-to-r from-red-950 via-rose-950 to-slate-950 px-4 py-3 text-[12px] leading-6 text-white shadow-2xl shadow-red-950/35 ring-1 ring-red-200/40" role="alert" aria-live="assertive">
-              <p className="text-[11px] font-black uppercase tracking-[0.24em] text-red-200">Derniere erreur</p>
+          <p className="text-[11px] font-black uppercase tracking-[0.24em] text-red-200">Dernière erreur</p>
               <p className="break-words font-semibold text-white">{actionError}</p>
             </div>
           ) : null}
-          <form onSubmit={selectedEvent ? handleUpdate : handleCreate} className="grid gap-3 text-xs">
+          <form onSubmit={selectedEvent ? handleUpdate : handleCreate} className="text-sm">
+            <nav aria-label="Sections du formulaire événement" className="flex gap-1 overflow-x-auto border-b border-slate-200 px-3 py-2 sm:px-5">
+              {editorSections.map(section => <button key={section.id} type="button" aria-pressed={activeSection === section.id} onClick={() => setActiveSection(section.id)} className={`shrink-0 rounded-lg px-3 py-2 text-left transition ${activeSection === section.id ? "bg-slate-950 text-white" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"}`}>
+                <span className="block text-sm font-semibold">{section.label}</span><span className={`hidden text-[11px] sm:block ${activeSection === section.id ? "text-white/70" : "text-slate-500"}`}>{section.helper}</span>
+              </button>)}
+            </nav>
+            <div className="min-h-[350px] p-4 sm:p-6">
+            {activeSection === "details" ? <section aria-label="Informations de l’événement" className="space-y-4">
             <div className="space-y-1">
-              <label className="text-small">Nom de l'activite</label>
-              <Input value={name} onChange={e => setName(e.target.value)} required />
+              <label htmlFor="event-name" className="block text-sm font-medium text-slate-700">Nom de l’événement <span className="text-rose-700">*</span></label>
+              <Input id="event-name" value={name} onChange={e => setName(e.target.value)} required className="min-h-11 rounded-lg bg-white text-sm" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div className="space-y-1">
-                <label className="text-small">Type</label>
-                <Input value={type} onChange={e => setType(e.target.value)} required />
+                <label htmlFor="event-type" className="block text-sm font-medium text-slate-700">Type <span className="text-rose-700">*</span></label>
+                <Input id="event-type" value={type} onChange={e => setType(e.target.value)} required className="min-h-11 rounded-lg bg-white text-sm" />
               </div>
               <div className="space-y-1">
-                <label className="text-small">Date et heure</label>
-                <Input type="datetime-local" value={dateTime} onChange={e => setDateTime(e.target.value)} required />
+                <label htmlFor="event-datetime" className="block text-sm font-medium text-slate-700">Date et heure <span className="text-rose-700">*</span></label>
+                <Input id="event-datetime" type="datetime-local" value={dateTime} onChange={e => setDateTime(e.target.value)} required className="min-h-11 rounded-lg bg-white text-sm" />
               </div>
             </div>
             <div className="space-y-1">
-              <label className="text-small">Lieu</label>
-              <Input value={location} onChange={e => setLocation(e.target.value)} required />
+              <label htmlFor="event-location" className="block text-sm font-medium text-slate-700">Lieu <span className="text-rose-700">*</span></label>
+              <Input id="event-location" value={location} onChange={e => setLocation(e.target.value)} required className="min-h-11 rounded-lg bg-white text-sm" />
             </div>
             <div className="space-y-1">
-              <label className="text-small">Adresse complete (optionnel)</label>
+              <label className="text-small">Adresse complète (optionnel)</label>
               <Input value={address} onChange={e => setAddress(e.target.value)} />
             </div>
             <div className="space-y-1">
-              <label className="text-small">Photo de l'activite (optionnel)</label>
+              <label className="text-small">Photo de l’activité (optionnel)</label>
               <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto] gap-2">
                 <Input
                   value={coverImageUrl}
@@ -576,7 +640,7 @@ export default function DashboardEventsPage() {
                   placeholder="URL image ou upload depuis votre appareil"
                 />
                 <label className="btn-ghost px-3 py-2 text-xs cursor-pointer text-center">
-                  {uploadingImage ? "Upload..." : "Telecharger"}
+                  {uploadingImage ? "Téléversement…" : "Choisir une photo"}
                   <input
                     type="file"
                     accept="image/png,image/jpeg,image/jpg"
@@ -593,13 +657,13 @@ export default function DashboardEventsPage() {
               {coverImageUrl ? (
                 <img
                   src={previewCoverImageUrl}
-                  alt="Apercu couverture"
+                  alt="Aperçu de la couverture"
                   className="mt-1 h-28 w-full rounded-xl object-cover border border-primary/10"
                 />
               ) : null}
             </div>
             <div className="space-y-1">
-              <label className="text-small">Noms des proprietaires / hotes (optionnel)</label>
+              <label className="text-small">Noms des hôtes (optionnel)</label>
               <Input
                 value={hostNames}
                 onChange={e => setHostNames(e.target.value)}
@@ -607,39 +671,41 @@ export default function DashboardEventsPage() {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-small">Logo (optionnel)</label>
+              <label className="text-small">Logo de l’événement (optionnel)</label>
               <Input
                 value={logoUrl}
                 onChange={e => setLogoUrl(e.target.value)}
-                placeholder="URL du logo de l'evenement"
+                placeholder="URL du logo de l’événement"
               />
             </div>
-            <div className="space-y-1 rounded-xl border border-primary/10 bg-background/60 p-3">
-              <p className="text-small font-medium">Personnalisation visuelle</p>
+            </section> : null}
+            {activeSection === "design" ? <section aria-label="Apparence de l’événement" className="space-y-4">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-base font-semibold text-slate-900">Personnalisation visuelle</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-small">Theme</label>
+                  <label className="text-small">Thème</label>
                   <select
                     className="w-full rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs"
                     value={themePreset}
                     onChange={e => setThemePreset(e.target.value)}
                   >
-                    <option value="classic">Classic</option>
-                    <option value="elegant">Elegant</option>
+                    <option value="classic">Classique</option>
+                    <option value="elegant">Élégant</option>
                     <option value="vibrant">Vibrant</option>
-                    <option value="minimal">Minimal</option>
+                    <option value="minimal">Minimaliste</option>
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-small">Animation</label>
+                  <label className="text-small">Animation de la page</label>
                   <select
                     className="w-full rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs"
                     value={animationStyle}
                     onChange={e => setAnimationStyle(e.target.value)}
                   >
                     <option value="none">Aucune</option>
-                    <option value="soft">Soft reveal</option>
-                    <option value="float">Float</option>
+                    <option value="soft">Apparition douce</option>
+                    <option value="float">Flottement</option>
                   </select>
                 </div>
                 <div className="space-y-1">
@@ -652,7 +718,7 @@ export default function DashboardEventsPage() {
                 </div>
               </div>
               <div className="space-y-1 mt-2">
-                <label className="text-small">Police principale</label>
+              <label className="text-small">Typographie</label>
                 <Input
                   value={fontFamily}
                   onChange={e => setFontFamily(e.target.value)}
@@ -660,6 +726,8 @@ export default function DashboardEventsPage() {
                 />
               </div>
             </div>
+            </section> : null}
+            {activeSection === "invitation" ? <section aria-label="Message d’invitation" className="space-y-4">
             <div className="space-y-1">
               <label className="text-small">Message d'invitation (optionnel)</label>
               <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto] gap-2">
@@ -688,6 +756,8 @@ export default function DashboardEventsPage() {
                 </div>
               ) : null}
             </div>
+            </section> : null}
+            {activeSection === "program" ? <section aria-label="Programme de l’événement" className="space-y-4">
             <div className="space-y-1">
               <label className="text-small">Details de l'activite (optionnel)</label>
               <textarea
@@ -772,6 +842,8 @@ export default function DashboardEventsPage() {
                 placeholder="Ex: 16h Accueil, 17h Ceremonie, 19h Soiree dansante..."
               />
             </div>
+            </section> : null}
+            {activeSection === "layout" ? <section aria-label="Placement des invités" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div className="space-y-1">
                 <label className="text-small">Mode d'organisation</label>
@@ -815,19 +887,18 @@ export default function DashboardEventsPage() {
                 Aucun placement n'est requis pour ce type d'activite.
               </div>
             ) : null}
-            <div className="flex flex-wrap items-center gap-2">
-              <Button type="submit" className="px-5 py-2 text-xs" disabled={saving || creating}>
-                {selectedEvent ? (saving ? "Sauvegarde..." : "Mettre a jour") : creating ? "Creation..." : "Creer"}
+            </section> : null}
+            </div>
+            <div className="sticky bottom-0 flex flex-col gap-3 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6">
+              <p className="text-xs text-slate-500">Les modifications ne sont enregistrées qu’après validation.</p>
+              <Button type="submit" className="min-h-11 rounded-xl px-5 py-2.5 text-sm font-semibold" disabled={saving || creating || uploadingImage}>
+                {selectedEvent ? (saving ? "Enregistrement…" : "Enregistrer les modifications") : creating ? "Création…" : "Créer l’événement"}
               </Button>
-              {selectedEvent ? (
-                <Button type="button" variant="ghost" className="px-4 py-2 text-xs" onClick={openDeleteConfirm}>
-                  Supprimer
-                </Button>
-              ) : null}
             </div>
           </form>
 
-          <div className="mt-6 space-y-3">
+          {selectedEvent ? <div className="border-t border-slate-200 p-4 sm:p-6">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <p className="title-4">Co-organisateurs</p>
@@ -927,6 +998,7 @@ export default function DashboardEventsPage() {
               )}
             </div>
           </div>
+          </div> : null}
         </section>
       </div>
 
