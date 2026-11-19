@@ -34,6 +34,9 @@ export default function DashboardDrinksPage() {
   >([]);
   const [stats, setStats] = useState<EventStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [eventsError, setEventsError] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [dataError, setDataError] = useState(false);
   const [drinksEnabled, setDrinksEnabled] = useState(true);
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -67,7 +70,10 @@ export default function DashboardDrinksPage() {
     async function init() {
       try {
         const res = await authFetch("/events");
-        if (!res.ok) return;
+        if (!res.ok) {
+          setEventsError(true);
+          return;
+        }
         const data = (await res.json()) as EventItem[];
         setEvents(data);
         if (data.length > 0) {
@@ -76,6 +82,8 @@ export default function DashboardDrinksPage() {
           setSelectedEvent(chosen);
           setSelectedEventId(chosen.id);
         }
+      } catch {
+        setEventsError(true);
       } finally {
         setLoading(false);
       }
@@ -84,18 +92,30 @@ export default function DashboardDrinksPage() {
   }, []);
 
   async function loadData(eventId: number) {
-    const [detailsRes, statsRes, choicesRes] = await Promise.all([
-      authFetch(`/events/${eventId}`),
-      authFetch(`/events/${eventId}/stats`),
-      authFetch(`/events/${eventId}/drinks/choices`)
-    ]);
-    if (detailsRes.ok) {
-      const details = (await detailsRes.json()) as EventItem & { drinks?: DrinkOption[] };
-      setDrinks(details.drinks ?? []);
-      setDrinksEnabled(details.drinksEnabled ?? true);
+    setDataLoading(true);
+    setDataError(false);
+    setDrinks([]);
+    setStats(null);
+    setDrinkChoices([]);
+    try {
+      const [detailsRes, statsRes, choicesRes] = await Promise.all([
+        authFetch(`/events/${eventId}`),
+        authFetch(`/events/${eventId}/stats`),
+        authFetch(`/events/${eventId}/drinks/choices`)
+      ]);
+      if (detailsRes.ok) {
+        const details = (await detailsRes.json()) as EventItem & { drinks?: DrinkOption[] };
+        setDrinks(details.drinks ?? []);
+        setDrinksEnabled(details.drinksEnabled ?? true);
+      }
+      if (statsRes.ok) setStats((await statsRes.json()) as EventStats);
+      if (choicesRes.ok) setDrinkChoices(await choicesRes.json());
+      if (!detailsRes.ok || !statsRes.ok || !choicesRes.ok) setDataError(true);
+    } catch {
+      setDataError(true);
+    } finally {
+      setDataLoading(false);
     }
-    if (statsRes.ok) setStats((await statsRes.json()) as EventStats);
-    if (choicesRes.ok) setDrinkChoices(await choicesRes.json());
   }
 
   useEffect(() => {
@@ -308,24 +328,26 @@ export default function DashboardDrinksPage() {
   return (
     <main className="space-y-6 pb-8 font-sans">
       <Header title="Boissons" description="Configurez les choix proposés aux invités et suivez les quantités prévues." />
-      <section className="card p-4 space-y-4">
+      <section className="space-y-6 rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h2 className="title-4">Gestion des boissons</h2>
-            <p className="text-small text-textSecondary">Definissez les choix et suivez les preferences.</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Événement actif</p>
+            <h2 className="mt-1 break-words text-xl font-semibold tracking-tight text-slate-900">{selectedEvent?.name ?? "Choisissez un événement"}</h2>
+            <p className="mt-1 text-sm text-slate-600">Configurez les choix disponibles et consultez les réponses des invités.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {loading ? (
-              <div className="min-w-[220px] rounded-full border border-primary/10 bg-background/70 px-3 py-2 text-[11px] text-text/60">
-                Chargement des evenements...
+              <div className="min-h-10 min-w-[220px] rounded-xl bg-slate-100 px-3 py-2 text-sm text-slate-600" role="status">
+                Chargement des événements...
               </div>
             ) : events.length === 0 ? (
-              <div className="min-w-[220px] rounded-full border border-primary/10 bg-background/70 px-3 py-2 text-[11px] text-text/60">
-                Aucun evenement disponible
+              <div className="min-h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+                Aucun événement disponible
               </div>
             ) : (
               <select
-                className="min-w-[220px] rounded-full border border-primary/20 bg-background/80 px-4 py-2 text-xs"
+                aria-label="Sélectionner un événement"
+                className="min-h-11 min-w-[220px] rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
                 value={selectedEvent?.id ?? ""}
                 onChange={e => {
                   const value = Number(e.target.value);
@@ -344,70 +366,96 @@ export default function DashboardDrinksPage() {
             )}
             <button
               type="button"
-              className={`rounded-full px-4 py-2 text-xs ${
-                drinksEnabled ? "bg-primary/10 text-text" : "bg-red-50 text-red-700"
+              aria-pressed={drinksEnabled}
+              disabled={!selectedEvent || loading}
+              className={`min-h-11 rounded-xl border px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                drinksEnabled ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-slate-300 bg-slate-100 text-slate-700"
               }`}
               onClick={toggleDrinksEnabled}
             >
-              Choix invites: {drinksEnabled ? "ON" : "OFF"}
+              Choix des invités : {drinksEnabled ? "Activés" : "Désactivés"}
             </button>
-            <Button type="button" className="px-4 py-2 text-xs" onClick={() => setCreateOpen(true)}>
-              + Ajouter une boisson
+            <Button type="button" className="min-h-11 px-4 py-2 text-sm" onClick={() => setCreateOpen(true)} disabled={!selectedEvent || loading}>
+              Ajouter une boisson
             </Button>
           </div>
         </div>
 
         {!selectedEvent ? (
-          <p className="text-small">Selectionnez un evenement.</p>
+          <EmptyState title={eventsError ? "Événements indisponibles" : "Sélection requise"} description={eventsError ? "Impossible de récupérer les événements. Actualisez la page pour réessayer." : "Sélectionnez un événement pour gérer les boissons et les réponses."} />
         ) : (
           <>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="rounded-2xl border border-primary/10 bg-background/70 p-3">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">Total invites</p>
-                <p className="mt-1 text-lg font-semibold">{totalGuests}</p>
+            {dataError ? (
+              <div className="flex flex-col gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 sm:flex-row sm:items-center sm:justify-between" role="alert">
+                <p className="text-sm font-medium text-rose-900">Certaines données de boissons n’ont pas pu être chargées.</p>
+                <Button type="button" variant="ghost" className="min-h-10" onClick={() => void loadData(selectedEvent.id)}>
+                  Réessayer
+                </Button>
               </div>
-              <div className="rounded-2xl border border-green-200 bg-green-50 p-3">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-green-700">Invites ayant choisi</p>
-                <p className="mt-1 text-lg font-semibold text-green-700">{guestsChosen}</p>
+            ) : null}
+            {dataLoading ? <p className="text-sm text-slate-500" role="status">Mise a jour des donnees...</p> : null}
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Invités</p>
+                <p className="mt-2 text-2xl font-semibold tabular-nums text-slate-900">{totalGuests}</p>
               </div>
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-amber-700">Boisson la plus demandee</p>
-                <p className="mt-1 text-lg font-semibold text-amber-700">{topDrink?.name ?? "-"}</p>
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-800">Invités ayant répondu</p>
+                <p className="mt-2 text-2xl font-semibold tabular-nums text-emerald-950">{guestsChosen}</p>
+                <p className="mt-1 text-xs text-emerald-800">{totalGuests ? Math.round((guestsChosen / totalGuests) * 100) : 0}% des invités</p>
+              </div>
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-amber-900">La plus demandée</p>
+                <p className="mt-2 truncate text-lg font-semibold text-amber-950" title={topDrink?.name ?? undefined}>{topDrink?.name ?? "Aucune reponse"}</p>
               </div>
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold">Boissons disponibles</h3>
-              {drinks.length === 0 ? (
-                <EmptyState
-                  title="Aucune boisson"
-                  description="Ajoutez les options soft et alcoolisees pour permettre le choix des invites."
-                />
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900">Options de boissons</h3>
+                  <p className="text-sm text-slate-600">Gérez le catalogue, les stocks et les limites par invité.</p>
+                </div>
+                <span className="text-sm text-slate-500">{drinks.length} option(s)</span>
+              </div>
+              {dataLoading ? (
+                <div className="animate-pulse rounded-xl bg-slate-100 px-4 py-8 text-center text-sm text-slate-600" role="status">Chargement du catalogue…</div>
+              ) : drinks.length === 0 ? (
+                <div className="space-y-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center">
+                  <EmptyState title="Aucune boisson" description="Ajoutez des options pour permettre aux invités de faire leur choix." />
+                  <Button type="button" className="min-h-11" onClick={() => setCreateOpen(true)}>Ajouter une boisson</Button>
+                </div>
+              ) : sortedDrinks.length === 0 ? (
+                <EmptyState title="Aucun resultat" description="Aucune boisson ne correspond aux filtres selectionnes." />
               ) : (
                 <>
-                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-3">
                     <select
-                      className="rounded-xl border border-primary/20 bg-background/80 px-3 py-2"
+                      aria-label="Trier les boissons"
+                      className="min-h-10 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800"
                       value={drinkSort}
-                      onChange={e => setDrinkSort(e.target.value as typeof drinkSort)}
+                      onChange={e => { setDrinkSort(e.target.value as typeof drinkSort); setDrinkPage(1); }}
                     >
                       <option value="name">Trier: Nom</option>
-                      <option value="category">Trier: Categorie</option>
-                      <option value="choices">Trier: Choix</option>
+                      <option value="category">Trier : catégorie</option>
+                      <option value="choices">Trier : choix</option>
                     </select>
                     <select
-                      className="rounded-xl border border-primary/20 bg-background/80 px-3 py-2"
+                      aria-label="Filtrer par categorie"
+                      className="min-h-10 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800"
                       value={drinkCategoryFilter}
-                      onChange={e => setDrinkCategoryFilter(e.target.value as typeof drinkCategoryFilter)}
+                      onChange={e => { setDrinkCategoryFilter(e.target.value as typeof drinkCategoryFilter); setDrinkPage(1); }}
                     >
                       <option value="ALL">Toutes</option>
                       <option value="SOFT">Soft</option>
-                      <option value="ALCOHOLIC">Alcoolisee</option>
+                      <option value="ALCOHOLIC">Alcoolisée</option>
                     </select>
                     <select
-                      className="rounded-xl border border-primary/20 bg-background/80 px-3 py-2"
+                      aria-label="Filtrer par stock"
+                      className="min-h-10 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800"
                       value={drinkStockFilter}
-                      onChange={e => setDrinkStockFilter(e.target.value as typeof drinkStockFilter)}
+                      onChange={e => { setDrinkStockFilter(e.target.value as typeof drinkStockFilter); setDrinkPage(1); }}
                     >
                       <option value="ALL">Tous stocks</option>
                       <option value="LOW">Stock faible</option>
@@ -415,13 +463,15 @@ export default function DashboardDrinksPage() {
                     </select>
                     <button
                       type="button"
-                      className="rounded-full border border-primary/10 bg-background/70 px-3 py-2 text-[11px]"
+                      aria-label={`Ordre ${drinkSortDir === "asc" ? "croissant" : "decroissant"}`}
+                      className="min-h-10 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700"
                       onClick={() => setDrinkSortDir(prev => (prev === "asc" ? "desc" : "asc"))}
                     >
                       {drinkSortDir === "asc" ? "Asc" : "Desc"}
                     </button>
                     <select
-                      className="rounded-xl border border-primary/20 bg-background/80 px-3 py-2"
+                      aria-label="Nombre de boissons par page"
+                      className="min-h-10 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800"
                       value={drinkPageSize}
                       onChange={e => {
                         setDrinkPageSize(Number(e.target.value));
@@ -433,11 +483,11 @@ export default function DashboardDrinksPage() {
                       <option value={9}>9</option>
                       <option value={12}>12</option>
                     </select>
-                    <div className="flex items-center gap-1 rounded-full border border-primary/10 bg-background/70 px-1 py-1">
+                    <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1">
                       <button
                         type="button"
                         className={`rounded-full px-3 py-1 text-[11px] ${
-                          drinkView === "cards" ? "bg-primary/10 text-text" : "text-text/60 hover:bg-primary/5"
+                          drinkView === "cards" ? "bg-slate-100 text-slate-900" : "text-slate-600 hover:bg-slate-50"
                         }`}
                         onClick={() => setDrinkView("cards")}
                       >
@@ -446,7 +496,7 @@ export default function DashboardDrinksPage() {
                       <button
                         type="button"
                         className={`rounded-full px-3 py-1 text-[11px] ${
-                          drinkView === "table" ? "bg-primary/10 text-text" : "text-text/60 hover:bg-primary/5"
+                          drinkView === "table" ? "bg-slate-100 text-slate-900" : "text-slate-600 hover:bg-slate-50"
                         }`}
                         onClick={() => setDrinkView("table")}
                       >
@@ -456,26 +506,26 @@ export default function DashboardDrinksPage() {
                     <Button
                       type="button"
                       variant="ghost"
-                      className="px-3 py-2 text-xs"
+                      className="min-h-10 px-3 py-2 text-sm"
                       onClick={downloadDrinksCsv}
                     >
                       Export CSV
                     </Button>
                   </div>
                   {drinkView === "table" ? (
-                    <div className="rounded-xl border border-primary/10 overflow-x-auto">
-                      <table className="w-full min-w-[540px] text-[11px] sm:text-xs">
-                        <thead className="bg-background/70 text-textSecondary">
+                    <div className="overflow-x-auto rounded-xl border border-slate-200">
+                      <table className="w-full min-w-[620px] text-xs">
+                        <thead className="bg-slate-50 text-slate-600">
                           <tr>
                             <th className="text-left px-3 py-2">Boisson</th>
-                            <th className="text-left px-3 py-2">Categorie</th>
+                            <th className="text-left px-3 py-2">Catégorie</th>
                             <th className="text-right px-3 py-2">Choix</th>
                             <th className="text-right px-3 py-2">Stock</th>
                             <th className="text-right px-3 py-2">Limite</th>
                             <th className="text-right px-3 py-2">Actions</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-primary/10">
+                        <tbody className="divide-y divide-slate-100">
                           {pagedDrinks.map(drink => {
                             const total = drinkStatsMap.get(drink.id) ?? 0;
                             return (
@@ -519,18 +569,18 @@ export default function DashboardDrinksPage() {
                         const total = drinkStatsMap.get(drink.id) ?? 0;
                         const progress = totalGuests > 0 ? Math.min((total / totalGuests) * 100, 100) : 0;
                         return (
-                          <div key={drink.id} className="rounded-2xl border border-primary/10 bg-white p-4 shadow-sm">
+                          <div key={drink.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                             <div className="flex items-center justify-between">
                               <p className="font-semibold">{drink.name}</p>
-                              <span className="text-[11px] text-text/60">
+                              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
                                 {drink.category === "ALCOHOLIC" ? "Alcool" : "Soft"}
                               </span>
                             </div>
-                            <p className="text-small text-text/70">Choisi par: {total} invites</p>
-                            <div className="mt-2 h-2 rounded-full bg-primary/10">
-                              <div className="h-2 rounded-full bg-accent" style={{ width: `${progress}%` }} />
+                            <p className="mt-2 text-sm text-slate-600">Choisie par {total} invités</p>
+                            <div className="mt-3 h-2 rounded-full bg-slate-100" role="progressbar" aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100} aria-label={`Demandes pour ${drink.name}`}>
+                              <div className="h-2 rounded-full bg-slate-800 transition-[width]" style={{ width: `${progress}%` }} />
                             </div>
-                            <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-text/60">
+                            <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
                               <span>Stock: {drink.availableQuantity ?? "-"}</span>
                               <span>Limite/invite: {drink.maxPerGuest ?? "-"}</span>
                             </div>
@@ -615,26 +665,37 @@ export default function DashboardDrinksPage() {
               )}
             </div>
 
-            <div className="rounded-xl border border-primary/10">
-              {drinkChoices.length === 0 ? (
+            <section className="space-y-3">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900">Réponses des invités</h3>
+                <p className="text-sm text-slate-600">Boissons sélectionnées et quantités demandées.</p>
+              </div>
+              <span className="text-sm text-slate-500">{drinkChoices.length} choix</span>
+            </div>
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              {dataLoading ? (
+                <div className="animate-pulse rounded-xl bg-slate-100 px-4 py-8 text-center text-sm text-slate-600" role="status">Chargement des réponses…</div>
+              ) : drinkChoices.length === 0 ? (
                 <div className="p-3">
                   <EmptyState
-                    title="Aucun choix enregistre"
+                    title="Aucun choix enregistré"
                     description="Les invites n'ont pas encore selectionne leurs boissons."
                   />
                 </div>
               ) : (
                 <div className="space-y-2">
-                    <div className="grid grid-cols-1 lg:grid-cols-[1.2fr,1fr,auto,auto] gap-2 px-3 pt-3 text-xs">
+                    <div className="grid grid-cols-1 gap-3 bg-slate-50 p-3 sm:grid-cols-2 xl:grid-cols-[minmax(220px,1.3fr)_minmax(180px,1fr)_minmax(160px,1fr)_auto]">
                       <Input
                         placeholder="Rechercher invite ou boisson..."
                         value={choiceQuery}
-                        onChange={e => setChoiceQuery(e.target.value)}
+                        onChange={e => { setChoiceQuery(e.target.value); setChoicePage(1); }}
                       />
                       <select
-                        className="rounded-xl border border-primary/20 bg-background/80 px-3 py-2"
+                        aria-label="Filtrer par boisson"
+                        className="min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800"
                         value={choiceDrinkId}
-                        onChange={e => setChoiceDrinkId(e.target.value)}
+                        onChange={e => { setChoiceDrinkId(e.target.value); setChoicePage(1); }}
                       >
                         <option value="">Toutes les boissons</option>
                         {drinks.map(drink => (
@@ -644,18 +705,20 @@ export default function DashboardDrinksPage() {
                         ))}
                       </select>
                       <select
-                        className="rounded-xl border border-primary/20 bg-background/80 px-3 py-2"
+                        aria-label="Trier les choix"
+                        className="min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800"
                         value={choiceSort}
                         onChange={e => setChoiceSort(e.target.value as typeof choiceSort)}
                       >
-                        <option value="guest">Trier: Invite</option>
+                        <option value="guest">Trier : invité</option>
                         <option value="drink">Trier: Boisson</option>
-                        <option value="category">Trier: Categorie</option>
-                        <option value="quantity">Trier: Quantite</option>
+                        <option value="category">Trier : catégorie</option>
+                        <option value="quantity">Trier : quantité</option>
                       </select>
                       <div className="flex items-center gap-2">
                         <select
-                          className="rounded-xl border border-primary/20 bg-background/80 px-3 py-2"
+                          aria-label="Nombre de choix par page"
+                          className="min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800"
                           value={choicePageSize}
                           onChange={e => {
                             setChoicePageSize(Number(e.target.value));
@@ -669,7 +732,7 @@ export default function DashboardDrinksPage() {
                         </select>
                         <button
                           type="button"
-                          className="rounded-full border border-primary/10 bg-background/70 px-3 py-2 text-[11px]"
+                          className="min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700"
                           onClick={() => setChoiceSortDir(prev => (prev === "asc" ? "desc" : "asc"))}
                         >
                           {choiceSortDir === "asc" ? "Asc" : "Desc"}
@@ -684,13 +747,14 @@ export default function DashboardDrinksPage() {
                         />
                       </div>
                     ) : (
-                      <table className="w-full text-[11px] sm:text-xs">
+                      <div className="overflow-x-auto">
+                      <table className="w-full min-w-[540px] text-xs">
                         <thead className="bg-background/70 text-textSecondary">
                           <tr>
-                            <th className="text-left px-3 py-2">Invite</th>
+                            <th className="text-left px-3 py-2">Invité</th>
                             <th className="text-left px-3 py-2">Boisson</th>
-                            <th className="text-left px-3 py-2">Categorie</th>
-                            <th className="text-right px-3 py-2">Quantite</th>
+                            <th className="text-left px-3 py-2">Catégorie</th>
+                            <th className="text-right px-3 py-2">Quantité</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-primary/10">
@@ -699,13 +763,14 @@ export default function DashboardDrinksPage() {
                               <td className="px-3 py-2">{choice.guestName}</td>
                               <td className="px-3 py-2">{choice.drinkName}</td>
                               <td className="px-3 py-2 text-textSecondary">
-                                {choice.category === "ALCOHOLIC" ? "Alcoolisee" : "Soft"}
+                                {choice.category === "ALCOHOLIC" ? "Alcoolisée" : "Soft"}
                               </td>
                               <td className="px-3 py-2 text-right">{choice.quantity}</td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
+                      </div>
                     )}
                     {sortedChoices.length > 0 ? (
                       <div className="flex items-center justify-between px-3 pb-3 text-[11px] text-text/60">
@@ -737,6 +802,7 @@ export default function DashboardDrinksPage() {
                   </div>
                 )}
               </div>
+            </section>
           </>
         )}
       </section>
@@ -744,25 +810,29 @@ export default function DashboardDrinksPage() {
       <Modal open={createOpen} title="Ajouter une boisson">
         <form onSubmit={addDrink} className="space-y-3">
           <Input
-            placeholder="Nom boisson"
+            aria-label="Nom de la boisson"
+            placeholder="Nom de la boisson"
             value={name}
             onChange={e => setName(e.target.value)}
           />
           <select
-            className="w-full rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs"
+            aria-label="Catégorie de la boisson"
+            className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800"
             value={category}
             onChange={e => setCategory(e.target.value as DrinkOption["category"])}
           >
             <option value="SOFT">Soft</option>
-            <option value="ALCOHOLIC">Alcoolisee</option>
+            <option value="ALCOHOLIC">Alcoolisée</option>
           </select>
           <Input
-            placeholder="Quantite disponible (optionnel)"
+            aria-label="Quantité disponible, facultative"
+            placeholder="Quantité disponible (facultatif)"
             value={availableQuantity}
             onChange={e => setAvailableQuantity(e.target.value)}
           />
           <Input
-            placeholder="Limite par invite (optionnel)"
+            aria-label="Limite par invité, facultative"
+            placeholder="Limite par invité (facultatif)"
             value={maxPerGuest}
             onChange={e => setMaxPerGuest(e.target.value)}
           />
@@ -780,25 +850,29 @@ export default function DashboardDrinksPage() {
       <Modal open={editOpen} title="Modifier la boisson">
         <div className="space-y-3">
           <Input
-            placeholder="Nom boisson"
+            aria-label="Nom de la boisson"
+            placeholder="Nom de la boisson"
             value={name}
             onChange={e => setName(e.target.value)}
           />
           <select
-            className="w-full rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs"
+            aria-label="Catégorie de la boisson"
+            className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800"
             value={category}
             onChange={e => setCategory(e.target.value as DrinkOption["category"])}
           >
             <option value="SOFT">Soft</option>
-            <option value="ALCOHOLIC">Alcoolisee</option>
+            <option value="ALCOHOLIC">Alcoolisée</option>
           </select>
           <Input
-            placeholder="Quantite disponible (optionnel)"
+            aria-label="Quantité disponible, facultative"
+            placeholder="Quantité disponible (facultatif)"
             value={availableQuantity}
             onChange={e => setAvailableQuantity(e.target.value)}
           />
           <Input
-            placeholder="Limite par invite (optionnel)"
+            aria-label="Limite par invité, facultative"
+            placeholder="Limite par invité (facultatif)"
             value={maxPerGuest}
             onChange={e => setMaxPerGuest(e.target.value)}
           />
@@ -819,11 +893,11 @@ export default function DashboardDrinksPage() {
         description={
           drinkToDelete ? (
             <>
-              La boisson <span className="font-semibold text-slate-950">{drinkToDelete.name}</span> sera supprimee.
-              Les choix associes seront egalement retires.
+              La boisson <span className="font-semibold text-slate-950">{drinkToDelete.name}</span> sera supprimée.
+              Les choix associés seront également retirés.
             </>
           ) : (
-            "Cette action est irreversible."
+            "Cette action est irréversible."
           )
         }
         confirmLabel="Supprimer"
