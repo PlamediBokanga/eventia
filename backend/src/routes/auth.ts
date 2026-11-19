@@ -163,6 +163,9 @@ function validateStrongPassword(password: string) {
   if (trimmed.length < 6) {
     return "Le mot de passe doit contenir au moins 6 caracteres.";
   }
+  if (Buffer.byteLength(trimmed, "utf8") > 72) {
+    return "Le mot de passe ne peut pas depasser 72 octets.";
+  }
   if (!/[a-z]/.test(trimmed)) {
     return "Le mot de passe doit contenir au moins une minuscule.";
   }
@@ -1563,9 +1566,8 @@ authRouter.put("/password", authMiddleware, async (req, res) => {
     if (newPassword !== confirmPassword) {
       return res.status(400).json({ message: "La confirmation ne correspond pas." });
     }
-    if (newPassword.length < 6 || newPassword.length > 72) {
-      return res.status(400).json({ message: "Le mot de passe doit contenir entre 6 et 72 caracteres." });
-    }
+    const passwordError = validateStrongPassword(newPassword);
+    if (passwordError) return res.status(400).json({ message: passwordError });
     const organizer = await prisma.organizer.findUnique({
       where: { id: organizerId }
     });

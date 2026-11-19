@@ -8,7 +8,26 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
 import { authFetch, type OrganizerProfile, type OrganizerSession } from "@/lib/dashboard";
-import { clearToken } from "@/lib/auth";
+import { logoutSession } from "@/lib/authClient";
+
+function passwordChecks(value: string) {
+  return [
+    { label: "6 caractères minimum", passed: value.length >= 6 },
+    { label: "Une minuscule", passed: /[a-z]/.test(value) },
+    { label: "Une majuscule", passed: /[A-Z]/.test(value) },
+    { label: "Un chiffre", passed: /[0-9]/.test(value) },
+    { label: "Un caractère spécial", passed: /[^A-Za-z0-9]/.test(value) },
+    { label: "72 octets maximum", passed: new TextEncoder().encode(value).length <= 72 }
+  ];
+}
+
+function formatDate(value?: string | null) {
+  if (!value) return "Date inconnue";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "Date inconnue"
+    : new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium", timeStyle: "short" }).format(date);
+}
 
 export default function DashboardSecurityPage() {
   const [profile, setProfile] = useState<OrganizerProfile | null>(null);
@@ -22,39 +41,70 @@ export default function DashboardSecurityPage() {
   const [securityAlerts, setSecurityAlerts] = useState(true);
   const [savingPassword, setSavingPassword] = useState(false);
   const [savingSecurity, setSavingSecurity] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [sessionsError, setSessionsError] = useState(false);
+  const [reload, setReload] = useState(0);
   const { pushToast } = useToast();
+  const checks = passwordChecks(newPassword);
+  const passwordValid = checks.every(check => check.passed);
 
   useEffect(() => {
+    let active = true;
     async function load() {
-      try {
-        const [meRes, sessionsRes] = await Promise.all([authFetch("/auth/me"), authFetch("/auth/sessions")]);
-        if (meRes.ok) {
-          const payload = (await meRes.json()) as { organizer?: OrganizerProfile };
+      setLoading(true);
+      setLoadError(false);
+      setSessionsError(false);
+      const [meResult, sessionsResult] = await Promise.allSettled([
+        authFetch("/auth/me"),
+        authFetch("/auth/sessions")
+      ]);
+      if (!active) return;
+
+      if (meResult.status === "fulfilled" && meResult.value.ok) {
+        const payload = (await meResult.value.json()) as { organizer?: OrganizerProfile };
+        if (active) {
           setProfile(payload.organizer ?? null);
           setSecurityAlerts(payload.organizer?.securityAlerts ?? true);
         }
-        if (sessionsRes.ok) {
-          const payload = (await sessionsRes.json()) as { sessions: OrganizerSession[] };
-          setSessions(payload.sessions || []);
-        }
-      } finally {
+      } else {
+        setLoadError(true);
+      }
+
+      if (sessionsResult.status === "fulfilled" && sessionsResult.value.ok) {
+        const payload = (await sessionsResult.value.json()) as { sessions?: OrganizerSession[] };
+        if (active) setSessions(payload.sessions ?? []);
+      } else {
+        setSessionsError(true);
+      }
+      if (active) setLoading(false);
+    }
+    void load().catch(() => {
+      if (active) {
+        setLoadError(true);
+        setSessionsError(true);
         setLoading(false);
       }
-    }
-    void load();
-  }, []);
+    });
+    return () => { active = false; };
+  }, [reload]);
 
-  async function savePassword(e: React.FormEvent) {
-    e.preventDefault();
-    if (newPassword.length < 6) {
-      pushToast("Le mot de passe doit contenir au moins 6 caracteres.", "error");
+  async function savePassword(event: React.FormEvent) {
+    event.preventDefault();
+    if (!currentPassword) {
+      pushToast("Saisissez votre mot de passe actuel.", "error");
+      return;
+    }
+    if (!passwordValid) {
+      pushToast("Le nouveau mot de passe ne respecte pas encore tous les critères.", "error");
       return;
     }
     if (newPassword !== confirmPassword) {
-      pushToast("La confirmation ne correspond pas.", "error");
+      pushToast("La confirmation ne correspond pas au nouveau mot de passe.", "error");
       return;
     }
+
     setSavingPassword(true);
     try {
       const res = await authFetch("/auth/password", {
@@ -64,13 +114,15 @@ export default function DashboardSecurityPage() {
       });
       if (!res.ok) {
         const payload = (await res.json().catch(() => null)) as { message?: string } | null;
-        pushToast(payload?.message ?? "Mise a jour impossible.", "error");
+        pushToast(payload?.message ?? "La mise à jour du mot de passe a échoué.", "error");
         return;
       }
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      pushToast("Mot de passe mis a jour.");
+      pushToast("Mot de passe mis à jour.");
+    } catch {
+      pushToast("Serveur injoignable. Réessayez dans quelques instants.", "error");
     } finally {
       setSavingPassword(false);
     }
@@ -86,126 +138,142 @@ export default function DashboardSecurityPage() {
       });
       if (!res.ok) {
         const payload = (await res.json().catch(() => null)) as { message?: string } | null;
-        pushToast(payload?.message ?? "Enregistrement impossible.", "error");
+        pushToast(payload?.message ?? "Impossible d’enregistrer cette préférence.", "error");
         return;
       }
       const payload = (await res.json()) as { organizer?: OrganizerProfile };
-      if (payload.organizer) {
-        setProfile(payload.organizer);
-        setSecurityAlerts(payload.organizer.securityAlerts ?? true);
-      }
-      pushToast("Preferences de securite enregistrees.");
+      if (payload.organizer) setProfile(payload.organizer);
+      pushToast("Préférence de sécurité enregistrée.");
+    } catch {
+      pushToast("Serveur injoignable. Réessayez dans quelques instants.", "error");
     } finally {
       setSavingSecurity(false);
     }
   }
 
-  async function revokeSessions() {
-    const res = await authFetch("/auth/sessions", { method: "DELETE" });
-    if (!res.ok) {
-      const payload = (await res.json().catch(() => null)) as { message?: string } | null;
-      pushToast(payload?.message ?? "Deconnexion impossible.", "error");
-      return;
+  async function signOutThisDevice() {
+    setLoggingOut(true);
+    try {
+      await logoutSession();
+      window.location.assign("/auth/login");
+    } finally {
+      setLoggingOut(false);
     }
-    clearToken();
-    pushToast("Vous avez ete deconnecte de tous les appareils.");
-    window.location.href = "/auth/login";
   }
 
   return (
     <main className="space-y-6 pb-8 font-sans">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 md:gap-5">
-      <Header title="Sécurité" description="Protégez votre compte, gérez votre mot de passe et vos alertes de sécurité." />
-
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
+        <Header title="Sécurité" description="Protégez l’accès à votre compte et vérifiez vos connexions récentes." />
         <AccountSectionTabs active="security" />
 
-        <div className="grid gap-4 lg:grid-cols-[1fr,0.95fr]">
-          <section className="space-y-4 rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
+        {loadError ? (
+          <div className="flex flex-col gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 sm:flex-row sm:items-center sm:justify-between" role="alert">
+            <p className="text-sm font-medium text-rose-900">Certaines informations de sécurité n’ont pas pu être chargées.</p>
+            <Button type="button" variant="ghost" className="min-h-11" onClick={() => setReload(value => value + 1)}>Réessayer</Button>
+          </div>
+        ) : null}
+
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(340px,0.9fr)]">
+          <section className="space-y-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Mot de passe</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Changer le mot de passe</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600">Le mot de passe doit rester fort, unique et utilise avec prudence.</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Identifiants</p>
+              <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-950">Changer le mot de passe</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">Utilisez un mot de passe unique que vous n’utilisez pas sur un autre site.</p>
             </div>
 
-            <form onSubmit={savePassword} className="grid gap-4">
+            <form onSubmit={savePassword} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Ancien mot de passe</label>
+                <label htmlFor="current-password" className="text-sm font-medium text-slate-800">Mot de passe actuel</label>
                 <div className="flex gap-2">
-                  <Input type={showCurrent ? "text" : "password"} value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="flex-1" />
-                  <Button type="button" variant="ghost" className="rounded-2xl px-4" onClick={() => setShowCurrent(prev => !prev)}>{showCurrent ? "Cacher" : "Voir"}</Button>
+                  <Input id="current-password" autoComplete="current-password" type={showCurrent ? "text" : "password"} value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} className="min-h-11 flex-1" required />
+                  <button type="button" className="min-h-11 rounded-xl border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50" aria-label={showCurrent ? "Masquer le mot de passe actuel" : "Afficher le mot de passe actuel"} onClick={() => setShowCurrent(value => !value)}>{showCurrent ? "Masquer" : "Afficher"}</button>
                 </div>
               </div>
+
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Nouveau mot de passe</label>
+                <label htmlFor="new-password" className="text-sm font-medium text-slate-800">Nouveau mot de passe</label>
                 <div className="flex gap-2">
-                  <Input type={showNew ? "text" : "password"} value={newPassword} onChange={e => setNewPassword(e.target.value)} className="flex-1" />
-                  <Button type="button" variant="ghost" className="rounded-2xl px-4" onClick={() => setShowNew(prev => !prev)}>{showNew ? "Cacher" : "Voir"}</Button>
+                  <Input id="new-password" autoComplete="new-password" type={showNew ? "text" : "password"} value={newPassword} onChange={event => setNewPassword(event.target.value)} className="min-h-11 flex-1" aria-describedby="password-rules" required />
+                  <button type="button" className="min-h-11 rounded-xl border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50" aria-label={showNew ? "Masquer le nouveau mot de passe" : "Afficher le nouveau mot de passe"} onClick={() => setShowNew(value => !value)}>{showNew ? "Masquer" : "Afficher"}</button>
                 </div>
-                <p className="text-xs text-slate-500">Minimum 6 caracteres, avec majuscules, minuscules, chiffres et symbole recommande.</p>
+                <ul id="password-rules" className="grid gap-1.5 pt-1 text-xs sm:grid-cols-2" aria-live="polite">
+                  {checks.map(check => (
+                    <li key={check.label} className={check.passed ? "font-medium text-emerald-800" : "text-slate-500"}>
+                      <span aria-hidden="true" className="mr-2">{check.passed ? "✓" : "○"}</span>{check.label}
+                    </li>
+                  ))}
+                </ul>
               </div>
+
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Confirmer le mot de passe</label>
+                <label htmlFor="confirm-password" className="text-sm font-medium text-slate-800">Confirmer le nouveau mot de passe</label>
                 <div className="flex gap-2">
-                  <Input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="flex-1" />
-                  <Button type="button" variant="ghost" className="rounded-2xl px-4" onClick={() => setShowConfirm(prev => !prev)}>{showConfirm ? "Cacher" : "Voir"}</Button>
+                  <Input id="confirm-password" autoComplete="new-password" type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} className="min-h-11 flex-1" required />
+                  <button type="button" className="min-h-11 rounded-xl border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50" aria-label={showConfirm ? "Masquer la confirmation" : "Afficher la confirmation"} onClick={() => setShowConfirm(value => !value)}>{showConfirm ? "Masquer" : "Afficher"}</button>
                 </div>
+                {confirmPassword && confirmPassword !== newPassword ? <p className="text-xs font-medium text-rose-800" role="alert">Les mots de passe ne correspondent pas.</p> : null}
               </div>
-              <div className="flex justify-end">
-                <Button type="submit" className="rounded-2xl px-5 py-3 text-sm" disabled={savingPassword}>{savingPassword ? "Mise a jour..." : "Mettre a jour"}</Button>
-              </div>
+
+              <Button type="submit" className="min-h-11 w-full sm:w-auto" disabled={savingPassword || loading || !passwordValid || newPassword !== confirmPassword || !currentPassword}>
+                {savingPassword ? "Mise à jour…" : "Mettre à jour le mot de passe"}
+              </Button>
             </form>
           </section>
 
-          <section className="space-y-4 rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Alertes</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Notifications de securite</h2>
-            </div>
+          <div className="space-y-5">
+            <section className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Notifications de sécurité</p>
+                <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-950">Préférences d’alerte</h2>
+              </div>
+              <label className="flex cursor-pointer items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <span>
+                  <span className="block text-sm font-semibold text-slate-900">Alertes de sécurité par e-mail</span>
+                  <span className="mt-1 block break-all text-sm text-slate-600">{profile?.email ?? "Adresse du compte"}</span>
+                </span>
+                <input type="checkbox" className="mt-1 h-5 w-5 shrink-0 accent-slate-900" checked={securityAlerts} onChange={event => setSecurityAlerts(event.target.checked)} disabled={loading || savingSecurity} />
+              </label>
+              <p className="text-xs leading-5 text-slate-500">Cette préférence est enregistrée sur votre compte. L’envoi effectif d’alertes dépend de la configuration du service e-mail.</p>
+              <Button type="button" variant="ghost" className="min-h-11 w-full sm:w-auto" onClick={saveSecurity} disabled={loading || savingSecurity || loadError}>
+                {savingSecurity ? "Enregistrement…" : "Enregistrer la préférence"}
+              </Button>
+            </section>
 
-            <div className="rounded-[22px] border border-slate-200/80 bg-slate-50 px-4 py-4 space-y-3">
-              <div className="flex items-center justify-between gap-4">
+            <section className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="font-semibold text-slate-900">Alerte par email</p>
-                  <p className="text-sm text-slate-600">Recevoir un email en cas de connexion suspecte.</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Historique</p>
+                  <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-950">Connexions récentes</h2>
                 </div>
-                <input type="checkbox" className="h-5 w-5 accent-slate-900" checked={securityAlerts} onChange={e => setSecurityAlerts(e.target.checked)} />
+                <button type="button" className="min-h-10 self-start rounded-xl px-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 sm:self-auto" onClick={() => setReload(value => value + 1)} disabled={loading}>Actualiser</button>
               </div>
-              <div className="flex items-center justify-between gap-3 rounded-[18px] border border-white bg-white px-4 py-3 text-sm text-slate-700">
-                <span>{profile?.email || "Compte connecte"}</span>
-                <Button type="button" variant="ghost" className="rounded-2xl px-4" onClick={saveSecurity} disabled={savingSecurity}>{savingSecurity ? "Enregistrement..." : "Enregistrer"}</Button>
-              </div>
-            </div>
-
-            <div className="rounded-[22px] border border-slate-200/80 bg-slate-50 px-4 py-4">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Sessions actives</p>
-              <div className="mt-3 space-y-3 text-sm">
-                {loading ? (
-                  <p className="text-slate-600">Chargement...</p>
-                ) : sessions.length === 0 ? (
-                  <p className="text-slate-600">Aucune session detectee.</p>
-                ) : (
-                  sessions.map(session => (
-                    <div key={session.id} className="rounded-[18px] border border-white bg-white px-4 py-3 shadow-sm">
-                      <p className="font-semibold text-slate-900">{session.device}</p>
-                      <p className="mt-1 text-slate-500">{session.location || session.ip || "Position inconnue"}</p>
-                      <p className="text-slate-400">{session.lastActive ? new Date(session.lastActive).toLocaleString("fr-FR") : "Activite recente"}</p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button type="button" className="rounded-2xl px-5 py-3 text-sm" onClick={revokeSessions}>Deconnecter tous les appareils</Button>
-              <Link href="/dashboard/profile" className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5">Aller au profil</Link>
-            </div>
-          </section>
+              <p className="text-sm leading-6 text-slate-600">Historique des dernières connexions réussies, pas une liste de sessions actuellement actives.</p>
+              {loading ? (
+                <div className="h-16 animate-pulse rounded-2xl bg-slate-100" role="status">Chargement…</div>
+              ) : sessionsError ? (
+                <p className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-medium text-rose-900" role="alert">Impossible de charger l’historique des connexions.</p>
+              ) : sessions.length === 0 ? (
+                <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">Aucune connexion récente enregistrée.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {sessions.map(session => (
+                    <li key={session.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <p className="break-words text-sm font-semibold text-slate-900">{session.device || "Navigateur"}</p>
+                      <p className="mt-1 text-xs text-slate-600">{session.ip ? `Adresse IP : ${session.ip}` : "Adresse IP non disponible"}</p>
+                      <p className="mt-1 text-xs text-slate-500">{formatDate(session.lastActive)}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <Button type="button" variant="ghost" className="min-h-11 w-full" onClick={() => void signOutThisDevice()} disabled={loggingOut}>
+                {loggingOut ? "Déconnexion…" : "Se déconnecter de cet appareil"}
+              </Button>
+              <Link href="/dashboard/profile" className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50">Gérer mon profil</Link>
+            </section>
+          </div>
         </div>
       </div>
     </main>
   );
 }
-
-
-
-
