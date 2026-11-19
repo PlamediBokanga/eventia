@@ -1,6 +1,6 @@
 export function sanitizeInvitationHtml(input: string) {
   if (!input) return "";
-  let html = input.trim().slice(0, 4000);
+  let html = input.trim().slice(0, 20000);
   if (!html) return "";
 
   html = html

@@ -350,7 +350,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1.2fr,0.8fr]">
+      <div className={`grid gap-5 ${mode === "invitation-only" ? "lg:grid-cols-1" : "lg:grid-cols-[1.2fr,0.8fr]"}`}>
         <div className="space-y-5">
           <div className="rounded-[28px] border border-white/60 bg-white/94 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", animation: "page-enter 0.35s ease-out both" }}>
             <p className="text-[11px] uppercase tracking-[0.24em] text-slate-700">Accès invité</p>
@@ -358,7 +358,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
               Cher(e) <span className="font-semibold text-slate-900">{initial.guest.fullName}</span>, vous etes invite(e) a vivre un moment special autour de <span className="font-semibold text-slate-900">{initial.event.name}</span>.
             </p>
             {initial.event.invitationMessage ? (
-              <div className="mt-4 rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-4 text-sm text-slate-700">
+              <div className="mt-4 min-w-0 w-full max-w-full overflow-visible rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-5 text-base leading-8 text-slate-700 [overflow-wrap:anywhere] [&_*]:max-w-full [&_*]:whitespace-normal [&_*]:[overflow-wrap:anywhere] [&_h1]:mb-3 [&_h1]:text-2xl [&_h1]:font-semibold [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-semibold [&_li]:my-1 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6">
                 <SafeHtml html={initial.event.invitationMessage} />
               </div>
             ) : null}

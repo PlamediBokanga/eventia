@@ -1,4 +1,4 @@
-// SchÃƒÂ©ma Prisma pour EVENTIA (MVP)
+// Prisma schema for EVENTIA.
 
 generator client {
   provider = "prisma-client-js"
@@ -89,7 +89,7 @@ model ReferralCommission {
   @@map("referralcommission")
 }
 
-// Ãƒâ€°vÃƒÂ©nement gÃƒÂ©rÃƒÂ© dans lÃ¢â‚¬â„¢application
+// Event managed by the application.
 model Event {
   id               Int       @id @default(autoincrement())
   name             String
@@ -254,7 +254,7 @@ model EventCoOrganizerInvite {
   @@map("eventcoorganizerinvite")
 }
 
-// Table physique ÃƒÂ  lÃ¢â‚¬â„¢ÃƒÂ©vÃƒÂ©nement
+// Physical event table.
 model Table {
   id        Int     @id @default(autoincrement())
   label     String
@@ -301,7 +301,7 @@ model TableLayoutPosition {
   @@map("tablelayoutposition")
 }
 
-// InvitÃƒÂ©
+// Guest.
 model Guest {
   id         Int        @id @default(autoincrement())
   fullName   String
@@ -334,7 +334,7 @@ model Guest {
   @@map("guest")
 }
 
-// Invitation numÃƒÂ©rique (token + QR code)
+// Digital invitation (token and QR code).
 model GuestInvitation {
   id         Int      @id @default(autoincrement())
   token      String   @unique
@@ -353,7 +353,7 @@ model GuestInvitation {
   @@map("guestinvitation")
 }
 
-// Options de boissons pour un ÃƒÂ©vÃƒÂ©nement
+// Drink options for an event.
 model DrinkOption {
   id        Int         @id @default(autoincrement())
   name      String
@@ -368,7 +368,7 @@ model DrinkOption {
   @@map("drinkoption")
 }
 
-// Choix de boissons dÃ¢â‚¬â„¢un invitÃƒÂ©
+// Guest drink choices.
 model GuestDrinkChoice {
   id           Int          @id @default(autoincrement())
   quantity     Int          @default(1)
@@ -382,7 +382,7 @@ model GuestDrinkChoice {
   @@map("guestdrinkchoice")
 }
 
-// Livre dÃ¢â‚¬â„¢or
+// Guestbook.
 model GuestBookMessage {
   id        Int      @id @default(autoincrement())
   message   String

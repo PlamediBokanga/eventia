@@ -254,7 +254,7 @@ export function LoginClient() {
             <Link href="/auth/forgot-password" className="font-medium text-slate-900 hover:text-accent">
               Mot de passe oublie
             </Link>
-            <span className="text-slate-300">â€¢</span>
+            <span className="text-slate-300">•</span>
             <Link href="/auth/register" className="font-medium text-slate-900 hover:text-accent">
               Creer un nouvel espace
             </Link>

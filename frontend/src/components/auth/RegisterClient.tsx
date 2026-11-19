@@ -221,7 +221,7 @@ export function RegisterClient() {
       sideCopy="Le meme produit, mais avec des entrees differentes selon le contexte d'utilisation: evenement prive, agence multi-client ou corporate."
       sideStats={[
         { value: "3", label: "Profils de compte clairs des l'inscription" },
-        { value: "SSO", label: "Google compatible et flux sÃ©curisÃ©" },
+        { value: "SSO", label: "Google compatible et flux sécurisé" },
         { value: "6+", label: "Mot de passe fort oblige" }
       ]}
       footer={

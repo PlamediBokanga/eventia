@@ -1096,7 +1096,7 @@ authRouter.post("/login", async (req, res) => {
     console.error(err);
     res
       .status(500)
-      .json({ message: "Erreur lors de la connexion de lÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢organisateur." });
+      .json({ message: "Erreur lors de la connexion de l’organisateur." });
   }
 });
 
