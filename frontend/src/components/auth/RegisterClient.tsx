@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { hasActiveSession, storeSessionToken } from "@/lib/auth";
 import { API_URL } from "@/lib/config";
-import { AuthDivider, AuthPopup, AuthShell, FacebookButton, GoogleButton } from "@/components/auth/AuthShell";
+import { AuthDivider, AuthPopup, AuthShell, GoogleButton } from "@/components/auth/AuthShell";
 
 type ProvidersResponse = {
   google?: {
@@ -27,20 +27,20 @@ const ACCOUNT_TYPES: Array<{
   {
     value: "organizer",
     title: "Organisateur particulier",
-    subtitle: "Mariage, anniversaire, fete privee",
-    hint: "Idem pour un compte seul, avec dashboard complet et invitation privee."
+    subtitle: "Mariage, anniversaire et événements privés",
+    hint: "Un espace complet pour organiser vos propres événements et gérer vos invitations."
   },
   {
     value: "agency",
-    title: "Agence evenementielle",
-    subtitle: "Plusieurs clients et plusieurs evenements",
-    hint: "Pour gerer des equipes, des clients, des co-organisateurs et des droits."
+    title: "Agence événementielle",
+    subtitle: "Plusieurs clients et plusieurs événements",
+    hint: "Pour coordonner vos clients, vos équipes et les événements de votre agence."
   },
   {
     value: "company",
-    title: "Entreprise / corporate",
-    subtitle: "Conference, seminaire, interne",
-    hint: "Pour les structures qui veulent un cadre plus corporate et multi-usage."
+    title: "Entreprise",
+    subtitle: "Conférence, séminaire et événements internes",
+    hint: "Un espace adapté aux événements professionnels et aux besoins de votre organisation."
   }
 ];
 
@@ -51,7 +51,12 @@ function getAccountTypeMeta(type: AccountType) {
 export function RegisterClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [accountType, setAccountType] = useState<AccountType>((searchParams.get("type") as AccountType) || "organizer");
+  const [accountType, setAccountType] = useState<AccountType>(() => {
+    const requestedType = searchParams.get("type");
+    return ACCOUNT_TYPES.some(item => item.value === requestedType) ? (requestedType as AccountType) : "organizer";
+  });
+  const [step, setStep] = useState(1);
+  const formRef = useRef<HTMLFormElement>(null);
   const [name, setName] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [jobTitle, setJobTitle] = useState("");
@@ -63,7 +68,7 @@ export function RegisterClient() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [acceptTerms, setAcceptTerms] = useState(true);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleEnabled, setGoogleEnabled] = useState(false);
@@ -150,6 +155,10 @@ export function RegisterClient() {
       setMessage("Le pays est requis pour configurer correctement votre espace.");
       return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setMessage("Saisissez une adresse e-mail valide.");
+      return;
+    }
     if (!passwordIsStrong) {
       setMessage("Le mot de passe doit contenir au moins 6 caracteres, une majuscule, une minuscule, un chiffre et un caractere special.");
       return;
@@ -215,52 +224,55 @@ export function RegisterClient() {
   return (
     <AuthShell
       eyebrow="Lancement de compte"
-      title="Creez un compte adaptee a votre structure."
-      description="Une inscription serieuse, segmentee par profil, pour que chaque compte Eventia parte avec la bonne logique metier des le debut."
-      sideTitle="Un onboarding plus clair pour les organisateurs, agences et entreprises."
-      sideCopy="Le meme produit, mais avec des entrees differentes selon le contexte d'utilisation: evenement prive, agence multi-client ou corporate."
+      title="Créez votre espace EVENTIA."
+      description="Un parcours guidé pour configurer votre compte et commencer à organiser vos événements."
+      sideTitle="Une organisation plus simple, dès le départ."
+      sideCopy="Choisissez votre profil, renseignez vos coordonnées et sécurisez votre accès. Votre espace sera adapté à votre façon d’organiser."
       sideStats={[
-        { value: "3", label: "Profils de compte clairs des l'inscription" },
-        { value: "SSO", label: "Google compatible et flux sécurisé" },
-        { value: "6+", label: "Mot de passe fort oblige" }
+        { value: "3 étapes", label: "Un parcours guidé" },
+        { value: "Sécurisé", label: "Un accès personnel" }
       ]}
       footer={
         <>
-          Vous avez deja un compte ?{" "}
+          Vous avez déjà un compte ?{" "}
           <Link href="/auth/login" className="font-semibold text-primary hover:text-accent">
-            Ouvrir ma session
+            Se connecter
           </Link>
         </>
       }
     >
       <div className="space-y-5">
-        <GoogleButton
-          href={googleHref}
-          disabled={!googleEnabled}
-          label={googleEnabled ? "S'inscrire avec Google" : "Inscription Google bientot disponible"}
-        />
+        {step === 1 && (
+          <>
+            {googleEnabled && (
+              <>
+                <GoogleButton href={googleHref} label="Continuer avec Google" />
+                <AuthDivider label="ou avec votre adresse e-mail" />
+              </>
+            )}
 
-        <AuthDivider label="ou creez votre compte" />
-
-        <div className="space-y-3">
-          <p className="text-[11px] uppercase tracking-[0.3em] text-slate-500">Type de compte</p>
-          <div className="grid gap-3 md:grid-cols-3">
+        <section aria-labelledby="account-type-heading" className="space-y-3">
+          <div>
+            <h3 id="account-type-heading" className="text-base font-semibold text-slate-950">Choisissez votre profil</h3>
+            <p className="mt-1 text-sm leading-5 text-slate-500">Sélectionnez l’espace adapté à votre activité.</p>
+          </div>
+          <div role="group" aria-label="Type de compte" className="grid gap-3 md:grid-cols-3">
             {ACCOUNT_TYPES.map(item => {
               const active = item.value === accountType;
               return (
                 <button
                   key={item.value}
                   type="button"
+                  aria-pressed={active}
                   onClick={() => setAccountType(item.value)}
                   className={`rounded-[20px] border p-4 text-left transition ${
                     active
-                      ? "border-slate-900 bg-slate-950 text-white shadow-[0_18px_40px_rgba(15,23,42,0.14)]"
-                      : "border-slate-200 bg-white text-slate-800 hover:-translate-y-0.5 hover:border-slate-300"
+                      ? "border-slate-900 bg-slate-50 text-slate-950 ring-1 ring-slate-900"
+                      : "border-slate-200 bg-white text-slate-800 hover:border-slate-400"
                   }`}
                 >
-                  <p className="text-[10px] uppercase tracking-[0.24em] opacity-70">{item.value}</p>
-                  <h3 className="mt-2 text-sm font-semibold">{item.title}</h3>
-                  <p className={`mt-2 text-xs leading-5 ${active ? "text-white/75" : "text-slate-500"}`}>{item.subtitle}</p>
+                  <h4 className="text-sm font-semibold">{item.title}</h4>
+                  <p className="mt-2 text-xs leading-5 text-slate-500">{item.subtitle}</p>
                 </button>
               );
             })}
@@ -268,17 +280,42 @@ export function RegisterClient() {
           <div className="rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
             <span className="font-semibold text-slate-900">{accountMeta.title}:</span> {accountMeta.hint}
           </div>
-        </div>
+        </section>
+        <button type="button" onClick={() => setStep(2)} className="flex min-h-12 w-full items-center justify-center rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200">
+          Continuer
+        </button>
+          </>
+        )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <ol aria-label="Progression de l’inscription" className="grid grid-cols-3 gap-2">
+          {["Profil", "Informations", "Sécurité"].map((label, index) => {
+            const itemStep = index + 1;
+            const active = step === itemStep;
+            const complete = step > itemStep;
+            return (
+              <li key={label} aria-current={active ? "step" : undefined}>
+                <div className={`h-1 rounded-full ${active || complete ? "bg-slate-900" : "bg-slate-200"}`} />
+                <p className={`mt-2 text-[11px] font-medium sm:text-xs ${active ? "text-slate-950" : "text-slate-500"}`}>
+                  <span className="mr-1.5">{complete ? "✓" : `0${itemStep}`}</span>{label}
+                </p>
+              </li>
+            );
+          })}
+        </ol>
+
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-5" noValidate>
+          {step === 2 && (
+            <section aria-labelledby="account-info-heading" className="space-y-5">
           <div className="border-b border-slate-100 pb-3">
-            <h3 className="text-sm font-semibold text-slate-900">Informations du compte</h3>
-            <p className="mt-1 text-xs leading-5 text-slate-500">Renseignez les informations de votre structure et de son responsable.</p>
+            <h3 id="account-info-heading" className="text-base font-semibold text-slate-950">Informations de votre structure</h3>
+            <p className="mt-1 text-sm leading-5 text-slate-500">Les champs marqués sont nécessaires pour créer votre espace.</p>
           </div>
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-800">Nom de l'organisation ou marque</label>
+            <label htmlFor="register-company" className="block text-sm font-medium text-slate-800">Nom de l'organisation ou marque <span className="text-rose-700">*</span></label>
             <input
-              className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+              id="register-company"
+              autoComplete="organization"
+              className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
               value={companyName}
               onChange={e => setCompanyName(e.target.value)}
               placeholder={accountType === "company" ? "EVENTIA Corporate" : accountType === "agency" ? "EVENTIA Agency" : "EVENTIA Events"}
@@ -288,9 +325,11 @@ export function RegisterClient() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-800">Nom complet</label>
+              <label htmlFor="register-name" className="block text-sm font-medium text-slate-800">Nom complet <span className="text-rose-700">*</span></label>
               <input
-                className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                id="register-name"
+                autoComplete="name"
+                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Plamedi Bokanga"
@@ -298,9 +337,12 @@ export function RegisterClient() {
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-800">Telephone</label>
+              <label htmlFor="register-phone" className="block text-sm font-medium text-slate-800">Téléphone <span className="text-rose-700">*</span></label>
               <input
-                className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                id="register-phone"
+                type="tel"
+                autoComplete="tel"
+                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 placeholder="+243 900 000 000"
@@ -311,18 +353,22 @@ export function RegisterClient() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-800">Fonction / poste</label>
+              <label htmlFor="register-job" className="block text-sm font-medium text-slate-800">Fonction / poste <span className="text-slate-400">(facultatif)</span></label>
               <input
-                className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                id="register-job"
+                autoComplete="organization-title"
+                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
                 value={jobTitle}
                 onChange={e => setJobTitle(e.target.value)}
                 placeholder={accountType === "company" ? "Direction evenementielle" : accountType === "agency" ? "Chef de projet" : "Fondateur, Event Manager..."}
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-800">Pays</label>
+              <label htmlFor="register-country" className="block text-sm font-medium text-slate-800">Pays <span className="text-rose-700">*</span></label>
               <input
-                className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                id="register-country"
+                autoComplete="country-name"
+                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
                 value={country}
                 onChange={e => setCountry(e.target.value)}
                 placeholder="RDC"
@@ -333,19 +379,23 @@ export function RegisterClient() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-800">Ville</label>
+              <label htmlFor="register-city" className="block text-sm font-medium text-slate-800">Ville <span className="text-slate-400">(facultatif)</span></label>
               <input
-                className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                id="register-city"
+                autoComplete="address-level2"
+                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
                 value={city}
                 onChange={e => setCity(e.target.value)}
                 placeholder="Kinshasa"
               />
             </div>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-800">Site web</label>
+              <label htmlFor="register-website" className="block text-sm font-medium text-slate-800">Site web <span className="text-slate-400">(facultatif)</span></label>
               <input
+                id="register-website"
                 type="url"
-                className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                autoComplete="url"
+                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
                 value={website}
                 onChange={e => setWebsite(e.target.value)}
                 placeholder="https://votre-site.com"
@@ -353,17 +403,27 @@ export function RegisterClient() {
             </div>
           </div>
 
-          <div className="border-b border-slate-100 pb-3 pt-1">
-            <h3 className="text-sm font-semibold text-slate-900">Accès et sécurité</h3>
-            <p className="mt-1 text-xs leading-5 text-slate-500">Utilisez une adresse active et un mot de passe robuste.</p>
+          <div className="flex gap-3 border-t border-slate-100 pt-4">
+            <button type="button" onClick={() => setStep(1)} className="min-h-12 flex-1 rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100">Retour</button>
+            <button type="button" onClick={() => { if (formRef.current?.reportValidity()) setStep(3); }} className="min-h-12 flex-1 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200">Continuer</button>
+          </div>
+            </section>
+          )}
+
+          {step === 3 && (
+            <section aria-labelledby="account-security-heading" className="space-y-5">
+          <div className="border-b border-slate-100 pb-3">
+            <h3 id="account-security-heading" className="text-base font-semibold text-slate-950">Créer vos identifiants</h3>
+            <p className="mt-1 text-sm leading-5 text-slate-500">Ils vous permettront de vous connecter et de protéger votre espace.</p>
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-800">Adresse email</label>
+            <label htmlFor="register-email" className="block text-sm font-medium text-slate-800">Adresse e-mail <span className="text-rose-700">*</span></label>
             <input
+              id="register-email"
               type="email"
               autoComplete="email"
-              className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+              className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="vous@eventia.app"
@@ -372,9 +432,11 @@ export function RegisterClient() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-800">Code partenaire ou referral</label>
+            <label htmlFor="register-referral" className="block text-sm font-medium text-slate-800">Code partenaire <span className="text-slate-400">(facultatif)</span></label>
             <input
-              className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm uppercase outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+              id="register-referral"
+              autoComplete="off"
+              className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm uppercase text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
               value={referralCode}
               onChange={e => setReferralCode(e.target.value.toUpperCase())}
               placeholder="Optionnel"
@@ -384,14 +446,16 @@ export function RegisterClient() {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-3">
-                <label className="block text-sm font-medium text-slate-800">Mot de passe</label>
-                <span className="text-xs text-slate-500">Fort requis</span>
+                <label htmlFor="register-password" className="block text-sm font-medium text-slate-800">Mot de passe <span className="text-rose-700">*</span></label>
+                <span className="text-xs text-slate-500">Obligatoire</span>
               </div>
               <div className="relative">
                 <input
+                  id="register-password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
-                  className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 pr-16 text-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                  aria-describedby="password-requirements"
+                  className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-20 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="Au moins 6 caracteres, avec majuscule, minuscule, chiffre et symbole"
@@ -400,33 +464,38 @@ export function RegisterClient() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(value => !value)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
                 >
                   {showPassword ? "Masquer" : "Afficher"}
                 </button>
               </div>
-              <div className="grid gap-2 pt-1 text-[11px] text-slate-500 md:grid-cols-2">
-                <span className={passwordChecks.length ? "text-emerald-700" : ""}>6+ caracteres</span>
-                <span className={passwordChecks.upper ? "text-emerald-700" : ""}>1 majuscule</span>
-                <span className={passwordChecks.lower ? "text-emerald-700" : ""}>1 minuscule</span>
-                <span className={passwordChecks.digit ? "text-emerald-700" : ""}>1 chiffre</span>
-                <span className={passwordChecks.special ? "text-emerald-700 md:col-span-2" : "md:col-span-2"}>
-                  1 caractere special
+              <div id="password-requirements" aria-live="polite" className="grid gap-x-3 gap-y-1.5 pt-1 text-[11px] sm:grid-cols-2">
+                <span className={passwordChecks.length ? "text-emerald-700" : "text-slate-500"}>{passwordChecks.length ? "✓" : "○"} 6 caractères minimum</span>
+                <span className={passwordChecks.upper ? "text-emerald-700" : "text-slate-500"}>{passwordChecks.upper ? "✓" : "○"} Une majuscule</span>
+                <span className={passwordChecks.lower ? "text-emerald-700" : "text-slate-500"}>{passwordChecks.lower ? "✓" : "○"} Une minuscule</span>
+                <span className={passwordChecks.digit ? "text-emerald-700" : "text-slate-500"}>{passwordChecks.digit ? "✓" : "○"} Un chiffre</span>
+                <span className={passwordChecks.special ? "text-emerald-700 sm:col-span-2" : "text-slate-500 sm:col-span-2"}>
+                  {passwordChecks.special ? "✓" : "○"} Un caractère spécial
                 </span>
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-800">Confirmer</label>
+              <label htmlFor="register-confirm-password" className="block text-sm font-medium text-slate-800">Confirmer le mot de passe <span className="text-rose-700">*</span></label>
               <input
+                id="register-confirm-password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="new-password"
-                className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
                 placeholder="Retapez le mot de passe"
                 required
               />
+              {confirmPassword && password !== confirmPassword && (
+                <p role="status" className="text-xs font-medium text-rose-700">Les mots de passe ne correspondent pas.</p>
+              )}
             </div>
           </div>
 
@@ -435,6 +504,8 @@ export function RegisterClient() {
               type="checkbox"
               className="mt-1 h-4 w-4 rounded border-primary/20"
               checked={acceptTerms}
+              required
+              aria-label="Accepter les conditions d’utilisation et la politique de confidentialité"
               onChange={e => setAcceptTerms(e.target.checked)}
             />
             <span>
@@ -450,9 +521,14 @@ export function RegisterClient() {
             </span>
           </label>
 
-          <button className="btn-primary w-full justify-center py-3 text-sm shadow-[0_16px_30px_rgba(15,23,42,0.18)] transition-transform active:scale-[0.99]" type="submit" disabled={loading}>
-            {loading ? "Creation securisee..." : `Creer mon espace ${accountMeta.title.toLowerCase()}`}
-          </button>
+          <div className="flex gap-3 border-t border-slate-100 pt-4">
+            <button type="button" onClick={() => setStep(2)} className="min-h-12 flex-1 rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100">Retour</button>
+            <button className="flex min-h-12 flex-[1.5] items-center justify-center rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200 active:scale-[0.99] disabled:cursor-wait disabled:opacity-70" type="submit" disabled={loading}>
+              {loading ? "Creation securisee..." : `Creer mon espace ${accountMeta.title.toLowerCase()}`}
+            </button>
+          </div>
+            </section>
+          )}
         </form>
 
         <AuthPopup
