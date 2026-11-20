@@ -66,10 +66,10 @@ export default function InviteDrinksPage() {
         return;
       }
       setMessageTone("success");
-      setMessage("Votre choix a bien ete enregistre.");
+      setMessage("Votre choix a bien été enregistré.");
     } catch {
       setMessageTone("error");
-      setMessage("Impossible de joindre le serveur. Verifiez votre connexion puis reessayez.");
+      setMessage("Impossible de joindre le serveur. Vérifiez votre connexion, puis réessayez.");
     } finally {
       setSaving(false);
     }
@@ -102,18 +102,18 @@ export default function InviteDrinksPage() {
         <InviteSteps token={token} current="drinks" />
         <header className="flex flex-col gap-3 border-b border-slate-200/80 pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#526b5c]">Vos preferences</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#526b5c]">Vos préférences</p>
             <h1 className="mt-1 text-2xl font-semibold text-slate-950 sm:text-3xl">Choix des boissons</h1>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">Selectionnez les boissons que vous souhaitez. Vous pourrez modifier votre choix avant l'evenement.</p>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">Sélectionnez les boissons de votre choix. Vous pourrez modifier votre réponse avant l’événement.</p>
           </div>
           <span className="inline-flex w-fit items-center rounded-full border border-[#cbd8cf] bg-[#edf2ee] px-3 py-1.5 text-xs font-semibold text-[#43584b]" aria-live="polite">
-            {selectedCount} selectionnee{selectedCount === 1 ? "" : "s"}
+            {selectedCount} sélectionnée{selectedCount === 1 ? "" : "s"}
           </span>
         </header>
 
         {drinksDisabled ? (
           <div className="rounded-xl border border-primary/10 bg-background/70 px-4 py-3 text-small text-text/70">
-            Le choix des boissons n'est pas active pour cette invitation.
+            Le choix des boissons n’est pas activé pour cette invitation.
           </div>
         ) : (
           <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
@@ -137,7 +137,7 @@ export default function InviteDrinksPage() {
                     <span className="font-semibold text-slate-900">{drink.name}</span>
                     <span aria-hidden="true" className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border text-[11px] ${active ? "border-[#526b5c] bg-[#526b5c] text-white" : "border-slate-300 text-transparent"}`}>✓</span>
                   </span>
-                  <span className="mt-2 block text-xs text-slate-500">{drink.category === "ALCOHOLIC" ? "Alcoolisee" : "Sans alcool"}</span>
+                  <span className="mt-2 block text-xs text-slate-500">{drink.category === "ALCOHOLIC" ? "Alcoolisée" : "Sans alcool"}</span>
                 </button>
               );
             })}
@@ -146,7 +146,7 @@ export default function InviteDrinksPage() {
 
         <div className="flex flex-col-reverse gap-2 border-t border-slate-200/80 pt-4 sm:flex-row sm:justify-end">
           <Link href={`/invite/${token}/invitation`} className="btn-ghost inline-flex min-h-11 items-center justify-center rounded-xl border px-4 py-2 text-sm font-semibold">
-            Retour a l'invitation
+              Retour à l’invitation
           </Link>
           <button className="btn-primary min-h-11 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50" onClick={save} disabled={saving || drinksDisabled}>
             {saving ? "Enregistrement..." : "Enregistrer mon choix"}

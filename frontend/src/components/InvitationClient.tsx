@@ -33,7 +33,7 @@ function toIcsStamp(date: Date) {
 }
 function formatCountdown(target: Date, now: Date) {
   const diff = target.getTime() - now.getTime();
-  if (diff <= 0) return "C'est aujourd'hui";
+  if (diff <= 0) return "C’est aujourd’hui";
   const mins = Math.floor(diff / 60000);
   const days = Math.floor(mins / 1440);
   const hours = Math.floor((mins % 1440) / 60);
@@ -168,7 +168,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
       setGuestStatus("CONFIRMED");
       setFeedback("Merci. Votre présence est confirmée.");
     } catch (error) {
-      setFeedback(error instanceof Error ? error.message : "Impossible de confirmer pour le moment. Reessayez plus tard.");
+      setFeedback(error instanceof Error ? error.message : "Impossible de confirmer pour le moment. Réessayez plus tard.");
     } finally {
       setLoadingAction(null);
     }
@@ -182,7 +182,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
       setGuestStatus("CANCELED");
       setFeedback("Votre absence a bien été enregistrée.");
     } catch (error) {
-      setFeedback(error instanceof Error ? error.message : "Impossible d'enregistrer l'annulation. Reessayez plus tard.");
+      setFeedback(error instanceof Error ? error.message : "Impossible d’enregistrer l’annulation. Réessayez plus tard.");
     } finally {
       setLoadingAction(null);
     }
@@ -190,7 +190,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
 
   async function handleGuestbook() {
     if (!message.trim()) {
-      setFeedback("Veuillez ecrire un message avant d'envoyer.");
+      setFeedback("Veuillez écrire un message avant de l’envoyer.");
       return;
     }
     try {
@@ -200,7 +200,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
       setFeedback("Votre message a bien été envoyé.");
       setMessage("");
     } catch (error) {
-      setFeedback(error instanceof Error ? error.message : "Impossible d'enregistrer votre message. Reessayez plus tard.");
+      setFeedback(error instanceof Error ? error.message : "Impossible d’enregistrer votre message. Réessayez plus tard.");
     } finally {
       setLoadingAction(null);
     }
@@ -219,7 +219,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
       });
       setFeedback("Vos préférences de boissons ont été enregistrées.");
     } catch (error) {
-      setFeedback(error instanceof Error ? error.message : "Impossible d'enregistrer vos boissons. Reessayez plus tard.");
+      setFeedback(error instanceof Error ? error.message : "Impossible d’enregistrer vos boissons. Réessayez plus tard.");
     } finally {
       setLoadingAction(null);
     }
@@ -237,7 +237,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
       const payload = (await callPost(`/invitations/${initial.invitation.token}/upload-media`, { fileName: file.name, dataUrl })) as { url: string };
       setMemoryUrl(payload.url);
       setMemoryType("IMAGE");
-      setFeedback("Image telechargee. Ajoutez une legende puis publiez.");
+      setFeedback("Image téléchargée. Ajoutez une légende puis publiez.");
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Upload photo souvenir impossible.");
     } finally {
@@ -247,7 +247,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
 
   async function handleAddMemory() {
     if (!memoryUrl.trim()) {
-      setFeedback("Ajoutez un lien media ou telechargez une image.");
+      setFeedback("Ajoutez un lien média ou téléchargez une image.");
       return;
     }
     try {
@@ -260,9 +260,9 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
       setMemories(prev => [memory, ...prev]);
       setMemoryUrl("");
       setMemoryCaption("");
-      setFeedback("Souvenir ajoute.");
+      setFeedback("Souvenir ajouté.");
     } catch (error) {
-      setFeedback(error instanceof Error ? error.message : "Impossible d'ajouter ce souvenir.");
+      setFeedback(error instanceof Error ? error.message : "Impossible d’ajouter ce souvenir.");
     } finally {
       setLoadingAction(null);
     }
@@ -272,7 +272,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
     programItems.length > 0
       ? programItems
       : initial.event.program || initial.event.details
-        ? [{ id: 0, timeLabel: timeLabel || "Programme", title: initial.event.program ? "Programme de l'evenement" : "Informations", description: initial.event.program || initial.event.details || null, order: 0 }]
+        ? [{ id: 0, timeLabel: timeLabel || "Programme", title: initial.event.program ? "Programme de l’événement" : "Informations", description: initial.event.program || initial.event.details || null, order: 0 }]
         : [];
 
   const shellTheme = isCorporateEvent
@@ -302,7 +302,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
             <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/42 to-transparent" />
             {logoUrl ? (
               <div className="absolute left-4 top-4 rounded-full border border-white/15 bg-white/85 px-3 py-2 shadow-lg shadow-black/20 backdrop-blur-md">
-                <img src={logoUrl} alt="Logo evenement" className="h-8 w-auto max-w-[150px] object-contain" />
+                <img src={logoUrl} alt="Logo de l’événement" className="h-8 w-auto max-w-[150px] object-contain" />
               </div>
             ) : null}
             <div className="absolute right-4 top-4 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[11px] font-medium uppercase tracking-[0.2em] text-white/95 backdrop-blur-md">
@@ -310,7 +310,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
             </div>
             <div className="absolute inset-x-0 bottom-0 p-5 md:p-8">
               <div className="max-w-4xl space-y-3 text-white">
-                <p className="text-[11px] uppercase tracking-[0.32em] text-white/70">{initial.event.type || "Evenement"}</p>
+                <p className="text-[11px] uppercase tracking-[0.32em] text-white/70">{initial.event.type || "Événement"}</p>
                 <h1 className="text-3xl font-semibold leading-tight md:text-6xl">{heroTitle}</h1>
                 <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-white/92">
                   {dateLabel ? <span className="rounded-full border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-md">{dateLabel}</span> : null}
@@ -344,8 +344,8 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
           </div>
           <div className="rounded-[22px] border border-slate-200/80 bg-white px-4 py-4 shadow-sm">
             <p className="text-[10px] uppercase tracking-[0.28em] text-slate-700">Statut</p>
-            <p className={`mt-2 text-lg font-semibold ${isConfirmed ? "text-emerald-600" : guestStatus === "CANCELED" ? "text-rose-600" : "text-amber-600"}`}>{guestStatus === "PENDING" && "En attente"}{guestStatus === "CONFIRMED" && "Confirme"}{guestStatus === "CANCELED" && "Annule"}</p>
-            <p className="mt-1 text-sm text-slate-700">Le QR code s'active apres RSVP.</p>
+            <p className={`mt-2 text-lg font-semibold ${isConfirmed ? "text-emerald-600" : guestStatus === "CANCELED" ? "text-rose-600" : "text-amber-600"}`}>{guestStatus === "PENDING" && "En attente"}{guestStatus === "CONFIRMED" && "Confirmé"}{guestStatus === "CANCELED" && "Annulé"}</p>
+            <p className="mt-1 text-sm text-slate-700">Le QR code s’active après votre réponse.</p>
           </div>
         </div>
       </div>
@@ -355,7 +355,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
           <div className="rounded-[28px] border border-white/60 bg-white/94 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", animation: "page-enter 0.35s ease-out both" }}>
             <p className="text-[11px] uppercase tracking-[0.24em] text-slate-700">Accès invité</p>
             <p className="mt-3 text-base text-slate-700 md:text-lg">
-              Cher(e) <span className="font-semibold text-slate-900">{initial.guest.fullName}</span>, vous etes invite(e) a vivre un moment special autour de <span className="font-semibold text-slate-900">{initial.event.name}</span>.
+              Cher(e) <span className="font-semibold text-slate-900">{initial.guest.fullName}</span>, vous êtes invité(e) à vivre un moment spécial autour de <span className="font-semibold text-slate-900">{initial.event.name}</span>.
             </p>
             {initial.event.invitationMessage ? (
               <div className="mt-4 min-w-0 w-full max-w-full overflow-visible rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-5 text-base leading-8 text-slate-700 [overflow-wrap:anywhere] [&_*]:max-w-full [&_*]:whitespace-normal [&_*]:[overflow-wrap:anywhere] [&_h1]:mb-3 [&_h1]:text-2xl [&_h1]:font-semibold [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-semibold [&_li]:my-1 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6">
@@ -395,7 +395,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
                 <p className="text-[11px] uppercase tracking-[0.24em] text-slate-700">Programme</p>
                 <h2 className="mt-2 text-2xl font-semibold text-slate-900">Timeline de la cérémonie</h2>
               </div>
-              <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">{programTimeline.length} etapes</div>
+              <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">{programTimeline.length} étapes</div>
             </div>
             {programTimeline.length > 0 ? (
               <div className="mt-5 space-y-4">
@@ -414,7 +414,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
                 ))}
               </div>
             ) : (
-              <p className="mt-3 text-sm text-slate-700">Le programme detaille sera communique par l'organisateur.</p>
+              <p className="mt-3 text-sm text-slate-700">Le programme détaillé sera communiqué par l’organisateur.</p>
             )}
           </div>
         </div>
@@ -424,7 +424,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
               <div>
                 <p className="text-[11px] uppercase tracking-[0.24em] text-slate-700">Pass d'accès</p>
                 <h2 className="mt-2 text-2xl font-semibold text-slate-900">Votre pass d'accès</h2>
-                <p className="mt-2 text-sm text-slate-700">{isConfirmed ? "Le pass est disponible. Presenter ce code a l'entree pour un acces rapide." : "Confirmez votre presence pour generer votre pass d'acces."}</p>
+                <p className="mt-2 text-sm text-slate-700">{isConfirmed ? "Le pass est disponible. Présentez ce code à l’entrée pour un accès rapide." : "Confirmez votre présence pour générer votre pass d’accès."}</p>
               </div>
               {isConfirmed ? <button type="button" onClick={downloadInvitationPdf} className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5">Télécharger PDF</button> : null}
             </div>
@@ -435,8 +435,8 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
                 </div>
               ) : (
                 <div className="flex w-full flex-col items-center justify-center rounded-[24px] border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center">
-                  <p className="text-sm font-medium text-slate-900">Confirmez votre presence d'abord</p>
-                  <p className="mt-2 text-sm text-slate-700">Le QR code apparaitra apres validation de votre RSVP.</p>
+                  <p className="text-sm font-medium text-slate-900">Confirmez d’abord votre présence</p>
+                  <p className="mt-2 text-sm text-slate-700">Le QR code apparaîtra après validation de votre réponse.</p>
                 </div>
               )}
             </div>
@@ -446,11 +446,11 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.24em] text-slate-700">RSVP</p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-900">Confirmer votre presence</h2>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-900">Confirmer votre présence</h2>
               </div>
               <div className="text-right">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-700">Statut</p>
-                <p className={`mt-1 text-sm font-semibold ${guestStatus === "CONFIRMED" ? "text-emerald-600" : guestStatus === "CANCELED" ? "text-rose-600" : "text-amber-600"}`}>{guestStatus === "PENDING" && "En attente"}{guestStatus === "CONFIRMED" && "Confirme"}{guestStatus === "CANCELED" && "Annule"}</p>
+                <p className={`mt-1 text-sm font-semibold ${guestStatus === "CONFIRMED" ? "text-emerald-600" : guestStatus === "CANCELED" ? "text-rose-600" : "text-amber-600"}`}>{guestStatus === "PENDING" && "En attente"}{guestStatus === "CONFIRMED" && "Confirmé"}{guestStatus === "CANCELED" && "Annulé"}</p>
               </div>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -480,7 +480,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
                     <button key={drink.id} type="button" onClick={() => toggleDrink(drink.id)} className={`rounded-2xl border px-4 py-3 text-left transition ${active ? "border-slate-900 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-900"}`}>
                       <div className="flex items-center justify-between gap-3">
                         <span className="font-medium">{drink.name}</span>
-                        <span className="text-[10px] uppercase tracking-[0.18em] text-current/60">{drink.category === "ALCOHOLIC" ? "Alcoolisee" : "Soft"}</span>
+                        <span className="text-[10px] uppercase tracking-[0.18em] text-current/60">{drink.category === "ALCOHOLIC" ? "Alcoolisée" : "Sans alcool"}</span>
                       </div>
                     </button>
                   );
@@ -509,18 +509,18 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
           {mode === "full" && (
             <div className="rounded-[28px] border border-white/60 bg-white/94 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", animation: "page-enter 0.35s ease-out both" }}>
               <p className="text-[11px] uppercase tracking-[0.24em] text-slate-700">Galerie médias</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Album photo et video</h2>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Album photo et vidéo</h2>
               <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-[auto,1fr]">
                 <select className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900" value={memoryType} onChange={e => setMemoryType(e.target.value as "IMAGE" | "VIDEO") }>
                   <option value="IMAGE">Photo</option>
-                  <option value="VIDEO">Video</option>
+                  <option value="VIDEO">Vidéo</option>
                 </select>
-                <input className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900" value={memoryUrl} onChange={e => setMemoryUrl(e.target.value)} placeholder="Lien media (https://...)" />
+                <input className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900" value={memoryUrl} onChange={e => setMemoryUrl(e.target.value)} placeholder="Lien média (https://…)" />
               </div>
               <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-[1fr,auto]">
-                <input className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900" value={memoryCaption} onChange={e => setMemoryCaption(e.target.value)} placeholder="Legende (optionnel)" />
+                <input className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900" value={memoryCaption} onChange={e => setMemoryCaption(e.target.value)} placeholder="Légende (facultatif)" />
                 <label className="cursor-pointer rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5">
-                  Telecharger photo
+                  Télécharger une photo
                   <input type="file" accept="image/png,image/jpeg,image/jpg" className="hidden" onChange={e => { const file = e.target.files?.[0]; if (!file) return; void handleUploadMemoryImage(file); e.target.value = ""; }} />
                 </label>
               </div>
@@ -529,22 +529,22 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
                 <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {memories.map(item => (
                     <div key={item.id} className="rounded-2xl border border-slate-200 bg-white p-3">
-                      {item.mediaType === "IMAGE" ? <img src={normalizePublicUrl(item.mediaUrl)} alt={item.caption || "Souvenir"} className="h-32 w-full rounded-xl object-cover" /> : <a href={normalizePublicUrl(item.mediaUrl)} target="_blank" rel="noreferrer" className="text-sm font-medium text-slate-900 underline">Ouvrir la video</a>}
+                      {item.mediaType === "IMAGE" ? <img src={normalizePublicUrl(item.mediaUrl)} alt={item.caption || "Souvenir"} className="h-32 w-full rounded-xl object-cover" /> : <a href={normalizePublicUrl(item.mediaUrl)} target="_blank" rel="noreferrer" className="text-sm font-medium text-slate-900 underline">Ouvrir la vidéo</a>}
                       {item.caption ? <p className="mt-2 text-sm text-slate-700">{item.caption}</p> : null}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="mt-4 text-sm text-slate-700">Aucun souvenir publie pour le moment.</p>
+                <p className="mt-4 text-sm text-slate-700">Aucun souvenir publié pour le moment.</p>
               )}
             </div>
           )}
 
           {mode === "full" && (
             <div className="rounded-[28px] border border-white/60 bg-white/94 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", animation: "page-enter 0.35s ease-out both" }}>
-              <p className="text-[11px] uppercase tracking-[0.24em] text-slate-700">Livre d'or</p>
+              <p className="text-[11px] uppercase tracking-[0.24em] text-slate-700">Livre d’or</p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-900">Laisser un mot</h2>
-              <textarea className="mt-4 w-full rounded-[22px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400" rows={4} value={message} onChange={e => setMessage(e.target.value)} placeholder="Laissez un mot aux organisateurs..." />
+              <textarea className="mt-4 w-full rounded-[22px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400" rows={4} value={message} onChange={e => setMessage(e.target.value)} placeholder="Laissez un mot aux organisateurs…" />
               <div className="mt-3 flex justify-end">
                 <button type="button" className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:opacity-60" onClick={handleGuestbook} disabled={loadingAction === "guestbook"}>{loadingAction === "guestbook" ? "Envoi..." : "Envoyer le message"}</button>
               </div>
@@ -561,10 +561,10 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
               <p className="text-[10px] uppercase tracking-[0.28em] text-slate-700">RSVP rapide</p>
               <p className="mt-1 text-xs text-slate-700">{countdownText || dateLabel}</p>
             </div>
-            <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${isConfirmed ? "bg-emerald-100 text-emerald-700" : guestStatus === "CANCELED" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"}`}>{guestStatus === "PENDING" && "En attente"}{guestStatus === "CONFIRMED" && "Confirme"}{guestStatus === "CANCELED" && "Annule"}</span>
+            <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${isConfirmed ? "bg-emerald-100 text-emerald-700" : guestStatus === "CANCELED" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"}`}>{guestStatus === "PENDING" && "En attente"}{guestStatus === "CONFIRMED" && "Confirmé"}{guestStatus === "CANCELED" && "Annulé"}</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <button className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition active:scale-[0.99] motion-safe:animate-pulse disabled:opacity-60" type="button" onClick={handleConfirm} disabled={loadingAction === "confirm"}>{loadingAction === "confirm" ? "..." : isConfirmed ? "Ouvrir le pass" : "Confirmer ma presence"}</button>
+            <button className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition active:scale-[0.99] motion-safe:animate-pulse disabled:opacity-60" type="button" onClick={handleConfirm} disabled={loadingAction === "confirm"}>{loadingAction === "confirm" ? "…" : isConfirmed ? "Ouvrir le pass" : "Confirmer ma présence"}</button>
             <button className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-sm transition active:scale-[0.99] disabled:opacity-60" type="button" onClick={handleCancel} disabled={loadingAction === "cancel"}>{loadingAction === "cancel" ? "..." : "Je ne pourrai pas venir"}</button>
           </div>
         </div>

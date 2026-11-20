@@ -45,7 +45,7 @@ export default function InviteGuestbookPage() {
 
   async function submit() {
     if (!text.trim()) {
-      setMessage("Veuillez ecrire un message.");
+      setMessage("Veuillez écrire un message.");
       return;
     }
 
@@ -92,7 +92,7 @@ export default function InviteGuestbookPage() {
       const payload = (await res.json()) as { url: string };
       setMediaType("IMAGE");
       setMediaUrl(payload.url);
-      setMessage("Image telechargee, vous pouvez publier.");
+      setMessage("Image téléchargée, vous pouvez la publier.");
     } finally {
       setLoading(false);
     }
@@ -100,7 +100,7 @@ export default function InviteGuestbookPage() {
 
   async function publishMemory() {
     if (!mediaUrl.trim()) {
-      setMessage("Ajoutez un lien media ou telechargez une image.");
+      setMessage("Ajoutez un lien média ou téléchargez une image.");
       return;
     }
     setLoading(true);
@@ -122,7 +122,7 @@ export default function InviteGuestbookPage() {
       }
       setMediaUrl("");
       setMediaCaption("");
-      setMessage("Souvenir publie.");
+      setMessage("Souvenir publié.");
       await refreshInvitation();
     } finally {
       setLoading(false);
@@ -144,10 +144,10 @@ export default function InviteGuestbookPage() {
         <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-2">
-              <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Livre d'or premium</p>
-              <h1 className="text-3xl font-semibold text-slate-900 md:text-4xl">Laissez une trace elegante</h1>
+              <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Livre d’or premium</p>
+              <h1 className="text-3xl font-semibold text-slate-900 md:text-4xl">Laissez une trace élégante</h1>
               <p className="max-w-2xl text-sm leading-6 text-slate-600">
-                Partagez un message chaleureux, ajoutez un souvenir photo ou video, et nourrissez la memoire de l'evenement avec une presentation claire et moderne.
+                Partagez un message chaleureux, ajoutez un souvenir photo ou vidéo et faites vivre la mémoire de l’événement.
               </p>
             </div>
             <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[420px]">
@@ -156,7 +156,7 @@ export default function InviteGuestbookPage() {
                 <p className="mt-1 text-2xl font-semibold text-slate-900">{visibleMessages.length}</p>
               </div>
               <div className="rounded-[20px] border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
-                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Souvenirs</p>
+                <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Souvenirs partagés</p>
                 <p className="mt-1 text-2xl font-semibold text-slate-900">{memories.length}</p>
               </div>
               <div className="rounded-[20px] border border-slate-200/80 bg-slate-950 px-4 py-3 shadow-sm text-white">
@@ -171,7 +171,7 @@ export default function InviteGuestbookPage() {
           <div className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl space-y-4 md:p-6">
             <div>
               <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Message</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Ecrire dans le livre d'or</h2>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-900">Écrire dans le livre d’or</h2>
             </div>
             <textarea
               className="min-h-[150px] w-full rounded-[22px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
@@ -179,13 +179,13 @@ export default function InviteGuestbookPage() {
               value={text}
               onChange={e => setText(e.target.value)}
               maxLength={400}
-              placeholder="Exemple: Merci pour l'invitation, nous vous souhaitons une merveilleuse celebration..."
+              placeholder="Exemple : Merci pour l’invitation. Nous vous souhaitons une merveilleuse célébration…"
             />
             <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
               <span>{remaining} caracteres restants</span>
               <div className="flex flex-wrap gap-2">
                 <Link href={`/invite/${token}/invitation`} className="rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-900 transition hover:-translate-y-0.5">
-                  Retour invitation
+                Retour à l’invitation
                 </Link>
                 <Link href={`/invite/${token}/chat`} className="rounded-full border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-900 transition hover:-translate-y-0.5">
                   Aller au chat
@@ -204,7 +204,7 @@ export default function InviteGuestbookPage() {
           <div className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
             <div>
               <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Album</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Photo et video</h2>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Photo et vidéo</h2>
             </div>
             <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-[auto,1fr]">
               <select
@@ -213,13 +213,13 @@ export default function InviteGuestbookPage() {
                 onChange={e => setMediaType(e.target.value as "IMAGE" | "VIDEO")}
               >
                 <option value="IMAGE">Photo</option>
-                <option value="VIDEO">Video (lien)</option>
+                <option value="VIDEO">Vidéo (lien)</option>
               </select>
               <input
                 className="rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-xs text-slate-900 outline-none"
                 value={mediaUrl}
                 onChange={e => setMediaUrl(e.target.value)}
-                placeholder="Lien media (https://...)"
+                placeholder="Lien média (https://…)"
               />
             </div>
             <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-[1fr,auto]">
@@ -227,10 +227,10 @@ export default function InviteGuestbookPage() {
                 className="rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-xs text-slate-900 outline-none"
                 value={mediaCaption}
                 onChange={e => setMediaCaption(e.target.value)}
-                placeholder="Legende (optionnel)"
+                placeholder="Légende (facultatif)"
               />
               <label className="cursor-pointer rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-center text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5">
-                Telecharger photo
+                Télécharger une photo
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/jpg,image/webp"
@@ -258,7 +258,7 @@ export default function InviteGuestbookPage() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Mur public</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Messages recents</h2>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Messages récents</h2>
             </div>
             <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
               {visibleMessages.length} message(s)
@@ -266,7 +266,7 @@ export default function InviteGuestbookPage() {
           </div>
           {visibleMessages.length === 0 ? (
             <div className="mt-4 rounded-[20px] border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-600">
-              Soyez le premier a laisser un message.
+              Soyez le premier à laisser un message.
             </div>
           ) : (
             <div className="mt-4 grid gap-3">
@@ -287,7 +287,7 @@ export default function InviteGuestbookPage() {
           <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
             <div>
               <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Galerie</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Souvenirs partages</h2>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Souvenirs partagés</h2>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {memories.map(item => (
@@ -300,7 +300,7 @@ export default function InviteGuestbookPage() {
                     />
                   ) : (
                     <div className="flex h-44 items-center justify-center bg-slate-950 text-sm font-semibold text-white">
-                      Video
+                  Vidéo
                     </div>
                   )}
                   <div className="p-4">

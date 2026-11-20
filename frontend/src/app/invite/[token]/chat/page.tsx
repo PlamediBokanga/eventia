@@ -127,16 +127,16 @@ export default function InviteChatPage() {
         <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-2">
-              <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Conversation invitee</p>
+              <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">Conversation avec l’organisateur</p>
               <h1 className="text-3xl font-semibold text-slate-900 md:text-4xl">{title}</h1>
               {meta ? (
                 <p className="max-w-2xl text-sm leading-6 text-slate-600">
-                  Echangez directement avec l'organisateur dans un espace clair, rapide et mobile-first.
-                  Vous etes connecte(e) comme {meta.guest.fullName}.
+                  Échangez directement avec l’organisateur dans un espace clair, rapide et mobile-first.
+                  Vous êtes connecté(e) en tant que {meta.guest.fullName}.
                 </p>
               ) : (
                 <p className="max-w-2xl text-sm leading-6 text-slate-600">
-                  Retrouvez les messages de l'organisateur et repondez sans quitter votre invitation.
+                  Retrouvez les messages de l’organisateur et répondez sans quitter votre invitation.
                 </p>
               )}
             </div>
@@ -161,10 +161,10 @@ export default function InviteChatPage() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Mur de discussion</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Messages recents</h2>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Messages récents</h2>
             </div>
             <Link href={`/invite/${token}/guestbook`} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5">
-              Livre d'or
+              Livre d’or
             </Link>
           </div>
 
@@ -205,7 +205,7 @@ export default function InviteChatPage() {
 
         <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Reponse rapide</p>
+            <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Réponse rapide</p>
             <h2 className="mt-2 text-2xl font-semibold text-slate-900">Envoyer un message</h2>
           </div>
           <form onSubmit={sendMessage} className="mt-4 space-y-3">
@@ -214,7 +214,7 @@ export default function InviteChatPage() {
               onChange={e => setText(e.target.value)}
               rows={4}
               className="w-full rounded-[22px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-              placeholder="Ecrire votre message..."
+              placeholder="Écrivez votre message…"
               onKeyDown={e => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -223,7 +223,7 @@ export default function InviteChatPage() {
               }}
             />
             <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
-              <span>Appuyez sur Entrer pour envoyer, Shift+Entrer pour aller a la ligne.</span>
+              <span>Appuyez sur Entrée pour envoyer, ou sur Maj+Entrée pour passer à la ligne.</span>
               <button type="submit" className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5 disabled:opacity-60" disabled={sending}>
                 {sending ? "Envoi..." : "Envoyer"}
               </button>
@@ -233,7 +233,7 @@ export default function InviteChatPage() {
 
         <section className="grid gap-4 sm:grid-cols-2">
           <Link href={`/invite/${token}/invitation`} className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 text-center text-sm font-semibold text-slate-900 shadow-sm transition hover:-translate-y-0.5">
-            Retour invitation
+              Retour à l’invitation
           </Link>
           <Link href={`/invite/${token}/guestbook`} className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 text-center text-sm font-semibold text-slate-900 shadow-sm transition hover:-translate-y-0.5">
             Aller au livre d'or

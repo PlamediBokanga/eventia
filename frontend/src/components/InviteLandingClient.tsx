@@ -10,7 +10,7 @@ import { normalizePublicUrl } from "@/lib/url";
 
 function formatCountdown(target: Date, now: Date) {
   const diff = target.getTime() - now.getTime();
-  if (diff <= 0) return "C'est aujourd'hui";
+  if (diff <= 0) return "C’est aujourd’hui";
   const mins = Math.floor(diff / 60000);
   const days = Math.floor(mins / 1440);
   const hours = Math.floor((mins % 1440) / 60);
@@ -98,10 +98,10 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
   const primaryHref = `/invite/${token}/invitation`;
   const guestStatusLabel =
     data.guest.status === "CONFIRMED"
-      ? "Pr?sent"
+      ? "Présent"
       : data.guest.status === "CANCELED"
         ? "Absent"
-        : "R?ponse attendue";
+        : "Réponse attendue";
 
   useEffect(() => {
     setNow(Date.now());
@@ -150,12 +150,12 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
 
             {logoUrl ? (
               <div className="absolute left-4 top-4 rounded-full border border-white/15 bg-white/85 px-3 py-2 shadow-lg shadow-black/20 backdrop-blur-md">
-                <img src={logoUrl} alt="Logo evenement" className="h-8 w-auto max-w-[150px] object-contain" />
+                <img src={logoUrl} alt="Logo de l’événement" className="h-8 w-auto max-w-[150px] object-contain" />
               </div>
             ) : null}
 
             <div className="absolute right-4 top-4 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[11px] font-medium uppercase tracking-[0.2em] text-white/95 backdrop-blur-md">
-              {data.event.type || "Evenement premium"}
+              {data.event.type || "Événement premium"}
             </div>
 
             <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
@@ -186,9 +186,9 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
           <section className="rounded-[28px] border border-slate-200/70 bg-white/94 p-5 shadow-lg shadow-slate-200/40" style={{ backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", animation: "page-enter 0.35s ease-out both" }}>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-3">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-700">Aper?u rapide</p>
+                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-700">Aperçu rapide</p>
                 <p className="text-base leading-7 text-slate-700 sm:text-lg">
-                  Bonjour <span className="font-semibold text-slate-900">{data.guest.fullName}</span>, voici votre espace d'invitation EVENTIA.
+                Bonjour <span className="font-semibold text-slate-900">{data.guest.fullName}</span>, voici votre espace d’invitation EVENTIA.
                 </p>
                 {data.event.invitationMessage ? (
                   <div className="rounded-[22px] border border-slate-200 bg-slate-50/90 px-4 py-3 text-sm text-slate-700">
@@ -213,7 +213,7 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
             {showActions ? (
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 <a href={mapLinks.google} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">
-                  Itin?raire Google Maps
+                  Itinéraire Google Maps
                 </a>
                 <a href={mapLinks.apple} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">
                   Ouvrir dans Apple Maps
@@ -242,17 +242,17 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
           </section>
 
           <section id="invitation-preview" className="rounded-[28px] border border-slate-200/70 bg-white/94 p-5 shadow-lg shadow-slate-200/40">
-            <p className="text-[11px] uppercase tracking-[0.24em] text-slate-700">Acc?s direct</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-900">Passez ? l'invitation compl?te</h2>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-slate-700">Accès direct</p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-900">Passez à l’invitation complète</h2>
             <p className="mt-2 text-sm leading-6 text-slate-700">
-              Vous pouvez consulter les d?tails, confirmer votre pr?sence et acc?der ? tous les modules interactifs.
+              Vous pouvez consulter les détails, confirmer votre présence et accéder à tous les modules interactifs.
             </p>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row">
               <Link href={primaryHref} className="rounded-2xl bg-slate-950 px-4 py-3 text-center text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-lg">
                 Voir mon invitation
               </Link>
               <a href="#invitation-preview" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">
-                Aper?u d?taill?
+                Aperçu détaillé
               </a>
             </div>
           </section>
@@ -262,14 +262,14 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/30 bg-white/78 px-3 py-3 shadow-[0_-10px_40px_rgba(15,23,42,0.12)] backdrop-blur-xl md:hidden">
         <div className="mx-auto flex max-w-2xl flex-col gap-2">
           <a href={primaryHref} className="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 transition active:scale-[0.99]">
-            Ouvrir l'invitation
+            Ouvrir l’invitation
           </a>
           <div className="grid grid-cols-2 gap-2">
-            <button type="button" onClick={() => setShowCover(true)} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition active:scale-[0.99]">
+              <button type="button" onClick={() => setShowCover(true)} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition active:scale-[0.99]">
               Voir la couverture
             </button>
             <a href={primaryHref} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-center text-sm font-semibold text-slate-700 transition active:scale-[0.99]">
-              Details complets
+              Détails complets
             </a>
           </div>
           <div className="grid grid-cols-3 gap-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-700">
@@ -280,7 +280,7 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
               Calendrier
             </button>
             <a href={primaryHref} className="rounded-2xl border border-slate-200 bg-white px-2 py-2 text-center text-slate-700">
-              D?tails
+              Détails
             </a>
           </div>
         </div>
