@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Nav } from "@/components/layout/Nav";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
-import { ToastProvider } from "@/components/ui/Toast";
 
 export default function DashboardLayout({
   children
@@ -10,8 +9,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ToastProvider>
-      <div className="dashboard-theme min-h-screen px-3 py-4 sm:px-5 md:px-7">
+    <div className="dashboard-theme min-h-screen px-3 py-4 sm:px-5 md:px-7">
         <div className="mx-auto w-full max-w-7xl space-y-4">
           <header className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
             <Link href="/dashboard" className="flex items-center gap-3 no-underline hover:no-underline">
@@ -26,7 +24,6 @@ export default function DashboardLayout({
           <Nav />
           <PageTransition>{children}</PageTransition>
         </div>
-      </div>
-    </ToastProvider>
+    </div>
   );
 }

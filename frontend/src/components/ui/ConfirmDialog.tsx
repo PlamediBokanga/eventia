@@ -1,5 +1,7 @@
 "use client";
 
+import { useDialogA11y } from "@/components/ui/useDialogA11y";
+
 type ConfirmDialogProps = {
   open: boolean;
   title: string;
@@ -48,6 +50,7 @@ export function ConfirmDialog({
   onConfirm,
   onClose
 }: ConfirmDialogProps) {
+  const dialogRef = useDialogA11y(open, onClose, loading);
   if (!open) return null;
 
   const styles = VARIANT_STYLES[variant];
@@ -60,23 +63,32 @@ export function ConfirmDialog({
         type="button"
         aria-label="Fermer la confirmation"
         className="absolute inset-0 bg-slate-950/50 backdrop-blur-[2px]"
-        onClick={onClose}
+        onClick={() => { if (!loading) onClose(); }}
       />
-      <div className={`relative w-full max-w-lg overflow-hidden rounded-[28px] border shadow-[0_28px_90px_rgba(15,23,42,0.22)] ${styles.shell}`}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-dialog-title"
+        aria-describedby="confirm-dialog-description"
+        tabIndex={-1}
+        className={`relative w-full max-w-lg overflow-hidden rounded-[28px] border shadow-[0_28px_90px_rgba(15,23,42,0.22)] focus:outline-none ${styles.shell}`}
+      >
         <div className="flex items-start justify-between gap-4 px-5 py-5">
           <div className="flex items-start gap-3">
             <div className={`mt-0.5 grid h-11 w-11 place-items-center rounded-2xl border ${styles.badge}`}>
               <span className="text-sm font-bold uppercase tracking-[0.18em]">!</span>
             </div>
             <div className="min-w-0">
-              <p className="text-base font-semibold text-slate-950">{title}</p>
-              <div className="mt-1 text-sm leading-6 text-slate-700">{description}</div>
+              <p id="confirm-dialog-title" className="text-base font-semibold text-slate-950">{title}</p>
+              <div id="confirm-dialog-description" className="mt-1 text-sm leading-6 text-slate-700">{description}</div>
             </div>
           </div>
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => { if (!loading) onClose(); }}
+            disabled={loading}
             className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
           >
             Fermer
@@ -88,6 +100,8 @@ export function ConfirmDialog({
             <button
               type="button"
               onClick={onClose}
+              data-dialog-initial-focus
+              disabled={loading}
               className={`${buttonClass} border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 focus:ring-slate-200`}
             >
               {cancelLabel}

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useDialogA11y } from "@/components/ui/useDialogA11y";
 
 type AuthShellProps = {
   eyebrow: string;
@@ -259,6 +260,7 @@ export function AuthPopup({
   onSecondaryClick,
   onClose
 }: AuthPopupProps) {
+  const dialogRef = useDialogA11y(open, onClose);
   const styles = VARIANT_META[variant];
   const buttonClass = "inline-flex min-h-11 items-center justify-center rounded-full px-4 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none";
 
@@ -273,7 +275,13 @@ export function AuthPopup({
         onClick={onClose}
       />
       <div
-        className={`relative w-full max-w-lg overflow-hidden rounded-[30px] border bg-white shadow-[0_30px_100px_rgba(15,23,42,0.28)] ${styles.shell} animate-[page-enter_220ms_ease-out]`}
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-popup-title"
+        aria-describedby="auth-popup-message"
+        tabIndex={-1}
+        className={`relative w-full max-w-lg overflow-hidden rounded-[30px] border bg-white shadow-[0_30px_100px_rgba(15,23,42,0.28)] focus:outline-none ${styles.shell} animate-[page-enter_220ms_ease-out]`}
       >
         <div className={`h-1 ${styles.accent}`} />
         <div className="flex items-start justify-between gap-4 px-5 py-5">
@@ -281,18 +289,19 @@ export function AuthPopup({
             <VariantBadge variant={variant} />
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <p className={`text-base font-semibold ${styles.title}`}>{title}</p>
+                <p id="auth-popup-title" className={`text-base font-semibold ${styles.title}`}>{title}</p>
                 <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] uppercase tracking-[0.24em] text-slate-500">
                   {styles.label}
                 </span>
               </div>
-              <div className="mt-1 text-sm leading-6 text-slate-700">{message}</div>
+              <div id="auth-popup-message" className="mt-1 text-sm leading-6 text-slate-700">{message}</div>
             </div>
           </div>
 
           <button
             type="button"
             onClick={onClose}
+            aria-label="Fermer la fenêtre de message"
             className="site-button-secondary min-h-11 rounded-full px-4 text-xs"
           >
             Fermer
@@ -312,6 +321,7 @@ export function AuthPopup({
               <button
                 type="button"
                 onClick={onPrimaryClick}
+                data-dialog-initial-focus
                 className={`${buttonClass} site-button-primary`}
               >
                 {primaryLabel}
