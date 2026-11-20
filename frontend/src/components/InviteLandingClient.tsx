@@ -72,6 +72,7 @@ function buildIcsContent(event: InvitationData["event"]) {
 
 export function InviteLandingClient({ data, token }: { data: InvitationData; token: string }) {
   const [showCover, setShowCover] = useState(false);
+  const [coverImageFailed, setCoverImageFailed] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [now, setNow] = useState<number | null>(null);
   const coverImageUrl = normalizePublicUrl(data.event.coverImageUrl);
@@ -131,8 +132,8 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
         <div className="relative isolate">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.22),transparent_45%),linear-gradient(135deg,rgba(15,23,42,0.4),rgba(15,23,42,0.05))]" />
           <div className="relative h-[24rem] sm:h-[28rem]">
-            {coverImageUrl ? (
-              <img src={coverImageUrl} alt={`Photo de ${data.event.name}`} className="h-full w-full object-cover" />
+            {coverImageUrl && !coverImageFailed ? (
+              <img src={coverImageUrl} alt={`Photo de ${data.event.name}`} onError={() => setCoverImageFailed(true)} className="h-full w-full object-cover" />
             ) : (
               <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-950 via-slate-800 to-slate-600 text-white">
                 <div className="max-w-xl px-6 text-center">
@@ -286,11 +287,11 @@ export function InviteLandingClient({ data, token }: { data: InvitationData; tok
         </div>
       </div>
 
-      {showCover && coverImageUrl ? (
+      {showCover && coverImageUrl && !coverImageFailed ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
           <button type="button" aria-label="Fermer" onClick={() => setShowCover(false)} className="absolute inset-0" />
           <div className="relative z-10 w-full max-w-4xl">
-            <img src={coverImageUrl} alt={`Photo de ${data.event.name}`} className="max-h-[85vh] w-full rounded-2xl object-contain bg-black" />
+            <img src={coverImageUrl} alt={`Photo de ${data.event.name}`} onError={() => setCoverImageFailed(true)} className="max-h-[85vh] w-full rounded-2xl object-contain bg-black" />
             <button type="button" onClick={() => setShowCover(false)} className="absolute right-4 top-4 rounded-full bg-white/94 px-3 py-1 text-xs font-semibold text-text shadow-sm">
               Fermer
             </button>

@@ -2,7 +2,8 @@ import path from "path";
 
 export function getUploadDirectory() {
   const configured = process.env.UPLOAD_DIR?.trim();
-  return configured ? path.resolve(configured) : path.resolve(process.cwd(), "uploads");
+  // Keep uploads independent from the process working directory (which can vary by host).
+  return configured ? path.resolve(configured) : path.resolve(__dirname, "../uploads");
 }
 
 export function getUploadedFilePath(publicPath: string) {

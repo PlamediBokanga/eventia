@@ -15,6 +15,9 @@ API Express + Prisma pour le MVP EVENTIA.
 - `PORT`
 - `CORS_ORIGIN`
 - `APP_URL` ou `FRONTEND_URL`
+- `UPLOAD_DIR` (recommande en production : chemin absolu vers un dossier persistant pour les photos)
+
+Les photos de couverture sont servies depuis `/uploads`. En production, configurez `UPLOAD_DIR` dans l'hebergement vers un dossier persistant, distinct du dossier temporaire de build/deploiement. Sans cette variable, le backend utilise `backend/uploads` (chemin stable par rapport au code, mais la persistance depend toujours de l'hebergeur).
 
 ## Endpoints principaux
 - `POST /auth/register`
