@@ -1,42 +1,40 @@
+import Link from "next/link";
+
+const GUIDES = [
+  { step: "01", title: "Créer un événement", text: "Ajoutez son nom, sa date, son lieu et les informations destinées aux invités.", href: "/auth/register", action: "Créer mon espace" },
+  { step: "02", title: "Préparer les invitations", text: "Ajoutez vos invités, configurez les détails et partagez leur lien d’invitation.", href: "/faq", action: "Voir les réponses" },
+  { step: "03", title: "Suivre les confirmations", text: "Consultez les réponses et ajustez l’organisation depuis votre tableau de bord.", href: "/auth/login", action: "Ouvrir mon espace" },
+  { step: "04", title: "Organiser l’accueil", text: "Retrouvez vos listes et outils d’accès pour préparer le jour de l’événement.", href: "/faq", action: "Consulter la FAQ" }
+];
+
 export default function HelpCenterPage() {
   return (
-    <main className="min-h-screen bg-background px-4 py-12">
-      <div className="mx-auto max-w-4xl space-y-6">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-text/60">Centre d'aide</p>
-          <h1 className="title-1">Comment pouvons-nous vous aider ?</h1>
-          <p className="text-body-muted">
-            Retrouvez les reponses essentielles pour utiliser EVENTIA rapidement.
-          </p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          {[
-            {
-              title: "Creer un evenement",
-              text: "Configurez le nom, la date, le lieu et les options essentielles."
-            },
-            {
-              title: "Inviter les invites",
-              text: "Ajoutez vos invites puis envoyez leur lien d'invitation."
-            },
-            {
-              title: "Scanner le jour J",
-              text: "Utilisez le module Scan pour valider les entrees."
-            },
-            {
-              title: "Exporter les donnees",
-              text: "Telechargez les listes et rapports au format PDF/CSV."
-            }
-          ].map(item => (
-            <div key={item.title} className="rounded-2xl border border-primary/10 bg-white/70 px-4 py-3">
-              <p className="text-sm font-semibold">{item.title}</p>
-              <p className="text-small">{item.text}</p>
-            </div>
+    <main className="min-h-[70vh] bg-[#fbfaf8] px-5 py-12 text-slate-900 sm:px-8 sm:py-16">
+      <div className="mx-auto max-w-[1120px]">
+        <header className="max-w-2xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#936d43]">Centre d’aide</p>
+          <h1 className="mt-4 font-heading text-4xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-5xl">Avancez étape par étape.</h1>
+          <p className="mt-5 text-base leading-7 text-slate-600">Les repères essentiels pour créer votre événement, inviter vos convives et préparer leur accueil.</p>
+        </header>
+
+        <section aria-label="Étapes d’utilisation d’EVENTIA" className="mt-10 grid gap-3 sm:grid-cols-2">
+          {GUIDES.map(item => (
+            <article key={item.step} className="flex flex-col rounded-2xl border border-[#e9e4dc] bg-white p-5 sm:p-6">
+              <span className="font-heading text-sm font-semibold text-[#98754f]">{item.step}</span>
+              <h2 className="mt-5 text-lg font-semibold text-slate-950">{item.title}</h2>
+              <p className="mt-2 flex-1 text-sm leading-6 text-slate-600">{item.text}</p>
+              <Link href={item.href} className="mt-5 inline-flex min-h-10 items-center text-sm font-semibold text-slate-800 underline decoration-slate-300 underline-offset-4 hover:text-slate-950">{item.action}<span aria-hidden="true" className="ml-2">→</span></Link>
+            </article>
           ))}
-        </div>
-        <div className="rounded-2xl border border-primary/10 bg-white/70 p-4 text-body-muted">
-          Besoin d'une assistance personnalisee ? Ecrivez a support@eventia.app.
-        </div>
+        </section>
+
+        <section className="mt-8 flex flex-col gap-5 rounded-2xl bg-[#20221f] p-6 text-white sm:flex-row sm:items-center sm:justify-between sm:p-8">
+          <div><h2 className="font-heading text-2xl font-semibold">Vous n’avez pas trouvé votre réponse ?</h2><p className="mt-2 text-sm leading-6 text-white/70">Notre équipe peut vous orienter vers le bon canal d’assistance.</p></div>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/faq" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-white/30 px-4 text-sm font-semibold text-white hover:bg-white/10">Parcourir la FAQ</Link>
+            <Link href="/contact" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-white px-4 text-sm font-semibold text-slate-950 hover:bg-[#f1e7d8]">Contacter EVENTIA</Link>
+          </div>
+        </section>
       </div>
     </main>
   );

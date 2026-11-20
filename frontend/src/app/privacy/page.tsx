@@ -1,22 +1,22 @@
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-background px-4 py-12">
-      <div className="mx-auto max-w-4xl space-y-6">
-        <div className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.2em] text-text/60">Politique de confidentialite</p>
-          <h1 className="title-1">EVENTIA</h1>
-          <p className="text-body-muted">Derniere mise a jour : Mars 2026</p>
+    <main className="min-h-screen bg-[#fbfaf8] px-5 py-12 text-slate-900 sm:px-8 sm:py-16">
+      <div className="mx-auto max-w-4xl space-y-7">
+        <div className="space-y-3 border-b border-[#e9e4dc] pb-7">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#936d43]">Informations juridiques</p>
+          <h1 className="font-heading text-4xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-5xl">Politique de confidentialité</h1>
+          <p className="text-sm text-slate-500">Dernière mise à jour : Mars 2026</p>
         </div>
 
-        <p className="text-body-muted">
+        <p className="max-w-3xl text-sm leading-7 text-slate-600">
           Chez EVENTIA, nous accordons une grande importance a la protection de la vie privee de nos utilisateurs. Cette
           politique de confidentialite explique quelles informations nous collectons, comment nous les utilisons et
           comment nous les protegeons lorsque vous utilisez notre plateforme.
         </p>
 
-        <div className="space-y-6 text-body-muted">
-          <section className="space-y-2">
-            <h2 className="title-4">1. Presentation</h2>
+        <div className="space-y-7 rounded-2xl border border-[#e9e4dc] bg-white p-6 text-sm leading-7 text-slate-600 shadow-sm sm:p-9">
+          <section className="space-y-3 border-b border-slate-100 pb-6">
+            <h2 className="text-lg font-semibold text-slate-950">1. Présentation</h2>
             <p>
               EVENTIA est une plateforme web permettant aux organisateurs d'evenements de gerer leurs invitations, leurs
               invites et differents aspects lies a l'organisation d'un evenement.
@@ -27,8 +27,8 @@ export default function PrivacyPage() {
             </p>
           </section>
 
-          <section className="space-y-2">
-            <h2 className="title-4">2. Informations que nous collectons</h2>
+          <section className="space-y-3 border-b border-slate-100 pb-6 last:border-0">
+            <h2 className="text-lg font-semibold text-slate-950">2. Informations que nous collectons</h2>
             <p>Nous pouvons collecter differentes categories d'informations.</p>
             <div className="space-y-2">
               <p className="font-medium text-text">Informations fournies par les organisateurs</p>
@@ -73,8 +73,8 @@ export default function PrivacyPage() {
             </div>
           </section>
 
-          <section className="space-y-2">
-            <h2 className="title-4">3. Utilisation des informations</h2>
+          <section className="space-y-3 border-b border-slate-100 pb-6 last:border-0">
+            <h2 className="text-lg font-semibold text-slate-950">3. Utilisation des informations</h2>
             <p>Les informations collectees sont utilisees pour :</p>
             <ul className="space-y-1">
               <li>- fournir et maintenir les services EVENTIA</li>
@@ -86,8 +86,8 @@ export default function PrivacyPage() {
             <p>Nous n'utilisons pas les informations des utilisateurs a des fins commerciales sans leur consentement.</p>
           </section>
 
-          <section className="space-y-2">
-            <h2 className="title-4">4. Partage des informations</h2>
+          <section className="space-y-3 border-b border-slate-100 pb-6 last:border-0">
+            <h2 className="text-lg font-semibold text-slate-950">4. Partage des informations</h2>
             <p>
               EVENTIA ne vend, ne loue et ne partage pas les donnees personnelles des utilisateurs avec des tiers, sauf
               dans les cas suivants :
@@ -100,8 +100,8 @@ export default function PrivacyPage() {
             <p>Les donnees des invites restent accessibles uniquement par l'organisateur de l'evenement.</p>
           </section>
 
-          <section className="space-y-2">
-            <h2 className="title-4">5. Securite des donnees</h2>
+          <section className="space-y-3 border-b border-slate-100 pb-6 last:border-0">
+            <h2 className="text-lg font-semibold text-slate-950">5. Securite des donnees</h2>
             <p>
               Nous mettons en oeuvre des mesures techniques et organisationnelles raisonnables afin de proteger les
               donnees des utilisateurs contre :
@@ -115,14 +115,14 @@ export default function PrivacyPage() {
             <p>La communication avec la plateforme est securisee via des protocoles de chiffrement.</p>
           </section>
 
-          <section className="space-y-2">
-            <h2 className="title-4">6. Conservation des donnees</h2>
+          <section className="space-y-3 border-b border-slate-100 pb-6 last:border-0">
+            <h2 className="text-lg font-semibold text-slate-950">6. Conservation des donnees</h2>
             <p>Les donnees liees aux evenements sont conservees pendant la duree necessaire au fonctionnement du service.</p>
             <p>Les organisateurs peuvent supprimer leurs evenements et les donnees associees depuis leur tableau de bord.</p>
           </section>
 
-          <section className="space-y-2">
-            <h2 className="title-4">7. Droits des utilisateurs</h2>
+          <section className="space-y-3 border-b border-slate-100 pb-6 last:border-0">
+            <h2 className="text-lg font-semibold text-slate-950">7. Droits des utilisateurs</h2>
             <p>Les utilisateurs disposent de certains droits concernant leurs donnees personnelles, notamment :</p>
             <ul className="space-y-1">
               <li>- demander l'acces a leurs donnees</li>
@@ -132,8 +132,8 @@ export default function PrivacyPage() {
             <p>Toute demande peut etre adressee a l'equipe EVENTIA via les coordonnees ci-dessous.</p>
           </section>
 
-          <section className="space-y-2">
-            <h2 className="title-4">8. Cookies et technologies similaires</h2>
+          <section className="space-y-3 border-b border-slate-100 pb-6 last:border-0">
+            <h2 className="text-lg font-semibold text-slate-950">8. Cookies et technologies similaires</h2>
             <p>EVENTIA peut utiliser des cookies ou technologies similaires afin de :</p>
             <ul className="space-y-1">
               <li>- maintenir la session utilisateur</li>
@@ -143,8 +143,8 @@ export default function PrivacyPage() {
             <p>Les utilisateurs peuvent gerer les cookies via les parametres de leur navigateur.</p>
           </section>
 
-          <section className="space-y-2">
-            <h2 className="title-4">9. Modification de la politique de confidentialite</h2>
+          <section className="space-y-3 border-b border-slate-100 pb-6 last:border-0">
+            <h2 className="text-lg font-semibold text-slate-950">9. Modification de la politique de confidentialite</h2>
             <p>
               Cette politique de confidentialite peut etre mise a jour afin de refleter l'evolution de nos services ou
               des exigences legales.
@@ -152,8 +152,8 @@ export default function PrivacyPage() {
             <p>La date de mise a jour sera indiquee en haut de cette page.</p>
           </section>
 
-          <section className="space-y-2">
-            <h2 className="title-4">10. Contact</h2>
+          <section className="space-y-3 border-b border-slate-100 pb-6 last:border-0">
+            <h2 className="text-lg font-semibold text-slate-950">10. Contact</h2>
             <p>
               Pour toute question concernant cette politique de confidentialite ou la gestion des donnees personnelles,
               vous pouvez nous contacter :

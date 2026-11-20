@@ -1,166 +1,60 @@
+import Image from "next/image";
+import Link from "next/link";
+
+const PRINCIPLES = [
+  { number: "01", title: "Clarté", text: "Les informations importantes restent visibles et faciles à retrouver." },
+  { number: "02", title: "Simplicité", text: "Un parcours compréhensible pour l’organisateur comme pour l’invité." },
+  { number: "03", title: "Attention", text: "Chaque détail de l’événement mérite une expérience soignée." }
+];
+
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-background px-4 py-12">
-      <div className="mx-auto max-w-5xl space-y-12">
-        <section className="space-y-4 text-center">
-          <p className="text-xs uppercase tracking-[0.2em] text-text/60">A propos</p>
-          <h1 className="title-1">EVENTIA - La nouvelle facon d'organiser vos evenements</h1>
-          <p className="text-body-muted">
-            EVENTIA est une plateforme digitale concue pour simplifier et moderniser la gestion des evenements. Que ce
-            soit pour un mariage, une fete privee, un gala ou un evenement professionnel, EVENTIA permet aux
-            organisateurs de gerer leurs invites, leurs invitations et le suivi des presences de maniere simple,
-            elegante et efficace.
-          </p>
-          <p className="text-body-muted">
-            Notre objectif est d'offrir une experience fluide, moderne et professionnelle, aussi bien pour les
-            organisateurs que pour les invites.
-          </p>
-        </section>
-
-        <section className="grid gap-4 md:grid-cols-3">
-          {[
-            { label: "Invitations envoyees", value: "500+" },
-            { label: "Evenements crees", value: "50+" },
-            { label: "Satisfaction utilisateurs", value: "95%" }
-          ].map(stat => (
-            <div key={stat.label} className="rounded-2xl border border-primary/10 bg-white/70 px-4 py-3 text-center">
-              <p className="text-xs text-text/60">{stat.label}</p>
-              <p className="text-2xl font-semibold">{stat.value}</p>
-            </div>
-          ))}
-        </section>
-
-        <section className="grid gap-6 md:grid-cols-2">
-          <div className="card p-6 space-y-3">
-            <h2 className="title-4">Notre mission</h2>
-            <p className="text-body-muted">
-              Chez EVENTIA, notre mission est de transformer la maniere dont les evenements sont organises.
-            </p>
-            <p className="text-body-muted">
-              Nous croyons qu'un evenement reussi commence par une organisation claire, simple et intelligente. C'est
-              pourquoi nous avons concu une plateforme qui permet de gerer facilement les invitations, les
-              confirmations de presence, les tables, les preferences des invites et bien plus encore.
-            </p>
-            <p className="text-body-muted">
-              Nous voulons permettre aux organisateurs de se concentrer sur l'essentiel : creer des moments memorables.
-            </p>
+    <main className="bg-[#fbfaf8] px-5 py-12 text-slate-900 sm:px-8 sm:py-16">
+      <div className="mx-auto max-w-[1120px]">
+        <section className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-14">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#936d43]">À propos d’EVENTIA</p>
+            <h1 className="mt-4 font-heading text-4xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-5xl">Moins de dispersion. Plus de place pour l’événement.</h1>
+            <p className="mt-5 text-base leading-7 text-slate-600">EVENTIA est une plateforme conçue pour aider les organisateurs à gérer leurs invitations, leurs invités et les temps forts de leur événement depuis un espace unique.</p>
+            <p className="mt-4 text-sm leading-6 text-slate-600">Mariage, réception privée ou rencontre professionnelle : l’objectif est de rendre l’organisation plus lisible pour vous et plus simple pour vos invités.</p>
+            <Link href="/auth/register" className="mt-7 inline-flex min-h-12 items-center justify-center rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">Découvrir EVENTIA <span aria-hidden="true" className="ml-2">→</span></Link>
           </div>
-          <div className="card p-6 space-y-3">
-            <h2 className="title-4">Le defi de l'organisation d'evenements</h2>
-            <p className="text-body-muted">
-              Dans de nombreux evenements aujourd'hui, l'organisation repose encore sur des methodes traditionnelles :
-              listes sur papier, fichiers Excel disperses, messages WhatsApp ou appels telephoniques.
-            </p>
-            <ul className="text-body-muted space-y-1">
-              <li>- une mauvaise estimation du nombre d'invites</li>
-              <li>- des erreurs dans la gestion des tables</li>
-              <li>- des pertes financieres</li>
-              <li>- un manque de visibilite pour les organisateurs</li>
-            </ul>
-            <p className="text-body-muted">EVENTIA est ne de ce constat.</p>
+          <div className="relative h-[320px] overflow-hidden rounded-[24px] bg-slate-200 sm:h-[430px]">
+            <Image src="/images/site/wedding-couple.jpg" alt="Un couple de mariés dans un cadre naturel" fill sizes="(min-width: 1024px) 55vw, 100vw" className="object-cover object-center" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/55 via-transparent to-transparent" />
+            <p className="absolute bottom-5 left-5 max-w-sm font-heading text-2xl font-semibold text-white sm:bottom-7 sm:left-7 sm:text-3xl">L’organisation doit soutenir le moment, pas le compliquer.</p>
           </div>
         </section>
 
-        <section className="card p-6 space-y-3">
-          <h2 className="title-4">Notre solution</h2>
-          <p className="text-body-muted">
-            EVENTIA propose une plateforme simple et intuitive permettant de gerer chaque aspect de l'organisation d'un
-            evenement.
-          </p>
-          <ul className="text-body-muted space-y-1">
-            <li>- envoyer des invitations numeriques avec QR Code</li>
-            <li>- suivre les confirmations de presence en temps reel</li>
-            <li>- gerer les tables et les invites facilement</li>
-            <li>- connaitre les preferences des invites (boissons, etc.)</li>
-            <li>- collecter des messages via un livre d'or numerique</li>
-          </ul>
-          <p className="text-body-muted">Tout est centralise dans un tableau de bord clair et moderne.</p>
+        <section className="mt-20 grid gap-10 border-y border-[#e9e4dc] py-12 md:grid-cols-[0.8fr_1.2fr] md:py-14">
+          <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#936d43]">Notre mission</p><h2 className="mt-3 font-heading text-3xl font-semibold leading-tight">Donner une vue d’ensemble à l’organisateur.</h2></div>
+          <div className="space-y-4 text-sm leading-7 text-slate-600">
+            <p>Préparer une liste, relancer les invités, répartir les places et transmettre les informations du jour J peut vite devenir fragmenté. EVENTIA rassemble ces étapes dans un environnement numérique organisé.</p>
+            <p>La plateforme propose des invitations partageables, le suivi des réponses, la gestion des invités et des tables, ainsi que des outils utiles à l’accueil et aux souvenirs de l’événement.</p>
+          </div>
         </section>
 
-        <section className="space-y-4">
-          <h2 className="title-4 text-center">Nos valeurs</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            {[
-              {
-                title: "Simplicite",
-                text: "Nous croyons que la technologie doit simplifier la vie. EVENTIA est concu pour etre intuitif."
-              },
-              {
-                title: "Fiabilite",
-                text: "Des informations precises et a jour pour prendre les bonnes decisions."
-              },
-              {
-                title: "Innovation",
-                text: "Des technologies modernes pour apporter de nouvelles solutions."
-              },
-              {
-                title: "Experience",
-                text: "Chaque evenement est unique. Nous creons une experience elegante et memorable."
-              }
-            ].map(value => (
-              <div key={value.title} className="dashboard-card space-y-2">
-                <p className="text-sm font-semibold">{value.title}</p>
-                <p className="text-small">{value.text}</p>
-              </div>
+        <section className="mt-16 grid gap-8 lg:grid-cols-[1fr_0.85fr] lg:items-center">
+          <div className="grid gap-3 sm:grid-cols-3">
+            {PRINCIPLES.map(item => (
+              <article key={item.number} className="rounded-2xl border border-[#e9e4dc] bg-white p-5">
+                <p className="font-heading text-sm font-semibold text-[#98754f]">{item.number}</p>
+                <h3 className="mt-5 text-base font-semibold text-slate-950">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{item.text}</p>
+              </article>
             ))}
           </div>
-        </section>
-
-        <section className="rounded-2xl border border-primary/10 bg-white/70 p-6 text-center">
-          <p className="text-body-muted">
-            "Les grands evenements ne se resument pas a une date ou un lieu. Ils sont faits de moments, de personnes et
-            d'emotions. Notre mission est de rendre leur organisation aussi exceptionnelle que les souvenirs qu'ils
-            creent."
-          </p>
-          <p className="mt-3 text-small">- L'equipe EVENTIA</p>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="title-4 text-center">L'equipe derriere EVENTIA</h2>
-          <p className="text-body-muted text-center">
-            EVENTIA est developpe par une equipe passionnee par la technologie, l'innovation et la creation de
-            solutions utiles.
-          </p>
-          <div className="grid gap-4 md:grid-cols-2">
-            {[
-              { name: "BOKANGA PLAMEDI", role: "Developpeur / Fondateur, CEO BKG TECH" },
-              { name: "ABIGAEL BOKANGA", role: "Operations & Relation client" }
-            ].map(profile => (
-              <div key={profile.role} className="dashboard-card">
-                <p className="text-sm font-semibold">{profile.name}</p>
-                <p className="text-small">{profile.role}</p>
-              </div>
-            ))}
+          <div className="relative h-[280px] overflow-hidden rounded-[24px] bg-slate-200 sm:h-[350px]">
+            <Image src="/images/site/reception-venue.jpg" alt="Une salle de réception prête à accueillir les invités" fill sizes="(min-width: 1024px) 42vw, 100vw" className="object-cover object-center" />
           </div>
-          <p className="text-body-muted text-center">
-            Notre ambition est de construire des outils modernes qui repondent aux besoins reels des organisateurs
-            d'evenements.
-          </p>
         </section>
 
-        <section className="card p-6 space-y-3">
-          <h2 className="title-4">Pourquoi choisir EVENTIA</h2>
-          <ul className="text-body-muted space-y-1">
-            <li>- plateforme moderne et securisee</li>
-            <li>- invitations numeriques elegantes</li>
-            <li>- gestion intelligente des invites</li>
-            <li>- experience simple pour les invites</li>
-            <li>- statistiques claires pour les organisateurs</li>
-          </ul>
-          <p className="text-body-muted">
-            EVENTIA permet de transformer l'organisation d'un evenement en une experience fluide, professionnelle et
-            maitrisee.
-          </p>
-        </section>
-
-        <section className="card p-6 text-center space-y-3">
-          <h2 className="title-4">Pret a organiser votre prochain evenement avec EVENTIA ?</h2>
-          <p className="text-body-muted">
-            Commencez des aujourd'hui et decouvrez une nouvelle maniere d'organiser vos evenements.
-          </p>
-          <a href="/auth/register" className="btn-primary inline-flex">
-            Creer mon evenement
-          </a>
+        <section className="mt-16 flex flex-col gap-6 rounded-[24px] bg-[#20221f] p-6 text-white sm:flex-row sm:items-center sm:justify-between sm:p-9">
+          <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#d9c3a4]">Un projet en préparation ?</p><h2 className="mt-2 font-heading text-2xl font-semibold">Préparez votre prochain événement avec EVENTIA.</h2></div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Link href="/auth/register" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-white px-4 text-sm font-semibold text-slate-950 hover:bg-[#f1e7d8]">Créer un compte</Link>
+            <Link href="/contact" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-white/30 px-4 text-sm font-semibold text-white hover:bg-white/10">Nous contacter</Link>
+          </div>
         </section>
       </div>
     </main>

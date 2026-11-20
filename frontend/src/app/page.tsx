@@ -1,296 +1,204 @@
+import Image from "next/image";
+import Link from "next/link";
+
 const FEATURES = [
-  {
-    title: "Invitations numeriques",
-    text:
-      "Envoyez facilement des invitations modernes avec un lien securise et un QR code unique."
-  },
-  {
-    title: "Gestion des invites",
-    text: "Ajoutez, organisez et suivez vos invites en temps reel."
-  },
-  {
-    title: "Suivi des presences",
-    text: "Sachez instantanement qui sera present a votre evenement."
-  },
-  {
-    title: "Choix des preferences",
-    text: "Permettez aux invites de selectionner leurs preferences (boissons, options)."
-  },
-  {
-    title: "Livre d'or numerique",
-    text: "Collectez les messages et souvenirs de vos invites."
-  }
+  { number: "01", title: "Invitations qui donnent le ton", text: "Créez une page claire et élégante, partageable simplement avec chaque invité." },
+  { number: "02", title: "Invités et réponses centralisés", text: "Suivez les confirmations, les demandes et les préférences depuis un seul espace." },
+  { number: "03", title: "Une organisation maîtrisée", text: "Structurez les tables, le programme et les informations utiles avant le jour J." },
+  { number: "04", title: "Un accueil fluide", text: "Retrouvez les outils de contrôle d’accès et le suivi des arrivées au même endroit." }
+];
+
+const STEPS = [
+  { number: "01", title: "Créez votre événement", text: "Renseignez les informations essentielles et choisissez votre formule." },
+  { number: "02", title: "Invitez et coordonnez", text: "Partagez les invitations, suivez les réponses et préparez votre organisation." },
+  { number: "03", title: "Accueillez sereinement", text: "Le jour venu, retrouvez vos informations et gérez les accès depuis votre espace." }
 ];
 
 const EVENT_PACKS = [
-  {
-    name: "Pack BASIC",
-    price: "15 $",
-    note: "Pour petits evenements",
-    items: [
-      "1 evenement",
-      "Jusqu'a 100 invites",
-      "QR Code invitation",
-      "Confirmation presence",
-      "Choix boissons",
-      "Livre d'or numerique",
-      "Tableau de bord organisateur"
-    ],
-    highlight: false
-  },
-  {
-    name: "Pack STANDARD",
-    price: "35 $",
-    note: "Le plus vendu",
-    items: [
-      "1 evenement",
-      "Jusqu'a 300 invites",
-      "Toutes les fonctions BASIC",
-      "Statistiques completes",
-      "Export PDF des invites",
-      "Export livre d'or"
-    ],
-    highlight: true
-  },
-  {
-    name: "Pack PREMIUM",
-    price: "75 $",
-    note: "Pour evenements importants",
-    items: [
-      "1 evenement",
-      "Jusqu'a 700 invites",
-      "Toutes les fonctions STANDARD",
-      "Scan QR code le jour J",
-      "Theme design personnalise",
-      "Support prioritaire"
-    ],
-    highlight: false
-  }
+  { name: "BASIC", price: "15 $", note: "Pour les événements à taille humaine", items: ["1 événement", "Jusqu’à 100 invités", "Invitation avec QR code", "Confirmation de présence", "Choix des boissons", "Livre d’or numérique", "Tableau de bord organisateur"] },
+  { name: "STANDARD", price: "35 $", note: "Pour une organisation plus complète", items: ["1 événement", "Jusqu’à 300 invités", "Toutes les fonctions Basic", "Statistiques complètes", "Export PDF des invités", "Export du livre d’or"] },
+  { name: "PREMIUM", price: "75 $", note: "Pour les grandes célébrations", items: ["1 événement", "Jusqu’à 700 invités", "Toutes les fonctions Standard", "Scan QR le jour J", "Thème personnalisé", "Support prioritaire"] }
 ];
 
 const SUBSCRIPTIONS = [
-  {
-    name: "PRO ORGANIZER",
-    price: "19 $ / mois",
-    items: [
-      "Jusqu'a 5 evenements / mois",
-      "300 invites par evenement",
-      "Statistiques completes",
-      "Export donnees"
-    ]
-  },
-  {
-    name: "AGENCY",
-    price: "49 $ / mois",
-    items: [
-      "Evenements illimites",
-      "Jusqu'a 500 invites",
-      "Personnalisation theme",
-      "Branding agence"
-    ]
-  },
-  {
-    name: "ENTERPRISE",
-    price: "99 $ / mois",
-    items: ["Invites illimites", "Support VIP", "API future", "Multi-utilisateurs"]
-  }
+  { name: "PRO ORGANIZER", price: "19 $ / mois", text: "Pour les organisateurs réguliers", items: ["Jusqu’à 5 événements par mois", "300 invités par événement", "Statistiques complètes", "Export des données"] },
+  { name: "AGENCY", price: "49 $ / mois", text: "Pour les agences événementielles", items: ["Événements illimités", "Jusqu’à 500 invités", "Thème personnalisé", "Branding agence"] },
+  { name: "ENTERPRISE", price: "99 $ / mois", text: "Pour les organisations", items: ["Invités illimités", "Support VIP", "API future", "Multi-utilisateurs"] }
 ];
 
-const ADDONS = [
-  { name: "Notification WhatsApp / SMS", price: "5 $ / evenement" },
-  { name: "Theme personnalise", price: "10 $" },
-  { name: "Invitation PDF premium", price: "5 $" },
-  { name: "Rapport evenement", price: "7 $" }
+const GALLERY = [
+  { src: "/images/site/wedding-couple.jpg", alt: "Un couple de mariés dans un cadre naturel", title: "Célébrations privées", type: "MARIAGE · ANNIVERSAIRE" },
+  { src: "/images/site/reception-venue.jpg", alt: "Salle de réception aménagée pour accueillir des invités", title: "Réceptions et cérémonies", type: "RÉCEPTION · CÉRÉMONIE" },
+  { src: "/images/site/ceremony-aisle.jpg", alt: "Allée de cérémonie décorée de fleurs", title: "Des moments à votre image", type: "ÉVÉNEMENT · SOUVENIR" }
 ];
+
+function SectionIntro({ eyebrow, title, text }: { eyebrow: string; title: string; text?: string }) {
+  return (
+    <div className="max-w-2xl">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#936d43]">{eyebrow}</p>
+      <h2 className="mt-3 font-heading text-3xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-4xl">{title}</h2>
+      {text ? <p className="mt-4 max-w-xl text-base leading-7 text-slate-600">{text}</p> : null}
+    </div>
+  );
+}
+
+function CheckMark() {
+  return <span aria-hidden="true" className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#f3eee6] text-[11px] font-bold text-[#7c5c39]">✓</span>;
+}
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-background px-4 py-10 page-enter">
-      <div className="mx-auto max-w-6xl space-y-16">
-        <section className="grid gap-6 lg:grid-cols-[1.2fr,0.8fr] lg:items-center">
-          <div className="space-y-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-text/60">Plateforme evenementielle</p>
-            <h1 className="title-1">Organisez vos evenements avec simplicite et elegance</h1>
-            <p className="text-body-muted">
-              EVENTIA est une plateforme moderne qui vous permet de gerer vos invitations, vos invites et votre
-              evenement en toute simplicite.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <a href="/auth/register" className="btn-primary">
-                Creer mon evenement
-              </a>
-              <a href="#fonctionnalites" className="btn-ghost">
-                Decouvrir la plateforme
-              </a>
-            </div>
+    <main className="overflow-hidden bg-[#fbfaf8] text-slate-900">
+      <section className="mx-auto grid max-w-[1320px] gap-10 px-5 pb-16 pt-10 sm:px-8 sm:pb-20 sm:pt-14 lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:px-12 lg:pb-24 lg:pt-16">
+        <div className="relative z-10 max-w-xl">
+          <p className="inline-flex items-center gap-2 rounded-full border border-[#e8dfd2] bg-white px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#795b3d]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#ad8354]" /> L’organisation, avec intention
+          </p>
+          <h1 className="mt-6 font-heading text-[2.65rem] font-semibold leading-[1.06] tracking-tight text-slate-950 sm:text-6xl">
+            Vos événements méritent une organisation <span className="text-[#98754f]">sans fausse note.</span>
+          </h1>
+          <p className="mt-6 max-w-lg text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
+            Invitations, réponses, invités et accueil : EVENTIA rassemble l’essentiel pour préparer vos événements avec clarté, du premier envoi au jour J.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link href="/auth/register" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200">
+              Créer mon événement <span aria-hidden="true" className="ml-2">→</span>
+            </Link>
+            <Link href="#fonctionnement" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100">
+              Découvrir EVENTIA
+            </Link>
           </div>
-          <div className="card p-6 space-y-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-text/60">Apercu rapide</p>
-            <div className="grid gap-3">
-              {[
-                "Invitations numeriques avec QR code",
-                "Suivi des confirmations en temps reel",
-                "Gestion des tables ou zones",
-                "Livre d'or et preferences invites"
-              ].map(item => (
-                <div key={item} className="flex items-start gap-2 text-body-muted">
-                  <span className="mt-1 h-2 w-2 rounded-full bg-primary" />
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
+          <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-slate-500">
+            <span>Invitations partageables</span><span>·</span><span>Suivi des réponses</span><span>·</span><span>Outils pour le jour J</span>
           </div>
-        </section>
+        </div>
 
-        <section className="grid gap-6 md:grid-cols-2">
-          <div className="card p-6 space-y-3">
-            <h2 className="title-4">L'organisation d'un evenement peut vite devenir compliquee</h2>
-            <p className="text-body-muted">
-              Entre les listes d'invites, les confirmations de presence, les messages WhatsApp et les tableaux Excel,
-              l'organisation d'un evenement peut rapidement devenir difficile a gerer.
-            </p>
-            <p className="text-body-muted">
-              Les erreurs dans le nombre d'invites, les oublis et le manque de visibilite peuvent creer du stress et des
-              couts supplementaires pour les organisateurs. EVENTIA simplifie tout ce processus.
-            </p>
-          </div>
-          <div className="card p-6 space-y-3">
-            <h2 className="title-4">Une plateforme concue pour simplifier</h2>
-            <p className="text-body-muted">
-              Avec EVENTIA, vous disposez d'un outil simple et puissant pour gerer chaque aspect de votre evenement.
-              Tout est centralise dans une seule plateforme.
-            </p>
-            <ul className="text-body-muted space-y-1">
-              <li>- Invitations numeriques avec QR code</li>
-              <li>- Gestion intelligente des invites</li>
-              <li>- Confirmation de presence en un clic</li>
-              <li>- Tableau de bord clair pour l'organisateur</li>
-              <li>- Livre d'or numerique pour les invites</li>
-            </ul>
-          </div>
-        </section>
-
-        <section id="fonctionnalites" className="space-y-6">
-          <div className="text-center space-y-2">
-            <p className="text-xs uppercase tracking-[0.2em] text-text/60">Fonctionnalites</p>
-            <h2 className="title-2">Des fonctionnalites pensees pour vos evenements</h2>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map(feature => (
-              <div key={feature.title} className="dashboard-card space-y-2">
-                <p className="text-sm font-semibold">{feature.title}</p>
-                <p className="text-small">{feature.text}</p>
+        <div className="relative mx-auto w-full max-w-2xl lg:ml-auto">
+          <div className="absolute -right-5 -top-5 h-32 w-32 rounded-full bg-[#eadfce]/70 blur-3xl" />
+          <div className="relative h-[340px] overflow-hidden rounded-[26px] bg-[#e8e2d8] shadow-[0_24px_65px_rgba(53,42,29,0.16)] sm:h-[470px] lg:h-[560px]">
+            <Image src="/images/site/ceremony-aisle.jpg" alt="Allée de cérémonie fleurie préparée pour un événement" fill priority sizes="(min-width: 1024px) 52vw, 100vw" className="object-cover object-center" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/65 via-transparent to-slate-950/10" />
+            <div className="absolute left-5 top-5 rounded-full border border-white/35 bg-white/15 px-3.5 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white backdrop-blur-md sm:left-7 sm:top-7">Chaque détail compte</div>
+            <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-4 text-white sm:inset-x-8 sm:bottom-8">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/75">EVENTIA · VOTRE ESPACE ÉVÉNEMENT</p>
+                <p className="mt-2 max-w-sm font-heading text-2xl font-semibold leading-tight sm:text-3xl">De l’invitation au dernier accueil.</p>
               </div>
+              <span className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/35 text-xl sm:flex" aria-hidden="true">↗</span>
+            </div>
+          </div>
+          <div className="absolute -bottom-5 right-4 hidden rounded-2xl border border-white/70 bg-white/95 px-5 py-4 shadow-lg backdrop-blur sm:block lg:-right-6">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Une vue d’ensemble</p>
+            <p className="mt-1 text-sm font-semibold text-slate-900">Vos invités, vos réponses, au même endroit</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-[#eee9e2] bg-white">
+        <div className="mx-auto grid max-w-[1320px] gap-5 px-5 py-8 sm:grid-cols-3 sm:px-8 lg:px-12">
+          {[
+            ["Une invitation", "Un lien clair à partager"],
+            ["Un espace unique", "Les informations réunies"],
+            ["Un jour J serein", "Les outils à portée de main"]
+          ].map(([title, text], index) => (
+            <div key={title} className={`flex items-start gap-4 ${index > 0 ? "sm:border-l sm:border-[#eee9e2] sm:pl-6" : ""}`}>
+              <span className="font-heading text-sm font-semibold text-[#9b7952]">0{index + 1}</span>
+              <div><p className="text-sm font-semibold text-slate-900">{title}</p><p className="mt-1 text-sm text-slate-500">{text}</p></div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="fonctionnement" className="mx-auto max-w-[1320px] px-5 py-20 sm:px-8 sm:py-24 lg:px-12">
+        <SectionIntro eyebrow="Une méthode simple" title="Tout le nécessaire, sans éparpiller votre organisation." text="EVENTIA vous aide à garder les informations importantes accessibles et à offrir un parcours simple à vos invités." />
+        <div className="mt-11 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {FEATURES.map(feature => (
+            <article key={feature.number} className="group rounded-2xl border border-[#ece7df] bg-white p-5 transition duration-200 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(43,36,28,0.08)] sm:p-6">
+              <p className="font-heading text-sm font-semibold text-[#a17e55]">{feature.number}</p>
+              <h3 className="mt-7 text-base font-semibold leading-6 text-slate-950">{feature.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-600">{feature.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="bg-[#f2eee8] py-20 sm:py-24">
+        <div className="mx-auto max-w-[1320px] px-5 sm:px-8 lg:px-12">
+          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+            <SectionIntro eyebrow="Une même exigence" title="Pour les événements qui vous ressemblent." text="Un mariage, une réception ou une célébration privée : adaptez votre organisation à l’occasion, pas l’inverse." />
+            <Link href="/auth/register" className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-50">Commencer à organiser <span aria-hidden="true" className="ml-2">→</span></Link>
+          </div>
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            {GALLERY.map((item, index) => (
+              <article key={item.src} className={`group relative isolate min-h-[300px] overflow-hidden rounded-2xl bg-slate-300 sm:min-h-[380px] ${index === 1 ? "md:mt-8" : ""}`}>
+                <Image src={item.src} alt={item.alt} fill sizes="(min-width: 768px) 33vw, 100vw" className="z-0 object-cover transition duration-700 group-hover:scale-[1.04]" />
+                <div className="absolute inset-0 z-10 bg-gradient-to-t from-slate-950/75 via-slate-950/5 to-transparent" />
+                <div className="absolute inset-x-5 bottom-5 z-20 text-white sm:inset-x-6 sm:bottom-6">
+                  <p className="text-[10px] font-semibold tracking-[0.18em] text-white/75">{item.type}</p>
+                  <h3 className="mt-2 font-heading text-xl font-semibold sm:text-2xl">{item.title}</h3>
+                </div>
+              </article>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="grid gap-6 md:grid-cols-[1.1fr,0.9fr]">
-          <div className="card p-6 space-y-3">
-            <h2 className="title-4">Pourquoi choisir EVENTIA ?</h2>
-            <ul className="text-body-muted space-y-1">
-              <li>- Organisation simplifiee</li>
-              <li>- Invitations elegantes et modernes</li>
-              <li>- Statistiques claires pour les organisateurs</li>
-              <li>- Experience fluide pour les invites</li>
-              <li>- Plateforme securisee et fiable</li>
-            </ul>
-          </div>
-          <div className="card p-6 space-y-4">
-            <h2 className="title-4">Ce que disent nos utilisateurs</h2>
-            <p className="text-body-muted">
-              "EVENTIA m'a permis de gerer facilement les invitations de mon mariage. Tout etait clair et simple pour
-              nos invites."
-            </p>
-            <p className="text-small">Organisateur - Mariage</p>
-          </div>
-        </section>
+      <section className="mx-auto grid max-w-[1320px] gap-12 px-5 py-20 sm:px-8 sm:py-24 lg:grid-cols-[0.8fr_1.2fr] lg:px-12">
+        <div className="lg:sticky lg:top-28 lg:self-start">
+          <SectionIntro eyebrow="Comment ça marche" title="Trois étapes. Une organisation plus lisible." text="Commencez avec l’essentiel, puis complétez votre événement à votre rythme." />
+        </div>
+        <ol className="divide-y divide-[#e9e4dc] border-y border-[#e9e4dc]">
+          {STEPS.map(step => (
+            <li key={step.number} className="grid gap-3 py-6 sm:grid-cols-[70px_1fr] sm:gap-5 sm:py-8">
+              <span className="font-heading text-sm font-semibold text-[#98754f]">{step.number}</span>
+              <div><h3 className="text-lg font-semibold text-slate-950">{step.title}</h3><p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">{step.text}</p></div>
+            </li>
+          ))}
+        </ol>
+      </section>
 
-        <section id="tarifs" className="space-y-6">
-          <div className="text-center space-y-2">
-            <p className="text-xs uppercase tracking-[0.2em] text-text/60">Offres evenement unique</p>
-            <h2 className="title-2">Des packs adaptes a chaque evenement</h2>
-            <p className="text-body-muted">
-              Paiement en USD. Vous choisissez le pack qui correspond a la taille de votre evenement.
-            </p>
-          </div>
-          <div className="grid gap-4 lg:grid-cols-3">
+      <section id="tarifs" className="bg-white py-20 sm:py-24">
+        <div className="mx-auto max-w-[1320px] px-5 sm:px-8 lg:px-12">
+          <SectionIntro eyebrow="Tarifs événement" title="Une formule adaptée à votre événement." text="Choisissez selon le nombre d’invités et les outils dont vous avez besoin. Les prix affichés sont en dollars américains." />
+          <div className="mt-10 grid gap-4 lg:grid-cols-3">
             {EVENT_PACKS.map(pack => (
-              <div
-                key={pack.name}
-                className={`dashboard-card space-y-4 ${pack.highlight ? "border-primary/40" : ""}`}
-              >
-                <div className="space-y-1">
-                  <p className="text-xs uppercase tracking-[0.2em] text-text/60">{pack.note}</p>
-                  <h3 className="title-4">{pack.name}</h3>
-                  <p className="text-2xl font-semibold text-primary">{pack.price}</p>
-                </div>
-                <ul className="text-small space-y-1">
-                  {pack.items.map(item => (
-                    <li key={item}>- {item}</li>
-                  ))}
+              <article key={pack.name} className={`flex flex-col rounded-2xl border p-6 sm:p-7 ${pack.name === "STANDARD" ? "border-slate-900 bg-slate-950 text-white shadow-[0_20px_55px_rgba(15,23,42,0.18)]" : "border-[#e8e3db] bg-[#fbfaf8] text-slate-900"}`}>
+                <p className={`text-xs font-semibold uppercase tracking-[0.16em] ${pack.name === "STANDARD" ? "text-white/65" : "text-slate-500"}`}>{pack.note}</p>
+                <div className="mt-5 flex items-end justify-between gap-3"><h3 className="text-lg font-semibold">{pack.name}</h3><p className="font-heading text-3xl font-semibold">{pack.price}</p></div>
+                <ul className="mt-6 flex-1 space-y-3 text-sm">
+                  {pack.items.map(item => <li key={item} className="flex items-start gap-3"><span className={pack.name === "STANDARD" ? "text-white/75" : "text-slate-600"}><CheckMark /></span><span className={pack.name === "STANDARD" ? "text-white/85" : "text-slate-600"}>{item}</span></li>)}
                 </ul>
-                <a href="/auth/register" className="btn-primary w-full">
-                  Choisir ce pack
-                </a>
-              </div>
+                <Link href="/auth/register" className={`mt-7 inline-flex min-h-12 items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold transition focus:outline-none focus:ring-4 ${pack.name === "STANDARD" ? "bg-white text-slate-950 hover:bg-slate-100 focus:ring-white/30" : "bg-slate-950 text-white hover:bg-slate-800 focus:ring-slate-200"}`}>
+                  Choisir {pack.name.toLowerCase()}
+                </Link>
+              </article>
             ))}
           </div>
-        </section>
-
-        <section className="space-y-6">
-          <div className="text-center space-y-2">
-            <p className="text-xs uppercase tracking-[0.2em] text-text/60">Abonnements</p>
-            <h2 className="title-2">Pour wedding planners et agences</h2>
-          </div>
-          <div className="grid gap-4 lg:grid-cols-3">
-            {SUBSCRIPTIONS.map(plan => (
-              <div key={plan.name} className="card p-6 space-y-3">
-                <h3 className="title-4">{plan.name}</h3>
-                <p className="text-xl font-semibold text-primary">{plan.price}</p>
-                <ul className="text-small space-y-1">
-                  {plan.items.map(item => (
-                    <li key={item}>- {item}</li>
-                  ))}
-                </ul>
-                <a href="/contact" className="btn-ghost w-full">
-                  Parler a l'equipe
-                </a>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="grid gap-6 lg:grid-cols-[1.1fr,0.9fr]">
-          <div className="card p-6 space-y-3">
-            <h2 className="title-4">Options premium</h2>
-            <p className="text-body-muted">Ajoutez des services pour enrichir l'experience de vos invites.</p>
-            <div className="grid gap-2">
-              {ADDONS.map(addon => (
-                <div
-                  key={addon.name}
-                  className="flex items-center justify-between rounded-xl border border-primary/10 bg-white/70 px-4 py-3 text-sm"
-                >
-                  <span>{addon.name}</span>
-                  <span className="font-semibold text-primary">{addon.price}</span>
-                </div>
+          <div className="mt-14 border-t border-[#ece7df] pt-10">
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+              <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#936d43]">Pour les professionnels</p><h3 className="mt-2 font-heading text-2xl font-semibold text-slate-950">Vous organisez toute l’année ?</h3></div>
+              <p className="max-w-lg text-sm leading-6 text-slate-600">Les abonnements sont pensés pour les organisateurs, agences et entreprises qui gèrent plusieurs événements.</p>
+            </div>
+            <div className="mt-6 grid gap-3 md:grid-cols-3">
+              {SUBSCRIPTIONS.map(plan => (
+                <article key={plan.name} className="rounded-xl border border-[#ece7df] bg-[#fbfaf8] p-5">
+                  <h4 className="text-xs font-semibold tracking-[0.14em] text-slate-500">{plan.name}</h4>
+                  <p className="mt-3 font-heading text-2xl font-semibold text-slate-950">{plan.price}</p>
+                  <p className="mt-1 text-sm text-slate-600">{plan.text}</p>
+                  <ul className="mt-4 space-y-2 text-xs leading-5 text-slate-600">{plan.items.map(item => <li key={item} className="flex gap-2"><span aria-hidden="true" className="text-[#98754f]">✓</span>{item}</li>)}</ul>
+                </article>
               ))}
             </div>
           </div>
-          <div className="card p-6 space-y-3">
-            <h2 className="title-4">Pret a organiser votre evenement ?</h2>
-            <p className="text-body-muted">
-              Creez votre evenement en quelques minutes et decouvrez une nouvelle maniere d'organiser vos invitations.
-            </p>
-            <a href="/auth/register" className="btn-primary w-full">
-              Creer mon evenement
-            </a>
-            <a href="/contact" className="btn-ghost w-full">
-              Demander une demo
-            </a>
-          </div>
-        </section>
-      </div>
+        </div>
+      </section>
+
+      <section className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
+        <div className="mx-auto flex max-w-[1320px] flex-col gap-8 overflow-hidden rounded-[26px] bg-[#20221f] px-6 py-9 text-white sm:px-10 sm:py-12 lg:flex-row lg:items-center lg:justify-between lg:px-14">
+          <div className="max-w-2xl"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#d9c3a4]">La prochaine étape</p><h2 className="mt-3 font-heading text-3xl font-semibold leading-tight sm:text-4xl">Donnez à votre événement l’organisation qu’il mérite.</h2><p className="mt-4 text-sm leading-6 text-white/70">Créez votre espace et commencez à préparer votre événement avec EVENTIA.</p></div>
+          <Link href="/auth/register" className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-[#f1e7d8] focus:outline-none focus:ring-4 focus:ring-white/30">Créer mon espace <span aria-hidden="true" className="ml-2">→</span></Link>
+        </div>
+      </section>
     </main>
   );
 }

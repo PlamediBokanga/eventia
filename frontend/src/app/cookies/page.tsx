@@ -1,22 +1,22 @@
 export default function CookiesPage() {
   return (
-    <main className="min-h-screen bg-background px-4 py-12">
-      <div className="mx-auto max-w-4xl space-y-6">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-text/60">Politique cookies</p>
-          <h1 className="title-1">Politique de cookies</h1>
-          <p className="text-body-muted">Derniere mise a jour : Mars 2026</p>
+    <main className="min-h-screen bg-[#fbfaf8] px-5 py-12 text-slate-900 sm:px-8 sm:py-16">
+      <div className="mx-auto max-w-4xl space-y-7">
+        <div className="space-y-3 border-b border-[#e9e4dc] pb-7">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#936d43]">Informations juridiques</p>
+          <h1 className="font-heading text-4xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-5xl">Politique de cookies</h1>
+          <p className="text-sm text-slate-500">Dernière mise à jour : Mars 2026</p>
         </div>
 
-        <div className="space-y-4 text-body-muted">
+        <div className="space-y-7 rounded-2xl border border-[#e9e4dc] bg-white p-6 text-sm leading-7 text-slate-600 shadow-sm sm:p-9">
           <p>
             Cette Politique de cookies explique comment EVENTIA utilise les cookies et technologies similaires lorsque
             vous utilisez notre plateforme. Elle vous informe sur ce que sont les cookies, comment nous les utilisons et
             les options dont vous disposez pour les gerer.
           </p>
 
-          <section className="space-y-2">
-            <p className="font-semibold text-text">1. Qu'est-ce qu'un cookie ?</p>
+          <section className="space-y-3 border-b border-slate-100 pb-6">
+            <h2 className="text-lg font-semibold text-slate-950">1. Qu'est-ce qu'un cookie ?</h2>
             <p>
               Un cookie est un petit fichier texte enregistre sur votre appareil (ordinateur, smartphone ou tablette)
               lorsque vous visitez un site web.
@@ -27,8 +27,8 @@ export default function CookiesPage() {
             </p>
           </section>
 
-          <section className="space-y-2">
-            <p className="font-semibold text-text">2. Pourquoi EVENTIA utilise des cookies</p>
+          <section className="space-y-3 border-b border-slate-100 pb-6 last:border-0">
+            <p className="font-semibold text-slate-950">2. Pourquoi EVENTIA utilise des cookies</p>
             <p>
               EVENTIA utilise des cookies afin de garantir le bon fonctionnement de la plateforme et d'ameliorer
               l'experience des utilisateurs.
@@ -42,8 +42,8 @@ export default function CookiesPage() {
             </ul>
           </section>
 
-          <section className="space-y-2">
-            <p className="font-semibold text-text">3. Types de cookies utilises</p>
+          <section className="space-y-3 border-b border-slate-100 pb-6 last:border-0">
+            <p className="font-semibold text-slate-950">3. Types de cookies utilises</p>
             <p className="text-text">Cookies essentiels</p>
             <p>
               Ces cookies sont necessaires au fonctionnement de la plateforme. Ils permettent notamment
@@ -62,8 +62,8 @@ export default function CookiesPage() {
             </p>
           </section>
 
-          <section className="space-y-2">
-            <p className="font-semibold text-text">4. Cookies tiers</p>
+          <section className="space-y-3 border-b border-slate-100 pb-6 last:border-0">
+            <p className="font-semibold text-slate-950">4. Cookies tiers</p>
             <p>
               EVENTIA peut utiliser certains services tiers qui peuvent egalement placer des cookies sur votre
               appareil. Ces services peuvent inclure des outils d'analyse de trafic, des services de performance ou de
@@ -71,8 +71,8 @@ export default function CookiesPage() {
             </p>
           </section>
 
-          <section className="space-y-2">
-            <p className="font-semibold text-text">5. Duree de conservation des cookies</p>
+          <section className="space-y-3 border-b border-slate-100 pb-6 last:border-0">
+            <p className="font-semibold text-slate-950">5. Duree de conservation des cookies</p>
             <p>
               Cookies de session : ces cookies sont temporaires et sont supprimes automatiquement lorsque vous fermez
               votre navigateur.
@@ -83,8 +83,8 @@ export default function CookiesPage() {
             </p>
           </section>
 
-          <section className="space-y-2">
-            <p className="font-semibold text-text">6. Gestion des cookies</p>
+          <section className="space-y-3 border-b border-slate-100 pb-6 last:border-0">
+            <p className="font-semibold text-slate-950">6. Gestion des cookies</p>
             <p>
               Vous pouvez controler ou supprimer les cookies a tout moment en modifiant les parametres de votre
               navigateur. La plupart des navigateurs permettent de bloquer les cookies, supprimer les cookies existants
@@ -96,16 +96,16 @@ export default function CookiesPage() {
             </p>
           </section>
 
-          <section className="space-y-2">
-            <p className="font-semibold text-text">7. Mise a jour de la politique de cookies</p>
+          <section className="space-y-3 border-b border-slate-100 pb-6 last:border-0">
+            <p className="font-semibold text-slate-950">7. Mise a jour de la politique de cookies</p>
             <p>
               Cette politique peut etre mise a jour afin de refleter les evolutions de la plateforme ou des exigences
               legales. La date de la derniere mise a jour sera indiquee en haut de cette page.
             </p>
           </section>
 
-          <section className="space-y-2">
-            <p className="font-semibold text-text">8. Contact</p>
+          <section className="space-y-3 border-b border-slate-100 pb-6 last:border-0">
+            <p className="font-semibold text-slate-950">8. Contact</p>
             <p>
               Pour toute question concernant cette Politique de cookies, vous pouvez contacter l'equipe EVENTIA :
               contact@eventia.app

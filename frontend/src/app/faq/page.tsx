@@ -106,33 +106,33 @@ export default function FaqPage() {
   }, [search, category]);
 
   return (
-    <main className="min-h-screen bg-background px-4 py-10">
-      <div className="mx-auto max-w-4xl space-y-6">
-        <div className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.2em] text-text/60">FAQ - Questions frequentes</p>
-          <h1 className="title-1">FAQ</h1>
-          <p className="text-body-muted">
-            Bienvenue dans la foire aux questions d'EVENTIA. Vous trouverez ici les reponses aux questions les plus
-            frequentes concernant l'utilisation de la plateforme.
-          </p>
+    <main className="min-h-[70vh] bg-[#fbfaf8] px-5 py-12 text-slate-900 sm:px-8 sm:py-16">
+      <div className="mx-auto max-w-4xl space-y-8">
+        <div className="max-w-2xl space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#936d43]">Centre de réponses</p>
+          <h1 className="font-heading text-4xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-5xl">Questions fréquentes</h1>
+          <p className="text-base leading-7 text-slate-600">Trouvez rapidement les informations utiles sur votre compte, vos invitations et la gestion des événements.</p>
         </div>
 
-        <div className="card p-4 space-y-3">
+        <div className="space-y-4 rounded-2xl border border-[#e9e4dc] bg-white p-4 shadow-sm sm:p-5">
+          <label htmlFor="faq-search" className="sr-only">Rechercher une question</label>
           <input
+            id="faq-search"
             type="text"
             value={search}
             onChange={event => setSearch(event.target.value)}
-            placeholder="Rechercher dans la FAQ"
-            className="w-full rounded-xl border border-primary/10 bg-white/80 px-4 py-2 text-sm focus:outline-none"
+            placeholder="Ex. partager une invitation, confirmer sa présence…"
+            className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-500 focus:outline-none focus:ring-4 focus:ring-slate-100"
           />
-          <div className="flex flex-wrap gap-2">
+          <div aria-label="Filtrer par catégorie" className="flex flex-wrap gap-2">
             {CATEGORIES.map(item => (
               <button
                 key={item}
                 type="button"
+                aria-pressed={category === item}
                 onClick={() => setCategory(item)}
-                className={`nav-chip text-xs ${
-                  category === item ? "bg-primary text-white" : "bg-white/80 text-text/70 border border-primary/10"
+                className={`inline-flex min-h-9 items-center justify-center rounded-full border px-3.5 text-xs font-medium transition focus:outline-none focus:ring-4 focus:ring-slate-100 ${
+                  category === item ? "border-slate-900 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-600 hover:border-slate-400 hover:text-slate-950"
                 }`}
               >
                 {item}
@@ -141,16 +141,19 @@ export default function FaqPage() {
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div aria-live="polite" className="space-y-3">
           {filtered.map(item => (
-            <details key={item.q} className="rounded-2xl border border-primary/10 bg-white/80 px-4 py-3">
-              <summary className="cursor-pointer text-sm font-semibold">{item.q}</summary>
-              <p className="mt-2 text-small">{item.a}</p>
+            <details key={item.q} className="group rounded-xl border border-[#e9e4dc] bg-white px-5 py-4 open:shadow-sm">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold leading-6 text-slate-900 marker:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400">
+                {item.q}<span aria-hidden="true" className="shrink-0 text-lg font-normal text-slate-400 transition group-open:rotate-45">+</span>
+              </summary>
+              <p className="mt-3 max-w-3xl border-t border-slate-100 pt-3 text-sm leading-6 text-slate-600">{item.a}</p>
             </details>
           ))}
           {filtered.length === 0 ? (
-            <div className="rounded-2xl border border-primary/10 bg-white/70 px-4 py-6 text-body-muted">
-              Aucune reponse trouvee. Essayez un autre mot cle.
+            <div className="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8 text-center">
+              <p className="text-sm font-semibold text-slate-900">Aucun résultat</p>
+              <p className="mt-1 text-sm text-slate-600">Essayez un autre terme ou choisissez une autre catégorie.</p>
             </div>
           ) : null}
         </div>
