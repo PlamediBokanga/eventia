@@ -53,7 +53,7 @@ export function Nav() {
           <button
             type="button"
             onClick={handleLogout}
-            className="min-h-10 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="site-button-secondary min-h-10 rounded-xl px-3 py-2 text-sm"
           >
             Se déconnecter
           </button>
@@ -62,7 +62,7 @@ export function Nav() {
             onClick={() => setOpen(prev => !prev)}
             aria-expanded={open}
             aria-label={open ? "Fermer le menu des modules" : "Ouvrir le menu des modules"}
-            className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-slate-950 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+            className="site-button-primary min-h-10 rounded-xl px-3 py-2 text-sm"
           >
             <span className="flex h-5 w-5 items-center justify-center text-white/80">
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
@@ -88,14 +88,14 @@ export function Nav() {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="rounded-full border border-slate-200 px-3 py-1 text-sm font-semibold text-text transition hover:bg-slate-100"
+                  className="site-button-secondary min-h-10 rounded-full px-3 py-1 text-sm"
                 >
                   Se déconnecter
                 </button>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="rounded-full border border-slate-200 px-3 py-1 text-sm font-semibold text-text transition hover:bg-slate-100"
+                  className="site-button-secondary min-h-10 rounded-full px-3 py-1 text-sm"
                 >
                   Fermer
                 </button>
@@ -121,7 +121,7 @@ export function Nav() {
                           onClick={() => setOpen(false)}
                           className={`flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
                             active
-                              ? "bg-slate-950 text-white shadow-sm"
+                              ? "bg-[#526b5c] text-white shadow-sm"
                               : "text-slate-700 hover:bg-slate-100"
                           }`}
                         >

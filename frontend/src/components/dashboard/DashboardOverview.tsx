@@ -32,7 +32,7 @@ function dateLabel(value?: string | null) {
 
 function MetricCard({ label, value, note, tone }: { label: string; value: string; note: string; tone: "navy" | "green" | "amber" | "blue" }) {
   const tones = {
-    navy: "bg-slate-950 text-white",
+    navy: "border-[#526b5c] bg-[#526b5c] text-white",
     green: "border-emerald-200 bg-emerald-50 text-emerald-950",
     amber: "border-amber-200 bg-amber-50 text-amber-950",
     blue: "border-sky-200 bg-sky-50 text-sky-950"
@@ -131,7 +131,7 @@ export function DashboardOverview({ title: _title, role: roleProp }: { title: st
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">{displayName ? `Bonjour ${displayName}` : "Tableau de bord"}</h1>
           <p className="mt-1 text-sm text-slate-600">Les informations essentielles pour piloter votre événement.</p>
         </div>
-        <Link href="/dashboard/events" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900">
+        <Link href="/dashboard/events" className="site-button-primary">
           + Créer un événement
         </Link>
       </header>
@@ -183,7 +183,7 @@ export function DashboardOverview({ title: _title, role: roleProp }: { title: st
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {QUICK_ACTIONS.map(action => (
             <Link key={action.href} href={action.href} className="group flex min-h-24 items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700"><NavIcon type={action.icon} /></span>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#edf2ee] text-[#43584b]"><NavIcon type={action.icon} /></span>
               <span className="min-w-0">
                 <span className="block text-sm font-semibold text-slate-900">{action.label}</span>
                 <span className="mt-1 block text-xs text-slate-500">{action.detail}</span>
@@ -227,7 +227,7 @@ export function DashboardOverview({ title: _title, role: roleProp }: { title: st
                   const capacity = Math.max(0, table.capacity);
                   const percent = capacity ? Math.min(100, Math.round((table.guestCount / capacity) * 100)) : 0;
                   return <div key={table.id} className="flex items-center gap-3 py-3 first:pt-1 last:pb-0">
-                    <div className="min-w-0 flex-1"><div className="flex justify-between gap-3 text-sm"><span className="truncate font-medium text-slate-900">{table.label}</span><span className="shrink-0 tabular-nums text-slate-600">{table.guestCount}{capacity ? ` / ${capacity}` : ""}</span></div><div className="mt-2 h-1.5 rounded-full bg-slate-100"><div className="h-full rounded-full bg-slate-800" style={{ width: `${percent}%` }} /></div></div>
+                    <div className="min-w-0 flex-1"><div className="flex justify-between gap-3 text-sm"><span className="truncate font-medium text-slate-900">{table.label}</span><span className="shrink-0 tabular-nums text-slate-600">{table.guestCount}{capacity ? ` / ${capacity}` : ""}</span></div><div className="mt-2 h-1.5 rounded-full bg-slate-100"><div className="h-full rounded-full bg-[#526b5c]" style={{ width: `${percent}%` }} /></div></div>
                   </div>;
                 })}
               </div>

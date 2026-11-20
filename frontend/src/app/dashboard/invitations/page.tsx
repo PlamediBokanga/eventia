@@ -125,7 +125,7 @@ export default function DashboardInvitationsPage() {
             </div>
           ) : (
             <div className="space-y-5 p-4 sm:p-5">
-              <div className="overflow-hidden rounded-[22px] border border-slate-200 bg-slate-950 text-white shadow-sm">
+              <div className="overflow-hidden rounded-[22px] border border-[#43584b] bg-[#526b5c] text-white shadow-sm">
                 <div className="relative h-56 sm:h-72">
                   {coverImage ? (
                     <img src={coverImage} alt={`Couverture ${selectedEvent.name}`} className="h-full w-full object-cover" />
@@ -173,13 +173,13 @@ export default function DashboardInvitationsPage() {
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <Link
                     href="/dashboard/events"
-                    className="inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-950 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-300"
+                    className="site-button-primary px-4 text-center"
                   >
                     Modifier l’invitation
                   </Link>
                   <Link
                     href="/dashboard/guests"
-                    className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-sm font-semibold text-slate-900 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-slate-200"
+                    className="site-button-secondary px-4 text-center"
                   >
                     Gérer les invités et les liens
                   </Link>

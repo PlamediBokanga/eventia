@@ -195,6 +195,48 @@ a {
   outline-offset: 2px;
 }
 
+.dashboard-theme [class~="bg-primary"] {
+  background-color: var(--site-action);
+}
+
+.dashboard-theme [class~="bg-primary/5"],
+.dashboard-theme [class~="bg-primary/10"],
+.dashboard-theme [class~="bg-primary/20"] {
+  background-color: var(--site-action-soft);
+}
+
+.dashboard-theme [class~="text-primary"] {
+  color: #43584b;
+}
+
+.dashboard-theme [class~="border-primary/10"],
+.dashboard-theme [class~="border-primary/15"],
+.dashboard-theme [class~="border-primary/20"],
+.dashboard-theme [class~="border-primary/30"] {
+  border-color: var(--site-action-border);
+}
+
+.dashboard-theme :is(button, a)[class~="bg-slate-950"],
+.dashboard-theme :is(button, a)[class~="bg-slate-900"] {
+  background-color: var(--site-action);
+  color: #ffffff;
+}
+
+.dashboard-theme :is(button, a)[class~="bg-slate-950"]:hover,
+.dashboard-theme :is(button, a)[class~="bg-slate-900"]:hover {
+  background-color: var(--site-action-hover);
+}
+
+.dashboard-theme :is(button, a):focus-visible {
+  outline: 3px solid #a9bfaf;
+  outline-offset: 2px;
+}
+
+.dashboard-theme :is(input, select, textarea):focus {
+  border-color: var(--site-action);
+  --tw-ring-color: var(--site-action-soft);
+}
+
 .toast-fade {
   animation: toast-in 0.2s ease-out;
 }

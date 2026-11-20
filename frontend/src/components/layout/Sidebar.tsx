@@ -35,8 +35,8 @@ export function Sidebar({ mobile = false }: { mobile?: boolean }) {
   const navClass = mobile ? "grid grid-cols-2 gap-2 text-xs" : "space-y-5 text-sm";
 
   const wrapperClass = mobile
-    ? "bg-primary text-white rounded-2xl p-3"
-    : "w-64 bg-primary text-white min-h-screen p-6";
+    ? "bg-[#526b5c] text-white rounded-2xl p-3"
+    : "w-64 bg-[#526b5c] text-white min-h-screen p-6";
 
   return (
     <aside className={wrapperClass}>
@@ -61,7 +61,7 @@ export function Sidebar({ mobile = false }: { mobile?: boolean }) {
                     href={item.href}
                     className={`flex items-center gap-2 rounded-xl px-3 py-2 transition ${
                       active
-                        ? "bg-white text-primary font-semibold shadow-sm"
+                        ? "bg-white text-[#43584b] font-semibold shadow-sm"
                         : "text-white/90 hover:bg-white/10"
                     }`}
                   >
