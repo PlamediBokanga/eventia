@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { hasActiveSession, storeSessionToken } from "@/lib/auth";
 import { API_URL } from "@/lib/config";
-import { AuthDivider, AuthNotice, AuthPopup, AuthShell, FacebookButton, GoogleButton } from "@/components/auth/AuthShell";
+import { AuthDivider, AuthPopup, AuthShell, FacebookButton, GoogleButton } from "@/components/auth/AuthShell";
 
 type ProvidersResponse = {
   google?: {
@@ -234,24 +234,6 @@ export function RegisterClient() {
       }
     >
       <div className="space-y-5">
-        <AuthNotice
-          variant={passwordIsStrong ? "success" : "info"}
-          title="Creation de compte"
-          message={
-            <div className="space-y-2">
-              <p className="leading-6">
-                Choisissez d'abord votre type de compte. Le parcours et les recommandations s'adaptent ensuite a votre usage reel.
-              </p>
-              <div className="grid gap-2 sm:grid-cols-3">
-                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Profil pro</div>
-                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Google SSO</div>
-                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Facebook SSO</div>
-                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Mot de passe fort</div>
-              </div>
-            </div>
-          }
-        />
-
         <GoogleButton
           href={googleHref}
           disabled={!googleEnabled}
@@ -288,7 +270,11 @@ export function RegisterClient() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="border-b border-slate-100 pb-3">
+            <h3 className="text-sm font-semibold text-slate-900">Informations du compte</h3>
+            <p className="mt-1 text-xs leading-5 text-slate-500">Renseignez les informations de votre structure et de son responsable.</p>
+          </div>
           <div className="space-y-2">
             <label className="block text-sm font-medium text-slate-800">Nom de l'organisation ou marque</label>
             <input
@@ -365,6 +351,11 @@ export function RegisterClient() {
                 placeholder="https://votre-site.com"
               />
             </div>
+          </div>
+
+          <div className="border-b border-slate-100 pb-3 pt-1">
+            <h3 className="text-sm font-semibold text-slate-900">Accès et sécurité</h3>
+            <p className="mt-1 text-xs leading-5 text-slate-500">Utilisez une adresse active et un mot de passe robuste.</p>
           </div>
 
           <div className="space-y-2">

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { API_URL } from "@/lib/config";
-import { AuthNotice, AuthPopup, AuthShell } from "@/components/auth/AuthShell";
+import { AuthPopup, AuthShell } from "@/components/auth/AuthShell";
 
 export function ForgotPasswordClient() {
   const [email, setEmail] = useState("");
@@ -58,29 +58,17 @@ export function ForgotPasswordClient() {
       }
     >
       <div className="space-y-5">
-        <AuthNotice
-          variant="info"
-          title="Recuperation de compte"
-          message={
-            <div className="space-y-2">
-              <p className="leading-6 text-slate-700">
-                Entrez l'adresse email associee au compte. Si elle existe, nous preparerons un lien de reinitialisation temporaire.
-              </p>
-              <div className="grid gap-2 sm:grid-cols-3">
-                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Jeton securise</div>
-                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Expiration courte</div>
-                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Popup dynamique</div>
-              </div>
-            </div>
-          }
-        />
-
+        <p className="text-sm leading-6 text-slate-600">
+          Saisissez l'adresse e-mail associée à votre compte. Si elle est reconnue, vous recevrez les instructions de réinitialisation.
+        </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-800">Adresse email du compte</label>
+            <label htmlFor="forgot-email" className="block text-sm font-medium text-slate-800">Adresse e-mail</label>
             <input
+              id="forgot-email"
               type="email"
-              className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+              autoComplete="email"
+              className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="vous@eventia.app"
@@ -88,17 +76,10 @@ export function ForgotPasswordClient() {
             />
           </div>
 
-          <button className="btn-primary w-full justify-center py-3 text-sm shadow-[0_16px_30px_rgba(15,23,42,0.18)] transition-transform active:scale-[0.99]" type="submit" disabled={loading}>
+          <button className="flex min-h-12 w-full items-center justify-center rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200 active:scale-[0.99] disabled:cursor-wait disabled:opacity-70" type="submit" disabled={loading}>
             {loading ? "Preparation..." : "Envoyer le lien"}
           </button>
         </form>
-
-        <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-4 text-sm text-slate-600 shadow-sm">
-          <p className="font-medium text-slate-900">Bon reflexe</p>
-          <p className="mt-1 leading-6">
-            Verifiez votre boite mail et le dossier spam. Le lien de reinitialisation reste temporaire pour proteger votre compte.
-          </p>
-        </div>
 
         <AuthPopup
           open={Boolean(message)}

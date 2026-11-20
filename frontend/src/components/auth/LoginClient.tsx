@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { hasActiveSession, storeSessionToken } from "@/lib/auth";
 import { API_URL } from "@/lib/config";
-import { AuthDivider, AuthNotice, AuthPopup, AuthShell, FacebookButton, GoogleButton } from "@/components/auth/AuthShell";
+import { AuthDivider, AuthPopup, AuthShell, FacebookButton, GoogleButton } from "@/components/auth/AuthShell";
 
 type ProvidersResponse = {
   google?: {
@@ -62,7 +62,6 @@ export function LoginClient() {
 
   const googleHref = useMemo(() => `${API_URL}/auth/google?mode=login`, []);
   const facebookHref = useMemo(() => `${API_URL}/auth/facebook?mode=login`, []);
-  const loginHintTone = message ? "warning" : googleEnabled ? "success" : "info";
 
   useEffect(() => {
     let alive = true;
@@ -149,15 +148,14 @@ export function LoginClient() {
 
   return (
     <AuthShell
-      eyebrow="Connexion securisee"
-      title="Accedez a votre espace organisateur."
-      description="Retrouvez vos evenements, vos invitations, votre check-in QR et votre facturation dans une interface claire et fiable."
-      sideTitle="Pilotez chaque evenement avec une connexion digne d'un vrai produit."
-      sideCopy="EVENTIA centralise vos invites, vos paiements, vos co-organisateurs et vos operations du jour J dans un espace de travail concu pour une utilisation professionnelle."
+      eyebrow="Connexion"
+      title="Votre espace, en toute simplicité."
+      description="Connectez-vous pour retrouver vos événements, vos invités et vos outils de gestion."
+      sideTitle="Chaque grand événement commence par une bonne organisation."
+      sideCopy="Préparez vos invitations, coordonnez vos équipes et suivez le jour J depuis un espace unique, pensé pour les organisateurs."
       sideStats={[
-        { value: "QR", label: "Check-in rapide et suivi des arrives" },
-        { value: "Live", label: "Chat, livre d'or et activite invites" },
-        { value: "360", label: "Profil, billing et tableaux de bord unifies" }
+        { value: "Invités", label: "Suivi centralisé" },
+        { value: "Jour J", label: "Outils coordonnés" }
       ]}
       footer={
         <>
@@ -169,44 +167,26 @@ export function LoginClient() {
       }
     >
       <div className="space-y-5">
-        <AuthNotice
-          variant={loginHintTone}
-          title="Acces organisateur"
-          message={
-            <div className="space-y-2">
-              <p className="leading-6">
-                Retrouvez votre dashboard, vos statistiques, vos invitations et vos outils de pilotage dans une interface claire, rapide et sure.
-              </p>
-              <div className="grid gap-2 sm:grid-cols-3">
-                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Session securisee</div>
-                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Google OAuth</div>
-                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">Feedback instantane</div>
-              </div>
+        {googleEnabled || facebookEnabled ? (
+          <>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {googleEnabled ? <GoogleButton href={googleHref} label="Continuer avec Google" /> : null}
+              {facebookEnabled ? <FacebookButton href={facebookHref} label="Continuer avec Facebook" /> : null}
             </div>
-          }
-         />
-        <div className="grid gap-3 sm:grid-cols-2">
-          <GoogleButton
-            href={googleHref}
-            disabled={!googleEnabled}
-            label={googleEnabled ? "Continuer avec Google" : "Connexion Google bientot disponible"}
-          />
-          <FacebookButton
-            href={facebookHref}
-            disabled={!facebookEnabled}
-            label={facebookEnabled ? "Continuer avec Facebook" : "Connexion Facebook bientot disponible"}
-          />
-        </div>
-
-        <AuthDivider label="ou avec votre email" />
+            <AuthDivider label="ou par e-mail" />
+          </>
+        ) : (
+          <p className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">Connectez-vous avec votre adresse e-mail.</p>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-text/80">Adresse email</label>
+            <label htmlFor="login-email" className="block text-sm font-medium text-slate-800">Adresse e-mail</label>
             <input
+              id="login-email"
               type="email"
               autoComplete="email"
-              className="w-full rounded-2xl border border-primary/15 bg-white px-4 py-3 text-sm outline-none transition focus:border-accent/45 focus:ring-4 focus:ring-accent/10"
+              className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="vous@eventia.app"
@@ -216,14 +196,15 @@ export function LoginClient() {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-3">
-              <label className="block text-sm font-medium text-text/80">Mot de passe</label>
-              <span className="text-xs text-text/45">Protection anti-bruteforce active</span>
+              <label htmlFor="login-password" className="block text-sm font-medium text-slate-800">Mot de passe</label>
+              <Link href="/auth/forgot-password" className="text-xs font-medium text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline">Mot de passe oublié ?</Link>
             </div>
             <div className="relative">
               <input
+                id="login-password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
-                className="w-full rounded-2xl border border-primary/15 bg-white px-4 py-3 pr-16 text-sm outline-none transition focus:border-accent/45 focus:ring-4 focus:ring-accent/10"
+                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-20 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Votre mot de passe"
@@ -231,35 +212,19 @@ export function LoginClient() {
               />
               <button
                 type="button"
+                aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                 onClick={() => setShowPassword(value => !value)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full px-2 py-1 text-xs font-medium text-text/55 transition hover:bg-primary/5 hover:text-text"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
               >
                 {showPassword ? "Masquer" : "Afficher"}
               </button>
             </div>
           </div>
 
-          <button className="btn-primary w-full justify-center py-3 text-sm shadow-[0_16px_30px_rgba(15,23,42,0.18)] transition-transform active:scale-[0.99]" type="submit" disabled={loading}>
-            {loading ? "Connexion securisee..." : "Se connecter"}
+          <button className="flex min-h-12 w-full items-center justify-center rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200 active:scale-[0.99] disabled:cursor-wait disabled:opacity-70" type="submit" disabled={loading}>
+            {loading ? "Connexion en cours…" : "Se connecter"}
           </button>
         </form>
-
-        <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-4 text-sm text-slate-600 shadow-sm">
-          <p className="font-medium text-slate-900">Connexion securisee</p>
-          <p className="mt-1 leading-6">
-            Votre session donne acces au dashboard organisateur, aux statistiques, au check-in et aux operations de
-            paiement.
-          </p>
-          <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-            <Link href="/auth/forgot-password" className="font-medium text-slate-900 hover:text-accent">
-              Mot de passe oublie
-            </Link>
-            <span className="text-slate-300">•</span>
-            <Link href="/auth/register" className="font-medium text-slate-900 hover:text-accent">
-              Creer un nouvel espace
-            </Link>
-          </div>
-        </div>
 
         <AuthPopup
           open={Boolean(message)}
