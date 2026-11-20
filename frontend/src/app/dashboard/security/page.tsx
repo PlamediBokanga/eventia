@@ -232,7 +232,7 @@ export default function DashboardSecurityPage() {
                   <span className="block text-sm font-semibold text-slate-900">Alertes de sécurité par e-mail</span>
                   <span className="mt-1 block break-all text-sm text-slate-600">{profile?.email ?? "Adresse du compte"}</span>
                 </span>
-                <input type="checkbox" className="mt-1 h-5 w-5 shrink-0 accent-slate-900" checked={securityAlerts} onChange={event => setSecurityAlerts(event.target.checked)} disabled={loading || savingSecurity} />
+                <input type="checkbox" className="mt-1 h-5 w-5 shrink-0 accent-[#526b5c]" checked={securityAlerts} onChange={event => setSecurityAlerts(event.target.checked)} disabled={loading || savingSecurity} />
               </label>
               <p className="text-xs leading-5 text-slate-500">Cette préférence est enregistrée sur votre compte. L’envoi effectif d’alertes dépend de la configuration du service e-mail.</p>
               <Button type="button" variant="ghost" className="min-h-11 w-full sm:w-auto" onClick={saveSecurity} disabled={loading || savingSecurity || loadError}>

@@ -234,7 +234,7 @@ export default function DashboardProfilePage() {
                 <h2 className="mt-2 text-2xl font-semibold text-slate-900">Informations du profil</h2>
               </div>
               <div className="flex items-center gap-3 rounded-[22px] border border-slate-200/80 bg-slate-50 px-4 py-3">
-                <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-slate-950 text-lg font-semibold text-white">
+                <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-[#526b5c] text-lg font-semibold text-white">
                   {displayAvatar ? (
                     <img src={displayAvatar} alt="Avatar organisateur" className="h-full w-full object-cover" />
                   ) : (
@@ -254,7 +254,7 @@ export default function DashboardProfilePage() {
                   <label htmlFor="profile-avatar-url" className="text-sm font-medium text-slate-700">Photo de profil</label>
                 <div className="flex flex-col gap-3 md:flex-row">
                   <Input id="profile-avatar-url" value={avatarUrl} onChange={e => setAvatarUrl(e.target.value)} placeholder="Coller l’URL d’une image" className="min-h-11 flex-1" />
-                  <label className="inline-flex cursor-pointer items-center justify-center rounded-2xl border border-slate-200 bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5">
+                  <label className="site-button-primary cursor-pointer rounded-2xl px-4">
                     <input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" disabled={uploadingAvatar} onChange={e => { const file = e.target.files?.[0]; if (file) void handleAvatarUpload(file); e.currentTarget.value = ""; }} />
                     {uploadingAvatar ? "Import en cours…" : "Importer une photo"}
                   </label>

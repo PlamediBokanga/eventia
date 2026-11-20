@@ -189,7 +189,7 @@ export default function DashboardStatsPage() {
                 { label: "Invités", value: stats.guests.total, note: "Inscrits à l’événement", barClass: "bg-slate-800", progress: 100 },
                 { label: "Confirmés", value: stats.guests.confirmed, note: `${Math.round(pct(stats.guests.confirmed, stats.guests.total))}% du total`, barClass: "bg-emerald-600", progress: pct(stats.guests.confirmed, stats.guests.total) },
                 { label: "Présents", value: stats.guests.present, note: "Entrées enregistrées", barClass: "bg-amber-500", progress: pct(stats.guests.present, stats.guests.total) },
-                { label: "Taux de présence", value: `${stats.guests.attendanceRate}%`, note: "Présents sur le total des invités", barClass: "bg-blue-700", progress: stats.guests.attendanceRate }
+                { label: "Taux de présence", value: `${stats.guests.attendanceRate}%`, note: "Présents sur le total des invités", barClass: "bg-[#526b5c]", progress: stats.guests.attendanceRate }
               ].map(card => (
                 <div key={card.label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
                   <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{card.label}</p>
@@ -221,7 +221,7 @@ export default function DashboardStatsPage() {
                       <div key={item.day} className="grid grid-cols-[84px,1fr,40px] items-center gap-3 text-xs">
                         <span className="text-slate-600">{item.day}</span>
                         <div className="h-2 rounded-full bg-slate-100" role="progressbar" aria-valuenow={item.count} aria-valuemin={0} aria-valuemax={maxConfirm || 1} aria-label={`${item.count} réponses le ${item.day}`}>
-                          <div className="h-2 rounded-full bg-slate-800" style={{ width: `${maxConfirm ? Math.max(2, (item.count / maxConfirm) * 100) : 0}%` }} />
+                          <div className="h-2 rounded-full bg-[#526b5c]" style={{ width: `${maxConfirm ? Math.max(2, (item.count / maxConfirm) * 100) : 0}%` }} />
                         </div>
                         <span className="text-right font-semibold text-slate-900">{item.count}</span>
                       </div>
@@ -278,7 +278,7 @@ export default function DashboardStatsPage() {
                           </div>
                           {occupancy !== null ? (
                             <div className="mt-3 h-2 rounded-full bg-slate-200" role="progressbar" aria-valuenow={Math.round(occupancy)} aria-valuemin={0} aria-valuemax={100} aria-label={`${table.label}: ${Math.round(occupancy)}% de capacité utilisée`}>
-                              <div className="h-2 rounded-full bg-slate-800" style={{ width: `${occupancy}%` }} />
+                              <div className="h-2 rounded-full bg-[#526b5c]" style={{ width: `${occupancy}%` }} />
                             </div>
                           ) : null}
                         </div>

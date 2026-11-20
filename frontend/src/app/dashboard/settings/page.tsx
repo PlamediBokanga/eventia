@@ -202,7 +202,7 @@ export default function DashboardSettingsPage() {
                             checked={settings[key]}
                             onChange={e => setSettings(previous => previous ? { ...previous, [key]: e.target.checked } : previous)}
                           />
-                          <span aria-hidden="true" className="relative h-6 w-11 shrink-0 rounded-full bg-slate-300 transition peer-checked:bg-slate-900 after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition peer-checked:after:translate-x-5 peer-focus-visible:ring-4 peer-focus-visible:ring-slate-200" />
+                          <span aria-hidden="true" className="relative h-6 w-11 shrink-0 rounded-full bg-slate-300 transition peer-checked:bg-[#526b5c] after:absolute after:left-1 after:top-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow-sm after:transition peer-checked:after:translate-x-5 peer-focus-visible:ring-4 peer-focus-visible:ring-[#edf2ee]" />
                         </label>
                       ))}
                     </div>
@@ -259,7 +259,7 @@ export default function DashboardSettingsPage() {
                       <label className="text-sm font-medium text-slate-700">QR code actif</label>
                       <label className="flex items-center justify-between rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
                         <span>Activer QR code par defaut</span>
-                        <input type="checkbox" className="accent-slate-900" checked={settings?.defaultQrEnabled ?? false} onChange={e => setSettings(prev => (prev ? { ...prev, defaultQrEnabled: e.target.checked } : prev))} />
+                        <input type="checkbox" className="accent-[#526b5c]" checked={settings?.defaultQrEnabled ?? false} onChange={e => setSettings(prev => (prev ? { ...prev, defaultQrEnabled: e.target.checked } : prev))} />
                       </label>
                     </div>
                     </div>
