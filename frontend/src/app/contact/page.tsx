@@ -22,7 +22,7 @@ export default function ContactPage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{item.label}</p>
                 <h2 className="mt-5 break-words text-lg font-semibold text-slate-950">{item.value}</h2>
                 <p className="mt-2 flex-1 text-sm leading-6 text-slate-600">{item.note}</p>
-                <a href={item.href} target={item.href.startsWith("https:") ? "_blank" : undefined} rel={item.href.startsWith("https:") ? "noreferrer" : undefined} className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800">
+                <a href={item.href} target={item.href.startsWith("https:") ? "_blank" : undefined} rel={item.href.startsWith("https:") ? "noreferrer" : undefined} className="site-button-primary mt-6 rounded-lg px-4">
                   {item.href.startsWith("mailto:") ? "Écrire un e-mail" : "Ouvrir WhatsApp"}<span aria-hidden="true" className="ml-2">↗</span>
                 </a>
               </article>
@@ -36,8 +36,8 @@ export default function ContactPage() {
             <div className="mt-6 border-t border-[#ded7cc] pt-5">
               <p className="text-sm font-semibold text-slate-900">Vous cherchez une réponse immédiate ?</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <Link href="/faq" className="inline-flex min-h-10 items-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50">Consulter la FAQ</Link>
-                <Link href="/help" className="inline-flex min-h-10 items-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50">Centre d’aide</Link>
+                <Link href="/faq" className="site-button-secondary min-h-10 rounded-lg px-3 text-sm">Consulter la FAQ</Link>
+                <Link href="/help" className="site-button-secondary min-h-10 rounded-lg px-3 text-sm">Centre d’aide</Link>
               </div>
             </div>
           </aside>

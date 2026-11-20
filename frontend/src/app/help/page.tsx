@@ -23,7 +23,7 @@ export default function HelpCenterPage() {
               <span className="font-heading text-sm font-semibold text-[#98754f]">{item.step}</span>
               <h2 className="mt-5 text-lg font-semibold text-slate-950">{item.title}</h2>
               <p className="mt-2 flex-1 text-sm leading-6 text-slate-600">{item.text}</p>
-              <Link href={item.href} className="mt-5 inline-flex min-h-10 items-center text-sm font-semibold text-slate-800 underline decoration-slate-300 underline-offset-4 hover:text-slate-950">{item.action}<span aria-hidden="true" className="ml-2">→</span></Link>
+          <Link href={item.href} className="site-button-quiet mt-5 min-h-10 justify-start px-0">{item.action}<span aria-hidden="true">→</span></Link>
             </article>
           ))}
         </section>
@@ -31,8 +31,8 @@ export default function HelpCenterPage() {
         <section className="mt-8 flex flex-col gap-5 rounded-2xl bg-[#20221f] p-6 text-white sm:flex-row sm:items-center sm:justify-between sm:p-8">
           <div><h2 className="font-heading text-2xl font-semibold">Vous n’avez pas trouvé votre réponse ?</h2><p className="mt-2 text-sm leading-6 text-white/70">Notre équipe peut vous orienter vers le bon canal d’assistance.</p></div>
           <div className="flex flex-wrap gap-2">
-            <Link href="/faq" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-white/30 px-4 text-sm font-semibold text-white hover:bg-white/10">Parcourir la FAQ</Link>
-            <Link href="/contact" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-white px-4 text-sm font-semibold text-slate-950 hover:bg-[#f1e7d8]">Contacter EVENTIA</Link>
+            <Link href="/faq" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-white/45 px-4 text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">Parcourir la FAQ</Link>
+            <Link href="/contact" className="site-button-inverse min-h-11 rounded-lg px-4">Contacter EVENTIA</Link>
           </div>
         </section>
       </div>

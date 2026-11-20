@@ -17,7 +17,7 @@ export default function AboutPage() {
             <h1 className="mt-4 font-heading text-4xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-5xl">Moins de dispersion. Plus de place pour l’événement.</h1>
             <p className="mt-5 text-base leading-7 text-slate-600">EVENTIA est une plateforme conçue pour aider les organisateurs à gérer leurs invitations, leurs invités et les temps forts de leur événement depuis un espace unique.</p>
             <p className="mt-4 text-sm leading-6 text-slate-600">Mariage, réception privée ou rencontre professionnelle : l’objectif est de rendre l’organisation plus lisible pour vous et plus simple pour vos invités.</p>
-            <Link href="/auth/register" className="mt-7 inline-flex min-h-12 items-center justify-center rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">Découvrir EVENTIA <span aria-hidden="true" className="ml-2">→</span></Link>
+            <Link href="/auth/register" className="site-button-primary mt-7 px-5">Découvrir EVENTIA <span aria-hidden="true">→</span></Link>
           </div>
           <div className="relative h-[320px] overflow-hidden rounded-[24px] bg-slate-200 sm:h-[430px]">
             <Image src="/images/site/wedding-couple.jpg" alt="Un couple de mariés dans un cadre naturel" fill sizes="(min-width: 1024px) 55vw, 100vw" className="object-cover object-center" />
@@ -52,8 +52,8 @@ export default function AboutPage() {
         <section className="mt-16 flex flex-col gap-6 rounded-[24px] bg-[#20221f] p-6 text-white sm:flex-row sm:items-center sm:justify-between sm:p-9">
           <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#d9c3a4]">Un projet en préparation ?</p><h2 className="mt-2 font-heading text-2xl font-semibold">Préparez votre prochain événement avec EVENTIA.</h2></div>
           <div className="flex flex-col gap-2 sm:flex-row">
-            <Link href="/auth/register" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-white px-4 text-sm font-semibold text-slate-950 hover:bg-[#f1e7d8]">Créer un compte</Link>
-            <Link href="/contact" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-white/30 px-4 text-sm font-semibold text-white hover:bg-white/10">Nous contacter</Link>
+            <Link href="/auth/register" className="site-button-inverse min-h-11 rounded-lg px-4">Créer un compte</Link>
+            <Link href="/contact" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-white/45 px-4 text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">Nous contacter</Link>
           </div>
         </section>
       </div>

@@ -132,7 +132,7 @@ export default function FaqPage() {
                 aria-pressed={category === item}
                 onClick={() => setCategory(item)}
                 className={`inline-flex min-h-9 items-center justify-center rounded-full border px-3.5 text-xs font-medium transition focus:outline-none focus:ring-4 focus:ring-slate-100 ${
-                  category === item ? "border-slate-900 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-600 hover:border-slate-400 hover:text-slate-950"
+                  category === item ? "border-[#526b5c] bg-[#526b5c] text-white" : "border-slate-200 bg-white text-slate-600 hover:border-[#9caf9f] hover:text-[#34483a]"
                 }`}
               >
                 {item}

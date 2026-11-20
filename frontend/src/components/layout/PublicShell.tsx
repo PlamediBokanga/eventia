@@ -44,7 +44,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 px-4 backdrop-blur-xl sm:px-6">
           <div className="mx-auto flex h-[70px] max-w-[1320px] items-center justify-between gap-4">
             <Link href="/" aria-label="EVENTIA, accueil" className="group flex shrink-0 items-center gap-2.5">
-              <span aria-hidden="true" className="grid h-9 w-9 place-items-center rounded-xl bg-slate-950 font-heading text-sm font-semibold text-white">E</span>
+              <span aria-hidden="true" className="grid h-9 w-9 place-items-center rounded-xl bg-[#526b5c] font-heading text-sm font-semibold text-white">E</span>
               <span className="text-[15px] font-semibold tracking-[0.2em] text-slate-950">EVENTIA</span>
             </Link>
 
@@ -57,8 +57,8 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             </nav>
 
             <div className="hidden items-center gap-2 md:flex">
-              <Link href="/auth/login" className="inline-flex min-h-10 items-center justify-center rounded-lg px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-950">Connexion</Link>
-              <Link href="/auth/register" className="inline-flex min-h-10 items-center justify-center rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200">Créer un compte</Link>
+              <Link href="/auth/login" className="site-button-quiet px-4">Connexion</Link>
+              <Link href="/auth/register" className="site-button-primary min-h-10 rounded-lg px-4 py-2">Créer un compte</Link>
             </div>
 
             <button
@@ -78,8 +78,8 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
               <div className="mx-auto grid max-w-[1320px] gap-1">
                 {NAV_LINKS.map(link => <Link key={link.href} href={link.href} className="rounded-lg px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">{link.label}</Link>)}
                 <div className="mt-2 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3">
-                  <Link href="/auth/login" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 px-3 text-sm font-semibold text-slate-800">Connexion</Link>
-                  <Link href="/auth/register" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-950 px-3 text-sm font-semibold text-white">Créer un compte</Link>
+                  <Link href="/auth/login" className="site-button-secondary min-h-11 rounded-lg px-3">Connexion</Link>
+                  <Link href="/auth/register" className="site-button-primary min-h-11 rounded-lg px-3">Créer un compte</Link>
                 </div>
               </div>
             </nav>
@@ -138,7 +138,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
             <p className="text-sm leading-6 text-slate-600">EVENTIA utilise des cookies nécessaires au fonctionnement du site. Consultez notre politique pour en savoir plus.</p>
             <div className="flex shrink-0 flex-wrap gap-2">
               <Link href="/cookies" className="inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700">En savoir plus</Link>
-              <button type="button" className="inline-flex min-h-10 items-center justify-center rounded-lg bg-slate-950 px-4 text-xs font-semibold text-white" onClick={acceptCookies}>Compris</button>
+              <button type="button" className="site-button-primary min-h-10 rounded-lg px-4 py-2 text-xs" onClick={acceptCookies}>Compris</button>
             </div>
           </div>
         </aside>

@@ -61,10 +61,10 @@ export default function HomePage() {
             Invitations, réponses, invités et accueil : EVENTIA rassemble l’essentiel pour préparer vos événements avec clarté, du premier envoi au jour J.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link href="/auth/register" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200">
+            <Link href="/auth/register" className="site-button-primary min-h-12 px-6">
               Créer mon événement <span aria-hidden="true" className="ml-2">→</span>
             </Link>
-            <Link href="#fonctionnement" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100">
+            <Link href="#fonctionnement" className="site-button-secondary min-h-12 px-6">
               Découvrir EVENTIA
             </Link>
           </div>
@@ -126,7 +126,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-[1320px] px-5 sm:px-8 lg:px-12">
           <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <SectionIntro eyebrow="Une même exigence" title="Pour les événements qui vous ressemblent." text="Un mariage, une réception ou une célébration privée : adaptez votre organisation à l’occasion, pas l’inverse." />
-            <Link href="/auth/register" className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-50">Commencer à organiser <span aria-hidden="true" className="ml-2">→</span></Link>
+            <Link href="/auth/register" className="site-button-secondary shrink-0 px-5">Commencer à organiser <span aria-hidden="true" className="ml-1">→</span></Link>
           </div>
           <div className="mt-10 grid gap-4 md:grid-cols-3">
             {GALLERY.map((item, index) => (
@@ -162,13 +162,13 @@ export default function HomePage() {
           <SectionIntro eyebrow="Tarifs événement" title="Une formule adaptée à votre événement." text="Choisissez selon le nombre d’invités et les outils dont vous avez besoin. Les prix affichés sont en dollars américains." />
           <div className="mt-10 grid gap-4 lg:grid-cols-3">
             {EVENT_PACKS.map(pack => (
-              <article key={pack.name} className={`flex flex-col rounded-2xl border p-6 sm:p-7 ${pack.name === "STANDARD" ? "border-slate-900 bg-slate-950 text-white shadow-[0_20px_55px_rgba(15,23,42,0.18)]" : "border-[#e8e3db] bg-[#fbfaf8] text-slate-900"}`}>
+              <article key={pack.name} className={`flex flex-col rounded-2xl border p-6 sm:p-7 ${pack.name === "STANDARD" ? "border-[#526b5c] bg-[#526b5c] text-white shadow-[0_20px_55px_rgba(35,55,43,0.18)]" : "border-[#e8e3db] bg-[#fbfaf8] text-slate-900"}`}>
                 <p className={`text-xs font-semibold uppercase tracking-[0.16em] ${pack.name === "STANDARD" ? "text-white/65" : "text-slate-500"}`}>{pack.note}</p>
                 <div className="mt-5 flex items-end justify-between gap-3"><h3 className="text-lg font-semibold">{pack.name}</h3><p className="font-heading text-3xl font-semibold">{pack.price}</p></div>
                 <ul className="mt-6 flex-1 space-y-3 text-sm">
                   {pack.items.map(item => <li key={item} className="flex items-start gap-3"><span className={pack.name === "STANDARD" ? "text-white/75" : "text-slate-600"}><CheckMark /></span><span className={pack.name === "STANDARD" ? "text-white/85" : "text-slate-600"}>{item}</span></li>)}
                 </ul>
-                <Link href="/auth/register" className={`mt-7 inline-flex min-h-12 items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold transition focus:outline-none focus:ring-4 ${pack.name === "STANDARD" ? "bg-white text-slate-950 hover:bg-slate-100 focus:ring-white/30" : "bg-slate-950 text-white hover:bg-slate-800 focus:ring-slate-200"}`}>
+                <Link href="/auth/register" className={`site-button-primary mt-7 w-full ${pack.name === "STANDARD" ? "site-button-inverse" : ""}`}>
                   Choisir {pack.name.toLowerCase()}
                 </Link>
               </article>
@@ -194,9 +194,9 @@ export default function HomePage() {
       </section>
 
       <section className="px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
-        <div className="mx-auto flex max-w-[1320px] flex-col gap-8 overflow-hidden rounded-[26px] bg-[#20221f] px-6 py-9 text-white sm:px-10 sm:py-12 lg:flex-row lg:items-center lg:justify-between lg:px-14">
+        <div className="mx-auto flex max-w-[1320px] flex-col gap-8 overflow-hidden rounded-[26px] bg-[#3e5447] px-6 py-9 text-white sm:px-10 sm:py-12 lg:flex-row lg:items-center lg:justify-between lg:px-14">
           <div className="max-w-2xl"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#d9c3a4]">La prochaine étape</p><h2 className="mt-3 font-heading text-3xl font-semibold leading-tight sm:text-4xl">Donnez à votre événement l’organisation qu’il mérite.</h2><p className="mt-4 text-sm leading-6 text-white/70">Créez votre espace et commencez à préparer votre événement avec EVENTIA.</p></div>
-          <Link href="/auth/register" className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-[#f1e7d8] focus:outline-none focus:ring-4 focus:ring-white/30">Créer mon espace <span aria-hidden="true" className="ml-2">→</span></Link>
+          <Link href="/auth/register" className="site-button-secondary min-h-12 shrink-0 border-white bg-white px-6 text-[#34483a] hover:bg-[#edf2ee]">Créer mon espace <span aria-hidden="true">→</span></Link>
         </div>
       </section>
     </main>

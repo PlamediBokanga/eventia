@@ -10,6 +10,10 @@
   --theme-text: #1f2937;
   --theme-card: #ffffff;
   --theme-card-border: rgba(15, 23, 42, 0.08);
+  --site-action: #526b5c;
+  --site-action-hover: #43584b;
+  --site-action-soft: #edf2ee;
+  --site-action-border: #cbd8cf;
 }
 
 [data-theme="soir"] {
@@ -133,6 +137,62 @@ a {
 
 .btn-ghost {
   @apply inline-flex items-center justify-center rounded-xl border border-primary/20 text-primary px-5 py-3 text-sm font-semibold hover:bg-primary/5 transition;
+}
+
+.site-button-primary,
+.site-button-secondary,
+.site-button-quiet {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60;
+  text-decoration: none;
+}
+
+.site-button-primary {
+  color: #ffffff;
+  background-color: var(--site-action);
+  box-shadow: 0 2px 5px rgba(35, 55, 43, 0.12);
+}
+
+.site-button-primary:hover:not(:disabled) {
+  background-color: var(--site-action-hover);
+}
+
+.site-button-secondary {
+  color: #34483a;
+  border: 1px solid var(--site-action-border);
+  background-color: #ffffff;
+}
+
+.site-button-secondary:hover:not(:disabled) {
+  background-color: var(--site-action-soft);
+  border-color: #9caf9f;
+}
+
+.site-button-quiet {
+  color: #43584b;
+  background-color: transparent;
+}
+
+.site-button-quiet:hover:not(:disabled) {
+  background-color: var(--site-action-soft);
+}
+
+.site-button-inverse {
+  color: #34483a;
+  background-color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+}
+
+.site-button-inverse:hover:not(:disabled) {
+  background-color: var(--site-action-soft);
+}
+
+.site-button-primary:focus-visible,
+.site-button-secondary:focus-visible,
+.site-button-quiet:focus-visible,
+.site-button-inverse:focus-visible {
+  outline: 3px solid #a9bfaf;
+  outline-offset: 2px;
 }
 
 .toast-fade {
