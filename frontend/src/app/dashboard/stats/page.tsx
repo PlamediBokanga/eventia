@@ -253,20 +253,23 @@ export default function DashboardStatsPage() {
               </div>
             </section>
 
-            <section className="grid gap-5 lg:grid-cols-2">
-              <div className="space-y-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Tables</p>
-                  <h3 className="mt-2 text-2xl font-semibold text-slate-900">Occupation par table</h3>
+            <section className="grid items-start gap-5 lg:grid-cols-2">
+              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                <div className="mb-4 flex items-end justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Tables</p>
+                    <h3 className="mt-1 text-xl font-semibold text-slate-900">Occupation par table</h3>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{stats.tables.length} tables</span>
                 </div>
                 {stats.tables.length === 0 ? (
                   <p className="text-sm text-slate-600">Aucune table.</p>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="grid gap-2.5 xl:grid-cols-2">
                     {stats.tables.map(table => {
                       const occupancy = table.capacity > 0 ? pct(table.guestCount, table.capacity) : null;
                       return (
-                        <div key={table.id} className="rounded-[20px] border border-slate-200/80 bg-slate-50 px-4 py-4">
+                        <div key={table.id} className="rounded-2xl border border-slate-200/80 bg-slate-50 px-3.5 py-3">
                           <div className="flex items-center justify-between gap-3">
                             <div>
                               <p className="font-semibold text-slate-900">{table.label}</p>
@@ -293,16 +296,16 @@ export default function DashboardStatsPage() {
                   <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Activité</p>
                   <h3 className="mt-2 text-2xl font-semibold text-slate-900">Messages et souvenirs</h3>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid grid-cols-2 gap-2.5">
                   {[
                     { label: "Messages chat", value: stats.activity.messages },
                     { label: "Livre d'or", value: stats.activity.guestbookMessages },
                     { label: "Photos partagées", value: stats.activity.photos },
                     { label: "Vidéos", value: stats.activity.videos }
                   ].map(item => (
-                    <div key={item.label} className="rounded-[20px] border border-slate-200/80 bg-slate-50 px-4 py-4">
+                    <div key={item.label} className="rounded-2xl border border-slate-200/80 bg-slate-50 px-3.5 py-3">
                       <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">{item.label}</p>
-                      <p className="mt-2 text-2xl font-semibold text-slate-900">{item.value}</p>
+                      <p className="mt-1.5 text-xl font-semibold tabular-nums text-slate-900">{item.value}</p>
                     </div>
                   ))}
                 </div>
@@ -321,12 +324,12 @@ export default function DashboardStatsPage() {
                   <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Revenus</p>
                   <h3 className="mt-2 text-2xl font-semibold text-slate-900">Monétisation</h3>
                 </div>
-                <div className="grid gap-3">
-                  <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 px-4 py-4">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-slate-200/80 bg-slate-50 px-4 py-3">
                     <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Total payé</p>
                     <p className="mt-2 text-3xl font-semibold text-slate-900">{formatCurrency(stats.revenue.amount)}</p>
                   </div>
-                  <div className="rounded-[20px] border border-slate-200/80 bg-slate-50 px-4 py-4">
+                  <div className="rounded-2xl border border-slate-200/80 bg-slate-50 px-4 py-3">
                     <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Plan utilisé</p>
                     <p className="mt-2 text-2xl font-semibold text-slate-900">{stats.revenue.plan}</p>
                   </div>
@@ -338,7 +341,7 @@ export default function DashboardStatsPage() {
                   <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Vue globale</p>
                   <h3 className="mt-2 text-2xl font-semibold text-slate-900">Lecture rapide</h3>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                   {[
                     { label: "Confirmés", value: stats.guests.confirmed },
                     { label: "En attente de réponse", value: stats.guests.pending },
@@ -346,9 +349,9 @@ export default function DashboardStatsPage() {
                     { label: "Invitations envoyées", value: stats.invitations.sent },
                     { label: "Entrées enregistrées", value: stats.qr.scanned }
                   ].map(item => (
-                    <div key={item.label} className="rounded-[18px] border border-slate-200/80 bg-slate-50 px-4 py-4">
+                    <div key={item.label} className="flex items-center justify-between gap-3 border-b border-slate-200/80 px-1 py-2.5 last:border-b-0">
                       <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">{item.label}</p>
-                      <p className="mt-2 text-2xl font-semibold text-slate-900">{item.value}</p>
+                      <p className="shrink-0 text-xl font-semibold tabular-nums text-slate-900">{item.value}</p>
                     </div>
                   ))}
                 </div>
