@@ -256,6 +256,16 @@ a {
     linear-gradient(180deg, #fbfcfa 0%, #f3f6f3 54%, #f8f8f5 100%);
 }
 
+.invite-steps-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.invite-steps-scroll::-webkit-scrollbar {
+  display: none;
+}
+
 .guest-portal main {
   background: transparent !important;
 }
