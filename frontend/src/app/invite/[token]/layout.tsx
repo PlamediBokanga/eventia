@@ -4,5 +4,5 @@ export const metadata = {
 };
 
 export default function InviteTokenLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return <div className="guest-portal">{children}</div>;
 }

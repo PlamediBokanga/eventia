@@ -245,6 +245,67 @@ a {
   animation: page-enter 0.22s ease-out;
 }
 
+.guest-portal {
+  --guest-action: #526b5c;
+  --guest-action-hover: #43584b;
+  --guest-action-soft: #edf2ee;
+  min-height: 100vh;
+  color: #1f2933;
+  background-color: #f7f8f5;
+  background-image: radial-gradient(ellipse at 12% 0%, rgba(82, 107, 92, 0.09), transparent 34%),
+    linear-gradient(180deg, #fbfcfa 0%, #f3f6f3 54%, #f8f8f5 100%);
+}
+
+.guest-portal main {
+  background: transparent !important;
+}
+
+.guest-portal :is(button, a):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--guest-action) 42%, white);
+  outline-offset: 2px;
+}
+
+.guest-portal [class~="bg-slate-950"],
+.guest-portal [class~="bg-slate-900"] {
+  border-color: var(--guest-action);
+  background-color: var(--guest-action) !important;
+}
+
+.guest-portal :is(button, a)[class~="bg-slate-950"]:hover,
+.guest-portal :is(button, a)[class~="bg-slate-900"]:hover {
+  background-color: var(--guest-action-hover) !important;
+}
+
+.guest-portal .invite-skin :is(button, a).btn-primary {
+  background-color: var(--guest-action) !important;
+}
+
+.guest-portal .invite-skin :is(button, a).btn-primary:hover {
+  background-color: var(--guest-action-hover) !important;
+}
+
+.guest-portal .invite-skin :is(button, a).btn-ghost {
+  border-color: color-mix(in srgb, var(--guest-action) 28%, white);
+  color: var(--guest-action);
+}
+
+.guest-portal :is(input, select, textarea):focus-visible {
+  border-color: var(--guest-action);
+  outline: 3px solid color-mix(in srgb, var(--guest-action) 20%, transparent);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guest-portal *,
+  .guest-portal *::before,
+  .guest-portal *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 .invite-skin {
   font-family: var(--invite-font);
 }

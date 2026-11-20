@@ -14,36 +14,35 @@ export function InviteSteps({ token, current }: { token: string; current: Step }
   const activeIndex = Math.max(0, steps.findIndex(step => step.key === current));
 
   return (
-    <div className="sticky top-2 z-30 -mx-1 overflow-x-auto px-1 pb-1 text-[11px]">
-      <div className="mb-2 flex items-center justify-between px-1 text-[10px] font-semibold uppercase tracking-[0.28em] text-slate-500">
-        <span>Parcours invite</span>
-        <span>{activeIndex + 1}/{steps.length}</span>
+    <nav aria-label="Navigation de votre invitation" className="sticky top-0 z-30 -mx-3 px-3 pb-2 pt-2 sm:top-2 sm:mx-0 sm:px-0">
+      <div className="mb-1.5 flex items-center justify-between px-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600">
+        <span>Votre espace invitation</span>
+        <span>Étape {activeIndex + 1} sur {steps.length}</span>
       </div>
-      <div className="rounded-[24px] border border-white/60 bg-white/78 p-2 shadow-lg shadow-slate-200/40 backdrop-blur-md">
-        <div className="grid min-w-max grid-flow-col grid-cols-5 gap-2">
-          {steps.map((step, index) => {
+      <div className="rounded-2xl border border-white/80 bg-white/90 p-1.5 shadow-md shadow-[#526b5c]/10 backdrop-blur-xl sm:rounded-3xl sm:p-2">
+        <div className="flex min-w-max gap-1.5 overflow-x-auto sm:grid sm:min-w-0 sm:grid-cols-5 sm:gap-2">
+          {steps.map(step => {
             const active = step.key === current;
-            const done = index < activeIndex;
             return (
               <Link
                 key={step.key}
                 href={step.href}
                 aria-current={active ? "page" : undefined}
-                className={`rounded-[18px] px-3 py-2 text-center transition ${
+                className={`flex min-h-11 min-w-[104px] items-center justify-center gap-2 rounded-xl px-3 py-2 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#526b5c] focus-visible:ring-offset-2 sm:min-w-0 sm:rounded-2xl sm:px-2 ${
                   active
-                    ? "bg-slate-950 text-white font-medium shadow-lg shadow-slate-950/15 ring-1 ring-slate-950/10"
-                    : done
-                      ? "border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
-                      : "bg-white/95 text-slate-600 border border-slate-200 hover:bg-slate-50"
+                    ? "bg-[#526b5c] text-white font-semibold shadow-sm shadow-[#526b5c]/20"
+                    : "border border-slate-200/80 bg-white text-slate-700 hover:border-[#9aafa0] hover:bg-[#f3f6f3]"
                 }`}
               >
-                <div className="text-[10px] uppercase tracking-[0.18em] opacity-70">{step.short}</div>
-                <div className="mt-1 text-[11px] font-semibold">{step.label}</div>
+                <span aria-hidden="true" className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[9px] font-bold ${active ? "bg-white/15 text-white" : "bg-[#edf2ee] text-[#526b5c]"}`}>
+                  {step.short}
+                </span>
+                <span className="text-[11px] font-semibold leading-tight">{step.label}</span>
               </Link>
             );
           })}
         </div>
       </div>
-    </div>
+    </nav>
   );
 }
