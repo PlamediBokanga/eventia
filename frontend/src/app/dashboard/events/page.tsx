@@ -543,7 +543,8 @@ export default function DashboardEventsPage() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 id="events-list-title" className="text-base font-semibold text-slate-950">Vos événements</h2>
-              <p className="mt-1 text-xs text-slate-500">{loading ? "Chargement…" : `${events.length} au total`}</p>
+              <p className="mt-1 text-xs text-slate-500">{loading ? "Chargement…" : "Sélectionnez un événement à modifier"}</p>
+              {!loading ? <span className="mt-2 inline-flex rounded-full bg-[#edf2ee] px-2.5 py-1 text-xs font-semibold text-[#43584b]">{events.length} {events.length > 1 ? "événements" : "événement"}</span> : null}
             </div>
           </div>
           {!loading && events.length > 0 ? (
@@ -574,12 +575,25 @@ export default function DashboardEventsPage() {
             <div className="mt-3 max-h-[min(64vh,620px)] space-y-2 overflow-y-auto pr-1">
               {visibleEvents.length ? visibleEvents.map(event => {
                 const active = selectedEvent?.id === event.id;
-                return <button key={event.id} type="button" aria-pressed={active} onClick={() => { setSelectedEvent(event); setSelectedEventId(event.id); setActiveSection("details"); }} className={`w-full rounded-xl border p-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 ${active ? "border-slate-900 bg-slate-950 text-white shadow-sm" : "border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:bg-slate-50"}`}>
-                  <span className="block truncate text-sm font-semibold">{event.name}</span>
-                  <span className={`mt-1 block text-xs ${active ? "text-white/70" : "text-slate-500"}`}>{event.type || "Événement"} · {new Date(event.dateTime).toLocaleDateString("fr-FR")}</span>
-                  <span className={`mt-1 block truncate text-xs ${active ? "text-white/70" : "text-slate-500"}`}>{event.location}</span>
+                const eventDate = new Date(event.dateTime);
+                const validDate = Number.isFinite(eventDate.getTime());
+                return <button key={event.id} type="button" aria-pressed={active} onClick={() => { setSelectedEvent(event); setSelectedEventId(event.id); setActiveSection("details"); }} className={`group w-full rounded-2xl border p-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#526b5c] ${active ? "border-[#9caf9f] bg-[#f3f6f3] shadow-sm ring-1 ring-[#cbd8cf]" : "border-slate-200 bg-white hover:border-[#cbd8cf] hover:bg-[#f8faf8]"}`}>
+                  <span className="flex items-start gap-3">
+                    <span className={`grid h-12 w-12 shrink-0 content-center justify-items-center rounded-xl ${active ? "bg-[#526b5c] text-white" : "bg-[#edf2ee] text-[#43584b]"}`}>
+                      <span className="text-base font-semibold leading-none">{validDate ? eventDate.toLocaleDateString("fr-FR", { day: "2-digit", timeZone: "Africa/Kinshasa" }) : "—"}</span>
+                      <span className="mt-1 text-[9px] font-semibold uppercase tracking-wide">{validDate ? eventDate.toLocaleDateString("fr-FR", { month: "short", timeZone: "Africa/Kinshasa" }).replace(".", "") : "Date"}</span>
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="truncate text-sm font-semibold text-slate-900">{event.name}</span>
+                        {active ? <span className="shrink-0 rounded-full bg-[#e2ebe4] px-2 py-0.5 text-[10px] font-semibold text-[#43584b]">Sélectionné</span> : null}
+                      </span>
+                      <span className="mt-1 block text-xs text-slate-500">{event.type || "Événement"}{validDate ? ` · ${eventDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Kinshasa" })}` : ""}</span>
+                      <span className="mt-1 block truncate text-xs text-slate-600">{event.location || "Lieu à renseigner"}</span>
+                    </span>
+                  </span>
                 </button>;
-              }) : <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">Aucun résultat pour « {eventSearch} ».</p>}
+              }) : <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600"><p>Aucun résultat pour « {eventSearch} ».</p><button type="button" className="mt-2 font-semibold text-[#43584b] underline underline-offset-4" onClick={() => setEventSearch("")}>Effacer la recherche</button></div>}
             </div>
           )}
         </section>
