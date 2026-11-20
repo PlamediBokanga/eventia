@@ -15,34 +15,47 @@ export default function DashboardSettingsPage() {
   const [commissions, setCommissions] = useState<ReferralCommission[]>([]);
   const [commissionTotals, setCommissionTotals] = useState({ total: 0, paid: 0, pending: 0 });
   const [loading, setLoading] = useState(true);
+  const [settingsError, setSettingsError] = useState(false);
+  const [commissionError, setCommissionError] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
   const [activatingReferral, setActivatingReferral] = useState(false);
+  const [savedSnapshot, setSavedSnapshot] = useState("");
+  const [copiedReferral, setCopiedReferral] = useState(false);
   const { pushToast } = useToast();
+  const hasUnsavedChanges = Boolean(settings && savedSnapshot && JSON.stringify(settings) !== savedSnapshot);
 
   useEffect(() => {
     async function init() {
       try {
-        const [settingsRes, meRes, commissionsRes] = await Promise.all([
+        const [settingsResult, meResult, commissionsResult] = await Promise.allSettled([
           authFetch("/auth/settings"),
           authFetch("/auth/me"),
           authFetch("/auth/commissions")
         ]);
 
-        if (settingsRes.ok) {
-          const payload = (await settingsRes.json()) as { settings: OrganizerSettings };
+        if (settingsResult.status === "fulfilled" && settingsResult.value.ok) {
+          const payload = (await settingsResult.value.json()) as { settings: OrganizerSettings };
           setSettings(payload.settings);
+          setSavedSnapshot(JSON.stringify(payload.settings));
+        } else {
+          setSettingsError(true);
         }
 
-        if (meRes.ok) {
-          const payload = (await meRes.json()) as { organizer?: { referralCode?: string | null } };
+        if (meResult.status === "fulfilled" && meResult.value.ok) {
+          const payload = (await meResult.value.json()) as { organizer?: { referralCode?: string | null } };
           setReferralCode(payload.organizer?.referralCode ?? null);
         }
 
-        if (commissionsRes.ok) {
-          const payload = (await commissionsRes.json()) as { commissions: ReferralCommission[]; totals: { total: number; paid: number; pending: number } };
+        if (commissionsResult.status === "fulfilled" && commissionsResult.value.ok) {
+          const payload = (await commissionsResult.value.json()) as { commissions: ReferralCommission[]; totals: { total: number; paid: number; pending: number } };
           setCommissions(payload.commissions || []);
           setCommissionTotals(payload.totals || { total: 0, paid: 0, pending: 0 });
+        } else {
+          setCommissionError(true);
         }
+      } catch {
+        setSettingsError(true);
+        setCommissionError(true);
       } finally {
         setLoading(false);
       }
@@ -68,7 +81,10 @@ export default function DashboardSettingsPage() {
       }
       const payload = (await res.json()) as { settings: OrganizerSettings };
       setSettings(payload.settings);
+      setSavedSnapshot(JSON.stringify(payload.settings));
       pushToast("Préférences enregistrées.");
+    } catch {
+      pushToast("Serveur injoignable. Réessayez dans quelques instants.", "error");
     } finally {
       setSavingSettings(false);
     }
@@ -86,8 +102,21 @@ export default function DashboardSettingsPage() {
       const payload = (await res.json()) as { referralCode: string };
       setReferralCode(payload.referralCode);
       pushToast("Programme partenaire active.");
+    } catch {
+      pushToast("Serveur injoignable. Reessayez dans quelques instants.", "error");
     } finally {
       setActivatingReferral(false);
+    }
+  }
+
+  async function copyReferralCode() {
+    if (!referralCode) return;
+    try {
+      await navigator.clipboard.writeText(referralCode);
+      setCopiedReferral(true);
+      window.setTimeout(() => setCopiedReferral(false), 2000);
+    } catch {
+      pushToast("Impossible de copier le code sur cet appareil.", "error");
     }
   }
 
@@ -107,8 +136,11 @@ export default function DashboardSettingsPage() {
               </div>
               <p className="text-sm leading-6 text-slate-600">Suivez votre code de parrainage et les commissions associées à vos invitations.</p>
               {referralCode ? (
-                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
-                  Code: <span className="font-semibold text-slate-900">{referralCode}</span>
+                <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 sm:flex-row sm:items-center sm:justify-between">
+                  <span>Code partenaire : <span className="font-semibold text-slate-900">{referralCode}</span></span>
+                  <Button type="button" variant="ghost" className="min-h-10" onClick={() => void copyReferralCode()}>
+                    {copiedReferral ? "Copié" : "Copier le code"}
+                  </Button>
                 </div>
               ) : (
                 <Button type="button" className="w-full rounded-2xl px-5 py-3 text-sm" onClick={activateReferral} disabled={activatingReferral}>
@@ -134,7 +166,10 @@ export default function DashboardSettingsPage() {
 
           <section className="order-1 space-y-5 rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm md:p-6 lg:order-1">
             {!settings ? (
-              <EmptyState title={loading ? "Chargement des préférences" : "Préférences indisponibles"} description={loading ? "Vos réglages sont en cours de chargement." : "Impossible de charger vos réglages pour le moment."} />
+              <div className="space-y-4">
+                <EmptyState title={loading ? "Chargement des préférences" : "Préférences indisponibles"} description={loading ? "Vos réglages sont en cours de chargement." : "Impossible de charger vos réglages pour le moment."} />
+                {settingsError && !loading ? <Button type="button" variant="ghost" className="min-h-11" onClick={() => window.location.reload()}>Réessayer</Button> : null}
+              </div>
             ) : (
               <>
                 <div className="space-y-2">
@@ -180,16 +215,25 @@ export default function DashboardSettingsPage() {
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Langue</label>
-                      <Input value={settings?.language ?? ""} onChange={e => setSettings(prev => (prev ? { ...prev, language: e.target.value } : prev))} placeholder="fr" />
+                      <label htmlFor="settings-language" className="text-sm font-medium text-slate-700">Langue de l’espace</label>
+                      <select id="settings-language" className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" value={settings.language} onChange={e => setSettings(prev => prev ? { ...prev, language: e.target.value } : prev)}>
+                        {!['fr', 'en'].includes(settings.language) ? <option value={settings.language}>{settings.language} (actuelle)</option> : null}
+                        <option value="fr">Français</option><option value="en">English</option>
+                      </select>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Fuseau horaire</label>
-                      <Input value={settings?.timezone ?? ""} onChange={e => setSettings(prev => (prev ? { ...prev, timezone: e.target.value } : prev))} placeholder="Africa/Kinshasa" />
+                      <label htmlFor="settings-timezone" className="text-sm font-medium text-slate-700">Fuseau horaire</label>
+                      <select id="settings-timezone" className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" value={settings.timezone} onChange={e => setSettings(prev => prev ? { ...prev, timezone: e.target.value } : prev)}>
+                        {!['Africa/Kinshasa', 'Africa/Lubumbashi', 'UTC', 'Europe/Paris'].includes(settings.timezone) ? <option value={settings.timezone}>{settings.timezone} (actuel)</option> : null}
+                        <option value="Africa/Kinshasa">Kinshasa (UTC+1)</option><option value="Africa/Lubumbashi">Lubumbashi (UTC+2)</option><option value="UTC">UTC</option><option value="Europe/Paris">Paris</option>
+                      </select>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Format date</label>
-                      <Input value={settings?.dateFormat ?? ""} onChange={e => setSettings(prev => (prev ? { ...prev, dateFormat: e.target.value } : prev))} placeholder="DD/MM/YYYY" />
+                      <label htmlFor="settings-date-format" className="text-sm font-medium text-slate-700">Format de date</label>
+                      <select id="settings-date-format" className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" value={settings.dateFormat} onChange={e => setSettings(prev => prev ? { ...prev, dateFormat: e.target.value } : prev)}>
+                        {!['DD/MM/YYYY', 'YYYY-MM-DD', 'MM/DD/YYYY'].includes(settings.dateFormat) ? <option value={settings.dateFormat}>{settings.dateFormat} (actuel)</option> : null}
+                        <option value="DD/MM/YYYY">JJ/MM/AAAA</option><option value="YYYY-MM-DD">AAAA-MM-JJ</option><option value="MM/DD/YYYY">MM/JJ/AAAA</option>
+                      </select>
                     </div>
                     </div>
                   </section>
@@ -202,11 +246,14 @@ export default function DashboardSettingsPage() {
                     <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-700">Heure par defaut</label>
-                      <Input value={settings?.defaultEventTime ?? ""} onChange={e => setSettings(prev => (prev ? { ...prev, defaultEventTime: e.target.value } : prev))} placeholder="18:00" />
+                      <Input type="time" value={settings.defaultEventTime} onChange={e => setSettings(prev => prev ? { ...prev, defaultEventTime: e.target.value } : prev)} />
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-700">Type d’événement</label>
-                      <Input value={settings?.defaultEventType ?? ""} onChange={e => setSettings(prev => (prev ? { ...prev, defaultEventType: e.target.value } : prev))} placeholder="mariage" />
+                      <select className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900" value={settings.defaultEventType} onChange={e => setSettings(prev => prev ? { ...prev, defaultEventType: e.target.value } : prev)} aria-label="Type d’événement par défaut">
+                        {!['mariage', 'anniversaire', 'gala', 'corporate'].includes(settings.defaultEventType) ? <option value={settings.defaultEventType}>{settings.defaultEventType} (actuel)</option> : null}
+                        <option value="mariage">Mariage</option><option value="anniversaire">Anniversaire</option><option value="gala">Gala</option><option value="corporate">Événement professionnel</option>
+                      </select>
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-700">QR code actif</label>
@@ -219,8 +266,8 @@ export default function DashboardSettingsPage() {
                   </section>
 
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="text-sm text-slate-500">Enregistrement manuel : vos modifications restent en attente jusqu’à validation.</p>
-                    <Button type="submit" className="rounded-2xl px-5 py-3 text-sm" disabled={savingSettings || !settings}>
+                    <p className="text-sm text-slate-500">{hasUnsavedChanges ? "Modifications en attente d’enregistrement." : "Toutes les préférences sont à jour."}</p>
+                    <Button type="submit" className="min-h-11 rounded-xl px-5 py-3 text-sm" disabled={savingSettings || loading || !settings || !hasUnsavedChanges}>
                       {savingSettings ? "Enregistrement…" : "Enregistrer les préférences"}
                     </Button>
                   </div>
@@ -230,7 +277,7 @@ export default function DashboardSettingsPage() {
           </section>
         </div>
 
-        <section className="rounded-[32px] border border-white/70 bg-white/85 p-5 shadow-2xl shadow-slate-200/60 backdrop-blur-xl md:p-6">
+          <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">Performance partenaire</p>
@@ -239,7 +286,11 @@ export default function DashboardSettingsPage() {
             <p className="text-sm text-slate-500">{commissions.length} mouvement(s) enregistré(s)</p>
           </div>
           <div className="mt-4 overflow-hidden rounded-[24px] border border-slate-200/80 bg-slate-50">
-            {commissions.length === 0 ? (
+            {loading ? (
+              <div className="m-4 h-20 animate-pulse rounded-2xl bg-slate-100" role="status">Chargement des commissions…</div>
+            ) : commissionError ? (
+              <p className="m-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-900" role="alert">Impossible de charger les commissions pour le moment.</p>
+            ) : commissions.length === 0 ? (
               <EmptyState title="Aucune commission" description="Invitez un organisateur pour commencer." />
             ) : (
               <div className="space-y-2 p-4 text-sm">

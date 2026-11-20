@@ -22,9 +22,12 @@ function initials(value?: string | null) {
 export default function DashboardProfilePage() {
   const [profile, setProfile] = useState<OrganizerProfile | null>(null);
   const [stats, setStats] = useState<OrganizerStats | null>(null);
+  const [statsError, setStatsError] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [savedSnapshot, setSavedSnapshot] = useState("");
   const { pushToast } = useToast();
 
   const [name, setName] = useState("");
@@ -41,14 +44,23 @@ export default function DashboardProfilePage() {
   const [bio, setBio] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
 
-  const displayAvatar = normalizePublicUrl(profile?.avatarUrl ?? avatarUrl);
+  const formValues = { name, phone, avatarUrl, companyName, jobTitle, addressLine1, addressLine2, city, postalCode, country, website, bio, dateOfBirth };
+  const formSnapshot = JSON.stringify(formValues);
+  const isDirty = Boolean(savedSnapshot) && savedSnapshot !== formSnapshot;
+  const displayAvatar = normalizePublicUrl(avatarUrl || profile?.avatarUrl);
 
   useEffect(() => {
+    let active = true;
     async function load() {
       try {
-        const [profileRes, statsRes] = await Promise.all([authFetch("/auth/me"), authFetch("/auth/me/stats")]);
-        if (profileRes.ok) {
-          const payload = (await profileRes.json()) as { organizer: OrganizerProfile };
+        const [profileResult, statsResult] = await Promise.allSettled([
+          authFetch("/auth/me"),
+          authFetch("/auth/me/stats")
+        ]);
+        if (profileResult.status !== "fulfilled" || !profileResult.value.ok) throw new Error("profile_load_failed");
+        const profilePayload = (await profileResult.value.json()) as { organizer: OrganizerProfile };
+        if (active) {
+          const payload = profilePayload;
           const organizer = payload.organizer;
           setProfile(organizer);
           setName(organizer.name ?? "");
@@ -64,16 +76,32 @@ export default function DashboardProfilePage() {
           setWebsite(organizer.website ?? "");
           setBio(organizer.bio ?? "");
           setDateOfBirth(organizer.dateOfBirth ? organizer.dateOfBirth.slice(0, 10) : "");
+          setSavedSnapshot(JSON.stringify({
+            name: organizer.name ?? "", phone: organizer.phone ?? "", avatarUrl: organizer.avatarUrl ?? "",
+            companyName: organizer.companyName ?? "", jobTitle: organizer.jobTitle ?? "", addressLine1: organizer.addressLine1 ?? "",
+            addressLine2: organizer.addressLine2 ?? "", city: organizer.city ?? "", postalCode: organizer.postalCode ?? "",
+            country: organizer.country ?? "", website: organizer.website ?? "", bio: organizer.bio ?? "",
+            dateOfBirth: organizer.dateOfBirth ? organizer.dateOfBirth.slice(0, 10) : ""
+          }));
         }
-        if (statsRes.ok) {
-          const payload = (await statsRes.json()) as { stats: OrganizerStats };
-          setStats(payload.stats);
+        if (statsResult.status === "fulfilled" && statsResult.value.ok && active) {
+          try {
+            const payload = (await statsResult.value.json()) as { stats: OrganizerStats };
+            if (active) setStats(payload.stats);
+          } catch {
+            if (active) setStatsError(true);
+          }
+        } else if (active) {
+          setStatsError(true);
         }
+      } catch {
+        if (active) setLoadError(true);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     }
     void load();
+    return () => { active = false; };
   }, []);
 
   async function handleSave(e: React.FormEvent) {
@@ -109,13 +137,24 @@ export default function DashboardProfilePage() {
         setProfile(payload.organizer);
         setAvatarUrl(payload.organizer.avatarUrl ?? "");
       }
+      setSavedSnapshot(formSnapshot);
       pushToast("Profil mis a jour avec succes.");
+    } catch {
+      pushToast("Serveur injoignable. Verifiez votre connexion puis reessayez.", "error");
     } finally {
       setSaving(false);
     }
   }
 
   async function handleAvatarUpload(file: File) {
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      pushToast("Formats autorisés : JPG, PNG ou WEBP.", "error");
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      pushToast("La photo doit faire 4 Mo maximum.", "error");
+      return;
+    }
     setUploadingAvatar(true);
     try {
       const dataUrl = await new Promise<string>((resolve, reject) => {
@@ -171,11 +210,18 @@ export default function DashboardProfilePage() {
 
         <AccountSectionTabs active="profile" />
 
+        {loadError ? (
+          <div className="flex flex-col gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 sm:flex-row sm:items-center sm:justify-between" role="alert">
+            <p className="text-sm font-medium text-rose-900">Impossible de charger votre profil. Actualisez la page pour réessayer.</p>
+            <Button type="button" variant="ghost" className="min-h-11" onClick={() => window.location.reload()}>Réessayer</Button>
+          </div>
+        ) : null}
+
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Activite du compte">
           {summaryCards.map(card => (
             <div key={card.label} className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
               <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">{card.label}</p>
-              <p className="mt-2 text-2xl font-semibold tabular-nums text-slate-900">{loading ? "—" : card.value}</p>
+              <p className="mt-2 text-2xl font-semibold tabular-nums text-slate-900">{loading ? "—" : statsError ? "Indisponible" : card.value}</p>
             </div>
           ))}
         </section>
@@ -203,36 +249,39 @@ export default function DashboardProfilePage() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
+              <h3 className="text-sm font-semibold text-slate-900 md:col-span-2">Informations personnelles</h3>
               <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-medium text-slate-700">Photo de profil / URL</label>
+                  <label htmlFor="profile-avatar-url" className="text-sm font-medium text-slate-700">Photo de profil</label>
                 <div className="flex flex-col gap-3 md:flex-row">
-                  <Input value={avatarUrl} onChange={e => setAvatarUrl(e.target.value)} placeholder="https://..." className="flex-1" />
+                  <Input id="profile-avatar-url" value={avatarUrl} onChange={e => setAvatarUrl(e.target.value)} placeholder="Coller l’URL d’une image" className="min-h-11 flex-1" />
                   <label className="inline-flex cursor-pointer items-center justify-center rounded-2xl border border-slate-200 bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5">
-                    <input type="file" accept="image/*" className="hidden" onChange={e => { const file = e.target.files?.[0]; if (file) void handleAvatarUpload(file); e.currentTarget.value = ""; }} />
-                    {uploadingAvatar ? "Upload..." : "Importer"}
+                    <input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" disabled={uploadingAvatar} onChange={e => { const file = e.target.files?.[0]; if (file) void handleAvatarUpload(file); e.currentTarget.value = ""; }} />
+                    {uploadingAvatar ? "Import en cours…" : "Importer une photo"}
                   </label>
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Nom complet</label>
-                <Input value={name} onChange={e => setName(e.target.value)} placeholder="Plamedi Bokanga" />
+                <label htmlFor="profile-name" className="text-sm font-medium text-slate-700">Nom complet</label>
+                <Input id="profile-name" autoComplete="name" value={name} onChange={e => setName(e.target.value)} placeholder="Votre nom complet" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Telephone</label>
-                <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+243 ..." />
+                <label htmlFor="profile-phone" className="text-sm font-medium text-slate-700">Téléphone</label>
+                <Input id="profile-phone" autoComplete="tel" type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+243 …" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Entreprise / organisation</label>
-                <Input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="EVENTIA" />
+                <label htmlFor="profile-company" className="text-sm font-medium text-slate-700">Entreprise ou organisation</label>
+                <Input id="profile-company" autoComplete="organization" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Nom de l’organisation" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Titre / role</label>
-                <Input value={jobTitle} onChange={e => setJobTitle(e.target.value)} placeholder="Organisateur principal" />
+                <label htmlFor="profile-job" className="text-sm font-medium text-slate-700">Fonction</label>
+                <Input id="profile-job" value={jobTitle} onChange={e => setJobTitle(e.target.value)} placeholder="Organisateur principal" />
               </div>
+              <h3 className="border-t border-slate-200 pt-4 text-sm font-semibold text-slate-900 md:col-span-2">Présentation</h3>
               <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-medium text-slate-700">Biographie</label>
                 <textarea value={bio} onChange={e => setBio(e.target.value)} rows={4} className="w-full rounded-[20px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100" placeholder="Une presentation courte et professionnelle." />
               </div>
+              <h3 className="border-t border-slate-200 pt-4 text-sm font-semibold text-slate-900 md:col-span-2">Coordonnées professionnelles</h3>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">Adresse ligne 1</label>
                 <Input value={addressLine1} onChange={e => setAddressLine1(e.target.value)} placeholder="Ngaliema, Route de Matadi" />
@@ -264,9 +313,9 @@ export default function DashboardProfilePage() {
             </div>
 
             <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-slate-500">Vos informations sont utilisees pour personnaliser les invitations et les espaces de l'organisateur.</p>
-              <Button type="submit" className="rounded-2xl px-5 py-3 text-sm" disabled={saving || loading}>
-                {saving ? "Enregistrement..." : "Enregistrer le profil"}
+              <p className="text-sm text-slate-500">{isDirty ? "Modifications non enregistrées." : "Vos informations sont à jour."}</p>
+              <Button type="submit" className="min-h-11 rounded-xl px-5 py-3 text-sm" disabled={saving || loading || loadError || !profile || !isDirty}>
+                {saving ? "Enregistrement…" : "Enregistrer le profil"}
               </Button>
             </div>
           </form>
