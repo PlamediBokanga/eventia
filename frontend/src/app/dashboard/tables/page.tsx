@@ -178,10 +178,11 @@ export default function DashboardTablesPage() {
     return [...filtered].sort((a, b) => a.label.localeCompare(b.label));
   }, [tables, search, sortBy]);
 
-  const totalGuests = tableOverview.reduce((sum, t) => sum + t.guests.length, 0);
-  const totalCapacity = tableOverview.reduce((sum, t) => sum + (t.capacity > 0 ? t.capacity : 0), 0);
-  const hasUnlimited = tableOverview.some(t => t.capacity === 0);
+  const totalGuests = tables.reduce((sum, t) => sum + t.guests.length, 0);
+  const totalCapacity = tables.reduce((sum, t) => sum + (t.capacity > 0 ? t.capacity : 0), 0);
+  const hasUnlimited = tables.some(t => t.capacity === 0);
   const remainingSeats = hasUnlimited ? null : Math.max(totalCapacity - totalGuests, 0);
+  const occupancyRate = totalCapacity > 0 ? Math.min(100, Math.round((totalGuests / totalCapacity) * 100)) : 0;
   const pageCount = Math.max(1, Math.ceil(tableOverview.length / pageSize));
   const currentPage = Math.min(page, pageCount);
   const start = (currentPage - 1) * pageSize;
@@ -455,24 +456,28 @@ export default function DashboardTablesPage() {
   return (
     <main className="space-y-6 pb-8 font-sans">
       <Header title="Plan de salle" description="Organisez les tables ou les zones, suivez leur capacité et répartissez les invités." />
-      <section className="card p-4 space-y-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <section className="card space-y-5 p-4 sm:p-6">
+        <div className="flex flex-col gap-4 border-b border-primary/10 pb-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <h2 className="title-4">Plan de salle et occupation</h2>
-            <p className="text-small text-textSecondary">Organisez les tables, les zones et l'occupation en temps r?el.</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">Organisation de la salle</p>
+            <h2 className="mt-1 title-4">Tables et zones</h2>
+            <p className="mt-1 text-small text-textSecondary">Suivez les places, répartissez les invités et préparez votre plan de salle.</p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid w-full gap-3 sm:grid-cols-2 xl:max-w-2xl">
             {loading ? (
-              <div className="min-w-[220px] rounded-full border border-primary/10 bg-background/70 px-3 py-2 text-[11px] text-text/60">
+              <div className="rounded-xl border border-primary/10 bg-background/70 px-3 py-2.5 text-xs text-text/60">
                 Chargement des evenements...
               </div>
             ) : events.length === 0 ? (
-              <div className="min-w-[220px] rounded-full border border-primary/10 bg-background/70 px-3 py-2 text-[11px] text-text/60">
+              <div className="rounded-xl border border-primary/10 bg-background/70 px-3 py-2.5 text-xs text-text/60">
                 Aucun evenement disponible
               </div>
             ) : (
-              <select
-                className="min-w-[220px] rounded-full border border-primary/20 bg-background/80 px-4 py-2 text-xs"
+              <label className="space-y-1.5 text-xs font-medium text-text/70">
+                <span>Evenement</span>
+                <select
+                aria-label="Choisir un evenement"
+                className="w-full rounded-xl border border-primary/20 bg-background px-3 py-2.5 text-sm text-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
                 value={selectedEvent?.id ?? ""}
                 onChange={e => {
                   const value = Number(e.target.value);
@@ -487,11 +492,15 @@ export default function DashboardTablesPage() {
                     {event.name}
                   </option>
                 ))}
-              </select>
+                </select>
+              </label>
             )}
-            <div className="relative">
+            <div className="relative space-y-1.5 text-xs font-medium text-text/70">
+              <label htmlFor="active-table-layout">Plan actif</label>
               <select
-                className="min-w-[180px] rounded-full border border-primary/20 bg-background/80 px-4 py-2 text-xs"
+                id="active-table-layout"
+                aria-label="Choisir le plan de salle"
+                className="w-full rounded-xl border border-primary/20 bg-background px-3 py-2.5 pr-10 text-sm text-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
                 value={activeLayoutId ?? ""}
                 onChange={e => {
                   const value = Number(e.target.value);
@@ -501,7 +510,7 @@ export default function DashboardTablesPage() {
                 disabled={layouts.length === 0}
               >
                 {layouts.length === 0 ? (
-                  <option value="">Plan par d?faut</option>
+                  <option value="">Plan par defaut</option>
                 ) : (
                   layouts.map(layout => (
                     <option key={layout.id} value={layout.id}>
@@ -512,7 +521,9 @@ export default function DashboardTablesPage() {
               </select>
               <button
                 type="button"
-                className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full border border-primary/10 bg-background/80 px-2 py-1 text-[10px]"
+                aria-label="Actions du plan"
+                aria-expanded={layoutMenuOpen}
+                className="absolute right-1 top-7 rounded-lg px-2 py-1.5 text-xs text-text/60 hover:bg-primary/5 disabled:opacity-40"
                 onClick={() => setLayoutMenuOpen(prev => !prev)}
                 disabled={layouts.length === 0}
               >
@@ -559,32 +570,31 @@ export default function DashboardTablesPage() {
                 </div>
               ) : null}
             </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               type="button"
               variant="ghost"
-              className="px-3 py-2 text-xs"
+              className="px-4 py-2.5 text-xs"
               onClick={() => setCreateLayoutOpen(true)}
             >
               Cr?er un plan
             </Button>
-            <Button type="button" className="px-4 py-2 text-xs" onClick={() => setCreateOpen(true)}>
-              + Ajouter une table/zone
+            <Button type="button" className="px-4 py-2.5 text-xs" onClick={() => setCreateOpen(true)}>
+              Ajouter une table ou zone
             </Button>
             <Button
               type="button"
               variant="ghost"
-              className="px-3 py-2 text-xs"
+              className="px-4 py-2.5 text-xs"
               onClick={autoAssignGuests}
               disabled={autoAssigning}
             >
-              {autoAssigning ? "R?partition..." : "Repartition automatique"}
+              {autoAssigning ? "Repartition..." : "Repartition automatique"}
             </Button>
           </div>
+          {selectedEvent ? <span className="w-fit rounded-full bg-primary/5 px-3 py-1.5 text-xs font-medium text-text/70">{seatingLabel(selectedEvent.seatingMode ?? "TABLE")}</span> : null}
         </div>
-
-        {selectedEvent ? (
-          <p className="text-[11px] text-text/60">{seatingLabel(selectedEvent.seatingMode ?? "TABLE")}</p>
-        ) : null}
 
         {(() => {
           const mode = selectedEvent?.seatingMode ?? "TABLE";
@@ -601,50 +611,67 @@ export default function DashboardTablesPage() {
           }
           return (
             <div className="space-y-4">
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-2xl border border-primary/10 bg-background/70 p-3">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">Tables</p>
-                  <p className="mt-1 text-lg font-semibold">{tableOverview.length}</p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+                <div className="rounded-2xl border border-primary/10 bg-background/70 p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text/55">Tables / zones</p>
+                  <p className="mt-2 text-2xl font-semibold tabular-nums">{tables.length}</p>
                 </div>
-                <div className="rounded-2xl border border-primary/10 bg-background/70 p-3">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-text/60">Capacit? totale</p>
-                  <p className="mt-1 text-lg font-semibold">{hasUnlimited ? "Illimitee" : totalCapacity}</p>
+                <div className="rounded-2xl border border-primary/10 bg-background/70 p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text/55">Capacite configuree</p>
+                  <p className="mt-2 text-2xl font-semibold tabular-nums">{hasUnlimited ? "Illimitee" : totalCapacity}</p>
                 </div>
-                <div className="rounded-2xl border border-green-200 bg-green-50 p-3">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-green-700">Places occup?es</p>
-                  <p className="mt-1 text-lg font-semibold text-green-700">{totalGuests}</p>
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-800">Invites places</p>
+                  <p className="mt-2 text-2xl font-semibold tabular-nums text-emerald-900">{totalGuests}</p>
                 </div>
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-amber-700">Places restantes</p>
-                  <p className="mt-1 text-lg font-semibold text-amber-700">
-                    {remainingSeats === null ? "Illimitee" : remainingSeats}
-                  </p>
+                <div className="rounded-2xl border border-primary/10 bg-background/70 p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text/55">Occupation</p>
+                    <span className="text-xs font-semibold tabular-nums text-text/70">{hasUnlimited ? "--" : `${occupancyRate}%`}</span>
+                  </div>
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-primary/10" role="progressbar" aria-label="Taux d'occupation" aria-valuenow={hasUnlimited ? undefined : occupancyRate} aria-valuemin={0} aria-valuemax={100}>
+                    <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${hasUnlimited ? 0 : occupancyRate}%` }} />
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-800">Places disponibles</p>
+                  <p className="mt-2 text-2xl font-semibold tabular-nums text-amber-950">{remainingSeats === null ? "Illimitees" : remainingSeats}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-[1.4fr,1fr,auto] gap-2 text-xs">
+              <div className="grid grid-cols-1 gap-3 rounded-2xl border border-primary/10 bg-background/40 p-3 text-xs sm:grid-cols-2 xl:grid-cols-[minmax(220px,1fr),180px,auto] xl:items-end">
+                <label className="space-y-1.5 font-medium text-text/70">
+                  <span>Rechercher</span>
                 <Input
-                  placeholder="Rechercher une table..."
+                  placeholder="Nom de table, zone ou emplacement"
+                  aria-label="Rechercher une table, zone ou emplacement"
                   value={search}
                   onChange={e => {
                     setSearch(e.target.value);
                     setPage(1);
                   }}
                 />
+                </label>
+                <label className="space-y-1.5 font-medium text-text/70">
+                  <span>Ordre d'affichage</span>
                 <select
-                  className="rounded-xl border border-primary/20 bg-background/80 px-3 py-2"
+                  className="w-full rounded-xl border border-primary/20 bg-background px-3 py-2.5 text-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
                   value={sortBy}
                   onChange={e => {
                     setSortBy(e.target.value as "name" | "occupancy");
                     setPage(1);
                   }}
                 >
-                  <option value="name">Trier: Nom</option>
-                  <option value="occupancy">Trier: Occupation</option>
+                  <option value="name">Nom (A a Z)</option>
+                  <option value="occupancy">Occupation (plus remplie)</option>
                 </select>
-                <div className="flex flex-wrap items-center gap-2">
+                </label>
+                <div className="flex flex-wrap items-end justify-between gap-3 sm:col-span-2 xl:col-span-1 xl:justify-end">
+                  <label className="space-y-1.5 font-medium text-text/70">
+                    <span>Tables par page</span>
                   <select
-                    className="rounded-xl border border-primary/20 bg-background/80 px-3 py-2"
+                    aria-label="Nombre de tables par page"
+                    className="block rounded-xl border border-primary/20 bg-background px-3 py-2.5 text-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
                     value={pageSize}
                     onChange={e => {
                       setPageSize(Number(e.target.value));
@@ -656,11 +683,13 @@ export default function DashboardTablesPage() {
                     <option value={8}>8</option>
                     <option value={12}>12</option>
                   </select>
-                  <div className="flex items-center gap-1 rounded-full border border-primary/10 bg-background/70 px-1 py-1">
+                  </label>
+                  <div role="group" aria-label="Mode d'affichage" className="flex items-center gap-1 rounded-xl border border-primary/10 bg-background/70 p-1">
                     <button
                       type="button"
+                      aria-pressed={roomMode === "grid"}
                       className={`rounded-full px-3 py-1 text-[11px] ${
-                        roomMode === "grid" ? "bg-primary/10 text-text" : "text-text/60 hover:bg-primary/5"
+                        roomMode === "grid" ? "bg-primary text-white shadow-sm" : "text-text/65 hover:bg-primary/5"
                       }`}
                       onClick={() => setRoomMode("grid")}
                     >
@@ -668,8 +697,9 @@ export default function DashboardTablesPage() {
                     </button>
                     <button
                       type="button"
+                      aria-pressed={roomMode === "plan"}
                       className={`rounded-full px-3 py-1 text-[11px] ${
-                        roomMode === "plan" ? "bg-primary/10 text-text" : "text-text/60 hover:bg-primary/5"
+                        roomMode === "plan" ? "bg-primary text-white shadow-sm" : "text-text/65 hover:bg-primary/5"
                       }`}
                       onClick={() => setRoomMode("plan")}
                     >
@@ -683,9 +713,11 @@ export default function DashboardTablesPage() {
 
               {tableOverview.length === 0 ? (
                 <EmptyState
-                  title="Aucune table configuree"
+                  title={tables.length === 0 ? "Aucune table configuree" : "Aucun resultat"}
                   description={
-                    mode === "ZONE"
+                    tables.length > 0
+                      ? "Aucune table ou zone ne correspond a votre recherche. Modifiez le terme saisi."
+                      : mode === "ZONE"
                       ? "Ajoute ou configure des zones pour attribuer les invites."
                       : "Ajoute ou configure des tables dans ton evenement pour attribuer les invites."
                   }
@@ -698,15 +730,19 @@ export default function DashboardTablesPage() {
                         <div className="text-[11px] text-text/60">Plan de salle (glisser-deposer)</div>
                         <div className="flex flex-wrap items-center gap-2 text-[11px] text-text/60">
                           <span className="inline-flex items-center gap-1">
-                            <span className="h-2 w-2 rounded-full bg-green-500" />
-                            Pleine
+                            <span className="h-2 w-2 rounded-full bg-red-500" />
+                            Complete
                           </span>
                           <span className="inline-flex items-center gap-1">
                             <span className="h-2 w-2 rounded-full bg-amber-500" />
-                            Presque
+                            Presque complete
                           </span>
                           <span className="inline-flex items-center gap-1">
-                            <span className="h-2 w-2 rounded-full bg-red-500" />
+                            <span className="h-2 w-2 rounded-full bg-green-500" />
+                            Disponible
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <span className="h-2 w-2 rounded-full bg-slate-400" />
                             Vide
                           </span>
                           <button
@@ -726,11 +762,11 @@ export default function DashboardTablesPage() {
                           const occupancy = table.capacity > 0 ? table.guests.length / table.capacity : 0;
                           const indicator =
                             table.guests.length === 0
-                              ? "bg-red-500"
+                              ? "bg-slate-400"
                               : isUnlimited
                                 ? "bg-primary"
                                 : occupancy >= 1
-                                  ? "bg-green-500"
+                                  ? "bg-red-500"
                                   : occupancy >= 0.7
                                     ? "bg-amber-500"
                                     : "bg-green-500";
@@ -816,17 +852,17 @@ export default function DashboardTablesPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                       {pagedTables.map(table => {
                         const isUnlimited = table.capacity === 0;
                         const occupancy = table.capacity > 0 ? table.guests.length / table.capacity : 0;
                         const indicator =
                           table.guests.length === 0
-                            ? "bg-red-500"
+                            ? "bg-slate-400"
                             : isUnlimited
                               ? "bg-primary"
                               : occupancy >= 1
-                                ? "bg-green-500"
+                                ? "bg-red-500"
                                 : occupancy >= 0.7
                                   ? "bg-amber-500"
                                   : "bg-green-500";
@@ -834,7 +870,7 @@ export default function DashboardTablesPage() {
                           <button
                             key={table.id}
                             type="button"
-                            className={`text-left rounded-2xl border bg-white p-4 shadow-sm transition ${
+                            className={`group text-left rounded-2xl border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
                               dragOverTableId === table.id
                                 ? "border-accent ring-1 ring-accent/40"
                                 : "border-primary/10 hover:border-primary/30"
@@ -847,14 +883,26 @@ export default function DashboardTablesPage() {
                             onDragLeave={() => setDragOverTableId(null)}
                             onDrop={handleDrop(table.id)}
                           >
-                            <div className="flex items-center justify-between">
-                              <p className="font-semibold">{table.label}</p>
-                              <span className={`h-2 w-2 rounded-full ${indicator}`} />
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="truncate font-semibold text-text">{table.label}</p>
+                                <p className="mt-1 truncate text-xs text-text/55">{table.location || (mode === "ZONE" ? "Emplacement non precise" : "Aucun emplacement renseigne")}</p>
+                              </div>
+                              <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${indicator}`} aria-hidden="true" />
                             </div>
-                            <p className="text-small text-text/60">
-                              {table.guests.length} / {isUnlimited ? "Illimite" : table.capacity} places
-                            </p>
-                            <div className="mt-3 flex flex-wrap gap-1 text-[10px] text-text/70">
+                            <div className="mt-4 flex items-baseline justify-between gap-2">
+                              <p className="text-sm font-medium text-text">
+                                <span className="text-lg font-semibold tabular-nums">{table.guests.length}</span>
+                                <span className="text-text/55"> / {isUnlimited ? "Illimite" : table.capacity} places</span>
+                              </p>
+                              <span className="text-[10px] font-medium text-text/55">{isUnlimited ? "Capacite libre" : table.guests.length === 0 ? "Inoccupee" : occupancy >= 1 ? "Complete" : occupancy >= 0.7 ? "Presque complete" : "Disponible"}</span>
+                            </div>
+                            {!isUnlimited ? (
+                              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-primary/10" aria-hidden="true">
+                                <div className={`h-full rounded-full ${indicator}`} style={{ width: `${Math.min(100, Math.round(occupancy * 100))}%` }} />
+                              </div>
+                            ) : null}
+                            <div className="mt-3 flex min-h-6 flex-wrap gap-1 text-[10px] text-text/70">
                               {table.guests.slice(0, 6).map(guest => (
                                 <div
                                   key={guest.id}
@@ -869,7 +917,9 @@ export default function DashboardTablesPage() {
                               {table.guests.length > 6 ? (
                                 <span className="text-[10px] text-text/50">+ {table.guests.length - 6}</span>
                               ) : null}
+                              {table.guests.length === 0 ? <span className="text-[10px] text-text/45">Glissez un invite ici pour l'affecter</span> : null}
                             </div>
+                            <span className="mt-3 block border-t border-primary/10 pt-2 text-[11px] font-medium text-primary opacity-80 group-hover:opacity-100">Voir les invites et gerer la table</span>
                           </button>
                         );
                       })}
