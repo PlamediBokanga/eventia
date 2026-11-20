@@ -50,7 +50,7 @@ export function ForgotPasswordClient() {
       footer={
         <>
           Retour a la{" "}
-          <Link href="/auth/login" className="font-semibold text-primary hover:text-accent">
+          <Link href="/auth/login" className="font-semibold text-[#43584b] underline-offset-4 hover:underline">
             connexion
           </Link>
           .
@@ -68,7 +68,7 @@ export function ForgotPasswordClient() {
               id="forgot-email"
               type="email"
               autoComplete="email"
-              className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
+              className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#526b5c] focus:ring-4 focus:ring-[#edf2ee]"
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="vous@eventia.app"
@@ -76,7 +76,7 @@ export function ForgotPasswordClient() {
             />
           </div>
 
-          <button className="flex min-h-12 w-full items-center justify-center rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200 active:scale-[0.99] disabled:cursor-wait disabled:opacity-70" type="submit" disabled={loading}>
+          <button className="site-button-primary w-full active:scale-[0.99]" type="submit" disabled={loading}>
             {loading ? "Preparation..." : "Envoyer le lien"}
           </button>
         </form>

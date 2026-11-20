@@ -235,7 +235,7 @@ export function RegisterClient() {
       footer={
         <>
           Vous avez déjà un compte ?{" "}
-          <Link href="/auth/login" className="font-semibold text-primary hover:text-accent">
+          <Link href="/auth/login" className="font-semibold text-[#43584b] underline-offset-4 hover:underline">
             Se connecter
           </Link>
         </>
@@ -267,8 +267,8 @@ export function RegisterClient() {
                   onClick={() => setAccountType(item.value)}
                   className={`rounded-[20px] border p-4 text-left transition ${
                     active
-                      ? "border-slate-900 bg-slate-50 text-slate-950 ring-1 ring-slate-900"
-                      : "border-slate-200 bg-white text-slate-800 hover:border-slate-400"
+                      ? "border-[#526b5c] bg-[#edf2ee] text-slate-950 ring-1 ring-[#526b5c]"
+                      : "border-slate-200 bg-white text-slate-800 hover:border-[#9caf9f]"
                   }`}
                 >
                   <h4 className="text-sm font-semibold">{item.title}</h4>
@@ -281,7 +281,7 @@ export function RegisterClient() {
             <span className="font-semibold text-slate-900">{accountMeta.title}:</span> {accountMeta.hint}
           </div>
         </section>
-        <button type="button" onClick={() => setStep(2)} className="flex min-h-12 w-full items-center justify-center rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200">
+        <button type="button" onClick={() => setStep(2)} className="site-button-primary w-full">
           Continuer
         </button>
           </>
@@ -294,7 +294,7 @@ export function RegisterClient() {
             const complete = step > itemStep;
             return (
               <li key={label} aria-current={active ? "step" : undefined}>
-                <div className={`h-1 rounded-full ${active || complete ? "bg-slate-900" : "bg-slate-200"}`} />
+                <div className={`h-1 rounded-full ${active || complete ? "bg-[#526b5c]" : "bg-slate-200"}`} />
                 <p className={`mt-2 text-[11px] font-medium sm:text-xs ${active ? "text-slate-950" : "text-slate-500"}`}>
                   <span className="mr-1.5">{complete ? "✓" : `0${itemStep}`}</span>{label}
                 </p>
@@ -315,7 +315,7 @@ export function RegisterClient() {
             <input
               id="register-company"
               autoComplete="organization"
-              className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
+              className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#526b5c] focus:ring-4 focus:ring-[#edf2ee]"
               value={companyName}
               onChange={e => setCompanyName(e.target.value)}
               placeholder={accountType === "company" ? "EVENTIA Corporate" : accountType === "agency" ? "EVENTIA Agency" : "EVENTIA Events"}
@@ -329,7 +329,7 @@ export function RegisterClient() {
               <input
                 id="register-name"
                 autoComplete="name"
-                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
+                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#526b5c] focus:ring-4 focus:ring-[#edf2ee]"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Plamedi Bokanga"
@@ -342,7 +342,7 @@ export function RegisterClient() {
                 id="register-phone"
                 type="tel"
                 autoComplete="tel"
-                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
+                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#526b5c] focus:ring-4 focus:ring-[#edf2ee]"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 placeholder="+243 900 000 000"
@@ -357,7 +357,7 @@ export function RegisterClient() {
               <input
                 id="register-job"
                 autoComplete="organization-title"
-                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
+                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#526b5c] focus:ring-4 focus:ring-[#edf2ee]"
                 value={jobTitle}
                 onChange={e => setJobTitle(e.target.value)}
                 placeholder={accountType === "company" ? "Direction evenementielle" : accountType === "agency" ? "Chef de projet" : "Fondateur, Event Manager..."}
@@ -368,7 +368,7 @@ export function RegisterClient() {
               <input
                 id="register-country"
                 autoComplete="country-name"
-                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
+                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#526b5c] focus:ring-4 focus:ring-[#edf2ee]"
                 value={country}
                 onChange={e => setCountry(e.target.value)}
                 placeholder="RDC"
@@ -383,7 +383,7 @@ export function RegisterClient() {
               <input
                 id="register-city"
                 autoComplete="address-level2"
-                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
+                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#526b5c] focus:ring-4 focus:ring-[#edf2ee]"
                 value={city}
                 onChange={e => setCity(e.target.value)}
                 placeholder="Kinshasa"
@@ -395,7 +395,7 @@ export function RegisterClient() {
                 id="register-website"
                 type="url"
                 autoComplete="url"
-                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
+                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#526b5c] focus:ring-4 focus:ring-[#edf2ee]"
                 value={website}
                 onChange={e => setWebsite(e.target.value)}
                 placeholder="https://votre-site.com"
@@ -404,8 +404,8 @@ export function RegisterClient() {
           </div>
 
           <div className="flex gap-3 border-t border-slate-100 pt-4">
-            <button type="button" onClick={() => setStep(1)} className="min-h-12 flex-1 rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100">Retour</button>
-            <button type="button" onClick={() => { if (formRef.current?.reportValidity()) setStep(3); }} className="min-h-12 flex-1 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200">Continuer</button>
+            <button type="button" onClick={() => setStep(1)} className="site-button-secondary flex-1">Retour</button>
+            <button type="button" onClick={() => { if (formRef.current?.reportValidity()) setStep(3); }} className="site-button-primary flex-1">Continuer</button>
           </div>
             </section>
           )}
@@ -423,7 +423,7 @@ export function RegisterClient() {
               id="register-email"
               type="email"
               autoComplete="email"
-              className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
+              className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#526b5c] focus:ring-4 focus:ring-[#edf2ee]"
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="vous@eventia.app"
@@ -436,7 +436,7 @@ export function RegisterClient() {
             <input
               id="register-referral"
               autoComplete="off"
-              className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm uppercase text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
+              className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm uppercase text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#526b5c] focus:ring-4 focus:ring-[#edf2ee]"
               value={referralCode}
               onChange={e => setReferralCode(e.target.value.toUpperCase())}
               placeholder="Optionnel"
@@ -455,7 +455,7 @@ export function RegisterClient() {
                   type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
                   aria-describedby="password-requirements"
-                  className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-20 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
+                  className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-20 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#526b5c] focus:ring-4 focus:ring-[#edf2ee]"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="Au moins 6 caracteres, avec majuscule, minuscule, chiffre et symbole"
@@ -465,7 +465,7 @@ export function RegisterClient() {
                   type="button"
                   onClick={() => setShowPassword(value => !value)}
                   aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
+                  className="site-button-quiet absolute right-2 top-1/2 min-h-10 -translate-y-1/2 rounded-lg px-2 py-1 text-xs"
                 >
                   {showPassword ? "Masquer" : "Afficher"}
                 </button>
@@ -487,7 +487,7 @@ export function RegisterClient() {
                 id="register-confirm-password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="new-password"
-                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
+                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#526b5c] focus:ring-4 focus:ring-[#edf2ee]"
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
                 placeholder="Retapez le mot de passe"
@@ -510,11 +510,11 @@ export function RegisterClient() {
             />
             <span>
               J'accepte les{" "}
-              <Link href="/terms" className="font-medium text-primary hover:text-accent">
+              <Link href="/terms" className="font-medium text-[#43584b] underline-offset-4 hover:underline">
                 conditions d'utilisation
               </Link>{" "}
               et la{" "}
-              <Link href="/privacy" className="font-medium text-primary hover:text-accent">
+              <Link href="/privacy" className="font-medium text-[#43584b] underline-offset-4 hover:underline">
                 politique de confidentialite
               </Link>
               .
@@ -522,8 +522,8 @@ export function RegisterClient() {
           </label>
 
           <div className="flex gap-3 border-t border-slate-100 pt-4">
-            <button type="button" onClick={() => setStep(2)} className="min-h-12 flex-1 rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100">Retour</button>
-            <button className="flex min-h-12 flex-[1.5] items-center justify-center rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200 active:scale-[0.99] disabled:cursor-wait disabled:opacity-70" type="submit" disabled={loading}>
+            <button type="button" onClick={() => setStep(2)} className="site-button-secondary flex-1">Retour</button>
+            <button className="site-button-primary flex-[1.5] active:scale-[0.99]" type="submit" disabled={loading}>
               {loading ? "Creation securisee..." : `Creer mon espace ${accountMeta.title.toLowerCase()}`}
             </button>
           </div>

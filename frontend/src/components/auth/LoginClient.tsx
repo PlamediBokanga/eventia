@@ -160,7 +160,7 @@ export function LoginClient() {
       footer={
         <>
           Pas encore de compte ?{" "}
-          <Link href="/auth/register" className="font-semibold text-primary hover:text-accent">
+          <Link href="/auth/register" className="font-semibold text-[#43584b] underline-offset-4 hover:underline">
             Creer mon espace
           </Link>
         </>
@@ -186,7 +186,7 @@ export function LoginClient() {
               id="login-email"
               type="email"
               autoComplete="email"
-              className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
+              className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#526b5c] focus:ring-4 focus:ring-[#edf2ee]"
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="vous@eventia.app"
@@ -197,14 +197,14 @@ export function LoginClient() {
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-3">
               <label htmlFor="login-password" className="block text-sm font-medium text-slate-800">Mot de passe</label>
-              <Link href="/auth/forgot-password" className="text-xs font-medium text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline">Mot de passe oublié ?</Link>
+              <Link href="/auth/forgot-password" className="text-xs font-medium text-[#43584b] underline-offset-4 hover:underline">Mot de passe oublié ?</Link>
             </div>
             <div className="relative">
               <input
                 id="login-password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
-                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-20 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-4 focus:ring-slate-100"
+                className="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-20 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#526b5c] focus:ring-4 focus:ring-[#edf2ee]"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Votre mot de passe"
@@ -214,14 +214,14 @@ export function LoginClient() {
                 type="button"
                 aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                 onClick={() => setShowPassword(value => !value)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
+                className="site-button-quiet absolute right-2 top-1/2 min-h-10 -translate-y-1/2 rounded-lg px-2 py-1 text-xs"
               >
                 {showPassword ? "Masquer" : "Afficher"}
               </button>
             </div>
           </div>
 
-          <button className="flex min-h-12 w-full items-center justify-center rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200 active:scale-[0.99] disabled:cursor-wait disabled:opacity-70" type="submit" disabled={loading}>
+          <button className="site-button-primary w-full active:scale-[0.99]" type="submit" disabled={loading}>
             {loading ? "Connexion en cours…" : "Se connecter"}
           </button>
         </form>
