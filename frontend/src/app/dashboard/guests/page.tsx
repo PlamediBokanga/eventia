@@ -938,13 +938,13 @@ export default function DashboardGuestsPage() {
             <p className="text-sm text-slate-600">Sélectionnez un événement pour afficher sa liste d’invités.</p>
           ) : (
             <>
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-col gap-4 border-b border-slate-100 pb-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Événement sélectionné</p>
                   <h2 className="mt-1 text-xl font-semibold tracking-tight text-slate-900">{selectedEvent.name}</h2>
                   <p className="mt-1 text-sm text-slate-600">Suivez les confirmations, les placements et le partage individuel.</p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                   {loading ? (
                     <div className="min-w-[220px] rounded-full border border-primary/10 bg-background/70 px-3 py-2 text-[11px] text-text/60">
                       Chargement des evenements...
@@ -975,8 +975,8 @@ export default function DashboardGuestsPage() {
                   <Button type="button" className="min-h-10 px-4 py-2 text-sm" onClick={openAdd}>
                     + Ajouter un invité
                   </Button>
-                  <div className="flex flex-wrap items-center gap-2 border-slate-200 md:border-l md:pl-2">
-                  <label className="btn-ghost min-h-10 cursor-pointer px-3 py-2 text-sm">
+                  <div className="flex flex-wrap items-center gap-2 sm:border-l sm:border-slate-200 sm:pl-2">
+                  <label className="site-button-secondary min-h-10 cursor-pointer px-3 py-2 text-sm">
                     {importing ? "Import..." : "Importer CSV"}
                     <input
                       type="file"
@@ -1004,7 +1004,7 @@ export default function DashboardGuestsPage() {
                   <Button type="button" variant="ghost" className="min-h-10 px-3 py-2 text-sm" onClick={downloadGuestsCsv}>
                     Exporter CSV
                   </Button>
-                  <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1">
+                  <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1" role="group" aria-label="Mode d’affichage">
                     <button
                       type="button"
                       className={`rounded-full px-3 py-1 text-[11px] ${
@@ -1037,9 +1037,9 @@ export default function DashboardGuestsPage() {
                   <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">Total invités</p>
                   <p className="mt-1 text-xl font-semibold tabular-nums text-slate-900">{stats.total}</p>
                 </div>
-                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-800">Confirmés</p>
-                  <p className="mt-1 text-xl font-semibold tabular-nums text-emerald-900">{stats.confirmed}</p>
+                <div className="rounded-2xl border border-[#cbd8cf] bg-[#edf2ee] p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#43584b]">Confirmés</p>
+                  <p className="mt-1 text-xl font-semibold tabular-nums text-[#34483a]">{stats.confirmed}</p>
                 </div>
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-800">En attente</p>
@@ -1134,22 +1134,22 @@ export default function DashboardGuestsPage() {
                     >
                       <thead className="bg-background/70 text-text/60">
                         <tr>
-                          <th className="text-left px-3 py-2">Nom</th>
-                          <th className="text-left px-3 py-2">Telephone</th>
-                          <th className="text-left px-3 py-2">
+                          <th className="px-3 py-3 text-left font-semibold">Invité</th>
+                          <th className="px-3 py-3 text-left font-semibold">Téléphone</th>
+                          <th className="px-3 py-3 text-left font-semibold">
                             {(selectedEvent?.seatingMode ?? "TABLE") === "ZONE" ? "Zone" : "Table"}
                           </th>
-                          <th className="text-left px-3 py-2">Statut</th>
-                          <th className="text-left px-3 py-2">QR Code</th>
-                          <th className="text-left px-3 py-2">Partager</th>
-                          <th className="text-right px-3 py-2">Actions</th>
+                          <th className="px-3 py-3 text-left font-semibold">Statut</th>
+                          <th className="px-3 py-3 text-left font-semibold">Pass</th>
+                          <th className="px-3 py-3 text-left font-semibold">Invitation</th>
+                          <th className="px-3 py-3 text-right font-semibold">Gestion</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-primary/10">
                         {pagedGuests.map(guest => (
-                          <tr key={guest.id} className="hover:bg-primary/5">
-                            <td className="px-3 py-2">{displayGuestName(guest)}</td>
-                            <td className="px-3 py-2">{guest.phone ?? "-"}</td>
+                          <tr key={guest.id} className="transition-colors hover:bg-[#f8faf8]">
+                            <td className="px-3 py-3 font-semibold text-slate-900">{displayGuestName(guest)}</td>
+                            <td className="px-3 py-3 text-slate-600">{guest.phone ?? "—"}</td>
                             <td className="px-3 py-2">
                               {(selectedEvent?.seatingMode ?? "TABLE") === "NONE" ? (
                                 <span className="text-[10px] text-text/60">Sans placement</span>
@@ -1165,7 +1165,9 @@ export default function DashboardGuestsPage() {
                             <td className="px-3 py-2">
                               {getGuestQrUrl(guest) ? (
                                 <a
-                                  className="rounded-full border border-primary/20 px-2 py-1 text-[10px] hover:bg-primary/5"
+                                  className="site-button-primary min-h-9 rounded-lg px-3 py-1 text-xs"
+                                  aria-expanded={menuOpenId === guest.id}
+                                  aria-label={`Partager l’invitation avec ${displayGuestName(guest)}`}
                                   href={getGuestQrUrl(guest) ?? undefined}
                                   target="_blank"
                                   rel="noreferrer"
@@ -1180,7 +1182,8 @@ export default function DashboardGuestsPage() {
                               <div className="relative inline-block">
                                 <button
                                   type="button"
-                                  className="rounded-full border border-primary/20 px-2 py-1 text-[10px] hover:bg-primary/5"
+                                  className="site-button-secondary min-h-9 rounded-lg px-3 py-1 text-xs"
+                                  aria-expanded={menuOpenId === guest.id}
                                   onClick={() => toggleMenu(guest.id)}
                                 >
                                   Partager
@@ -1278,7 +1281,7 @@ export default function DashboardGuestsPage() {
                       {pagedGuests.map(guest => (
                         <div
                           key={guest.id}
-                          className="mx-2 my-2 rounded-2xl border border-primary/10 bg-background/70 px-3 py-3 shadow-sm space-y-2 text-[12px]"
+                          className="mx-2 my-2 space-y-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-[12px] shadow-sm"
                         >
                           <div className="flex items-center justify-between">
                             <p className="font-medium">{displayGuestName(guest)}</p>
@@ -1384,14 +1387,14 @@ export default function DashboardGuestsPage() {
                             </div>
                             <button
                               type="button"
-                              className="rounded-full border border-primary/20 px-2 py-1 text-[10px] hover:bg-primary/5"
+                              className="site-button-primary min-h-9 rounded-lg px-3 py-1 text-xs"
                               onClick={() => openEdit(guest)}
                             >
                               Modifier
                             </button>
                             <button
                               type="button"
-                              className="rounded-full border border-primary/20 px-2 py-1 text-[10px] text-red-600 hover:bg-red-50"
+                              className="min-h-9 rounded-lg border border-rose-200 px-3 py-1 text-xs font-medium text-rose-700 transition hover:bg-rose-50"
                               onClick={() => openGuestDelete(guest)}
                             >
                               Supprimer
@@ -1472,14 +1475,18 @@ export default function DashboardGuestsPage() {
         title={`Previsualiser le message (${shareLabel(shareChannel)})`}
       >
         <div className="space-y-3">
-          <p className="text-small">{channelHint(shareChannel)}</p>
+          <div className="rounded-xl border border-[#cbd8cf] bg-[#f8faf8] px-4 py-3">
+            <p className="text-sm font-semibold text-slate-900">{shareGuest ? displayGuestName(shareGuest) : "Invitation"}</p>
+            <p className="mt-1 text-xs leading-5 text-slate-600">{channelHint(shareChannel)} Vérifiez le texte et le lien avant l’envoi.</p>
+          </div>
           <textarea
-            className="w-full rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-accent/60"
+            aria-label="Message d’invitation à envoyer"
+            className="min-h-36 w-full resize-y rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm leading-6 text-slate-800 outline-none focus:border-[#526b5c] focus:ring-4 focus:ring-[#edf2ee]"
             rows={6}
             value={shareMessage}
             onChange={e => setShareMessage(e.target.value)}
           />
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <Button
               type="button"
               variant="ghost"
@@ -1689,8 +1696,10 @@ export default function DashboardGuestsPage() {
         </div>
       </Modal>
 
-      <Modal open={editOpen} title="Modifier l'invite">
-        <div className="space-y-3">
+      <Modal open={editOpen} title="Modifier l’invité">
+        <div className="space-y-4">
+          <p className="text-sm leading-6 text-slate-600">Mettez à jour ses coordonnées et son placement. Les changements seront enregistrés sur cet événement.</p>
+          <div className="grid gap-3 sm:grid-cols-3">
           <Input
             placeholder="Nom"
             value={editLastName}
@@ -1706,6 +1715,8 @@ export default function DashboardGuestsPage() {
             value={editFirstName}
             onChange={e => setEditFirstName(e.target.value)}
           />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
           <Input
             placeholder="Telephone"
             value={editPhone}
@@ -1716,6 +1727,7 @@ export default function DashboardGuestsPage() {
             value={editEmail}
             onChange={e => setEditEmail(e.target.value)}
           />
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <select
               className="w-full rounded-xl border border-primary/20 bg-background/80 px-3 py-2 text-xs"
@@ -1776,8 +1788,8 @@ export default function DashboardGuestsPage() {
             onChange={e => setEditPersons(Math.max(1, Number(e.target.value) || 1))}
           />
           {editError ? <p className="text-xs text-red-600">{editError}</p> : null}
-          <div className="grid grid-cols-2 gap-2">
-            <Button type="button" variant="ghost" className="w-full" onClick={() => setEditOpen(false)}>
+          <div className="grid grid-cols-1 gap-2 border-t border-slate-100 pt-4 sm:grid-cols-2">
+            <Button type="button" variant="ghost" className="site-button-secondary w-full" onClick={() => setEditOpen(false)}>
               Annuler
             </Button>
             <Button type="button" className="w-full" onClick={saveEdit}>
