@@ -325,67 +325,60 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
         </div>
       </div>
 
-      <div className="rounded-[30px] border border-white/50 bg-white/96 p-4 shadow-lg shadow-slate-200/50 backdrop-blur-xl md:p-5 invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", animation: "page-enter 0.35s ease-out both" }}>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-[22px] border border-slate-200/80 bg-white px-4 py-4 shadow-sm">
-            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-700">Titre</p>
-            <p className="mt-2 text-lg font-semibold text-slate-900">{heroTitle}</p>
-            <p className="mt-1 text-sm text-slate-700">{initial.event.name}</p>
-          </div>
-          <div className="rounded-[22px] border border-slate-200/80 bg-white px-4 py-4 shadow-sm">
-            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-700">Compte a rebours</p>
-            <p className="mt-2 text-lg font-semibold text-slate-900">{countdownText || dateLabel}</p>
-            <p className="mt-1 text-sm text-slate-700">Chaque minute compte avant votre accueil.</p>
-          </div>
-          <div className="rounded-[22px] border border-slate-200/80 bg-white px-4 py-4 shadow-sm">
-            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-700">Lieu</p>
-            <p className="mt-2 text-lg font-semibold text-slate-900">{initial.event.location}</p>
-            <p className="mt-1 text-sm text-slate-700">{addressParts.main || "Adresse a confirmer"}</p>
-          </div>
-          <div className="rounded-[22px] border border-slate-200/80 bg-white px-4 py-4 shadow-sm">
-            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-700">Statut</p>
-            <p className={`mt-2 text-lg font-semibold ${isConfirmed ? "text-emerald-600" : guestStatus === "CANCELED" ? "text-rose-600" : "text-amber-600"}`}>{guestStatus === "PENDING" && "En attente"}{guestStatus === "CONFIRMED" && "Confirmé"}{guestStatus === "CANCELED" && "Annulé"}</p>
-            <p className="mt-1 text-sm text-slate-700">Le QR code s’active après votre réponse.</p>
-          </div>
-        </div>
-      </div>
-
       <div className={`grid gap-5 ${mode === "invitation-only" ? "lg:grid-cols-1" : "lg:grid-cols-[1.2fr,0.8fr]"}`}>
         <div className="space-y-5">
           <div className="rounded-[28px] border border-white/60 bg-white/94 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", animation: "page-enter 0.35s ease-out both" }}>
-            <p className="text-[11px] uppercase tracking-[0.24em] text-slate-700">Accès invité</p>
-            <p className="mt-3 text-base text-slate-700 md:text-lg">
-              Cher(e) <span className="font-semibold text-slate-900">{initial.guest.fullName}</span>, vous êtes invité(e) à vivre un moment spécial autour de <span className="font-semibold text-slate-900">{initial.event.name}</span>.
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#526b5c]">Invitation personnelle</p>
+                <h2 className="mt-2 text-2xl font-semibold leading-tight text-slate-950 md:text-3xl">Cher(e) {initial.guest.fullName},</h2>
+              </div>
+              <span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${isConfirmed ? "bg-emerald-50 text-emerald-800" : guestStatus === "CANCELED" ? "bg-rose-50 text-rose-800" : "bg-amber-50 text-amber-900"}`}>
+                {guestStatus === "PENDING" ? "Réponse attendue" : guestStatus === "CONFIRMED" ? "Présence confirmée" : "Absence signalée"}
+              </span>
+            </div>
+            <p className="mt-3 text-base leading-7 text-slate-700 md:text-lg">
+              Vous êtes invité(e) à partager <span className="font-semibold text-slate-950">{initial.event.name}</span> avec {heroTitle}.
             </p>
             {initial.event.invitationMessage ? (
               <div className="mt-4 min-w-0 w-full max-w-full overflow-visible rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-5 text-base leading-8 text-slate-700 [overflow-wrap:anywhere] [&_*]:max-w-full [&_*]:whitespace-normal [&_*]:[overflow-wrap:anywhere] [&_h1]:mb-3 [&_h1]:text-2xl [&_h1]:font-semibold [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-semibold [&_li]:my-1 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mb-3 [&_p:last-child]:mb-0 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6">
                 <SafeHtml html={initial.event.invitationMessage} />
               </div>
-            ) : null}
+            ) : <p className="mt-4 rounded-[24px] border border-slate-200/80 bg-slate-50/80 p-5 text-sm leading-7 text-slate-700">Nous serions heureux de vous compter parmi nous pour ce moment spécial.</p>}
           </div>
 
           <div className="rounded-[28px] border border-white/60 bg-white/94 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl invite-anim-soft" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", animation: "page-enter 0.35s ease-out both" }}>
-            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-              <div className="space-y-3">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-700">Détails essentiels</p>
-                <div>
-                  <p className="text-sm font-semibold text-slate-700">{dateLabel}</p>
-                  <p className="mt-1 text-2xl font-semibold text-slate-900">{timeLabel ? `${timeLabel} · ` : ""}{initial.event.location}</p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#526b5c]">À retenir</p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-950">Date et lieu</h2>
+              </div>
+              {countdownText ? <p className="w-fit rounded-full border border-[#d9e4dc] bg-[#f3f7f3] px-3 py-1.5 text-xs font-semibold text-[#43584b]">{countdownText}</p> : null}
+            </div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Quand</p>
+                <p className="mt-2 text-base font-semibold capitalize text-slate-950">{dateLabel}</p>
+                {timeLabel ? <p className="mt-1 text-sm text-slate-700">À {timeLabel}</p> : null}
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Où</p>
+                <p className="mt-2 text-base font-semibold text-slate-950">{initial.event.location}</p>
+                {addressParts.main ? <p className="mt-1 text-sm text-slate-700">{addressParts.main}</p> : <p className="mt-1 text-sm text-slate-500">Adresse à confirmer</p>}
+                {addressParts.note ? <p className="mt-2 text-sm italic text-slate-600">Repère : {addressParts.note}</p> : null}
+              </div>
+            </div>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <button type="button" onClick={downloadIcs} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#526b5c] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#43584b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#526b5c] focus-visible:ring-offset-2">Ajouter à mon calendrier</button>
+              <details className="group relative">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#526b5c] focus-visible:ring-offset-2">Ouvrir l’itinéraire</summary>
+                <div className="absolute left-0 top-full z-20 mt-2 grid w-52 gap-1 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
+                  <a href={mapLinks.google} target="_blank" rel="noreferrer" className="rounded-xl px-3 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50">Google Maps</a>
+                  <a href={mapLinks.apple} target="_blank" rel="noreferrer" className="rounded-xl px-3 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50">Apple Plans</a>
+                  <a href={mapLinks.waze} target="_blank" rel="noreferrer" className="rounded-xl px-3 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50">Waze</a>
                 </div>
-                {addressParts.main ? (
-                  <div>
-                    <p className="text-base font-semibold text-slate-900">{addressParts.main}</p>
-                    {addressParts.note ? <p className="mt-1 text-sm italic text-slate-700">{addressParts.note}</p> : null}
-                  </div>
-                ) : null}
-              </div>
-              <div className="grid gap-2 sm:grid-cols-2 md:w-[330px]">
-                <button type="button" onClick={downloadIcs} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">Ajouter au calendrier</button>
-                <a href={mapLinks.google} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">Google Maps</a>
-                <a href={mapLinks.apple} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">Apple Maps</a>
-                <a href={mapLinks.waze} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition hover:-translate-y-0.5 hover:shadow-md">Waze</a>
-                <a href={`${API_URL}/invitations/${initial.invitation.token}/pdf`} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-950 bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-md sm:col-span-2">Télécharger PDF</a>
-              </div>
+              </details>
+              <a href={`${API_URL}/invitations/${initial.invitation.token}/pdf`} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#526b5c] focus-visible:ring-offset-2">Télécharger l’invitation en PDF</a>
             </div>
           </div>
 
@@ -393,7 +386,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.24em] text-slate-700">Programme</p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-900">Timeline de la cérémonie</h2>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-900">Déroulé de l’événement</h2>
               </div>
               <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">{programTimeline.length} étapes</div>
             </div>
@@ -422,8 +415,8 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
           <div id="invitation-qr" className="rounded-[28px] border border-white/60 bg-white/94 p-5 shadow-lg shadow-slate-200/50 backdrop-blur-xl" style={{ backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", animation: "page-enter 0.35s ease-out both" }}>
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-700">Pass d'accès</p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-900">Votre pass d'accès</h2>
+                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-700">Entrée à l’événement</p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-900">Votre pass d’entrée</h2>
                 <p className="mt-2 text-sm text-slate-700">{isConfirmed ? "Le pass est disponible. Présentez ce code à l’entrée pour un accès rapide." : "Confirmez votre présence pour générer votre pass d’accès."}</p>
               </div>
               {isConfirmed ? <button type="button" onClick={downloadInvitationPdf} className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5">Télécharger PDF</button> : null}
@@ -453,10 +446,21 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
                 <p className={`mt-1 text-sm font-semibold ${guestStatus === "CONFIRMED" ? "text-emerald-600" : guestStatus === "CANCELED" ? "text-rose-600" : "text-amber-600"}`}>{guestStatus === "PENDING" && "En attente"}{guestStatus === "CONFIRMED" && "Confirmé"}{guestStatus === "CANCELED" && "Annulé"}</p>
               </div>
             </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
-              <input type="number" min={0} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400" value={plusOneCount} onChange={e => setPlusOneCount(Math.max(0, Number(e.target.value) || 0))} placeholder="+1" />
-              <input className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400" value={mealPreference} onChange={e => setMealPreference(e.target.value)} placeholder="Preference repas" />
-              <input className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400" value={allergies} onChange={e => setAllergies(e.target.value)} placeholder="Allergies" />
+            <p className="mt-3 text-sm leading-6 text-slate-600">Indiquez votre réponse et, si nécessaire, vos préférences pour l’organisation de l’événement.</p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <label className="block text-sm font-medium text-slate-800">
+                Nombre d’accompagnants
+                <span className="mt-1 block text-xs font-normal text-slate-500">En plus de vous-même</span>
+                <input aria-label="Nombre d’accompagnants en plus de vous" type="number" min={0} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#526b5c] focus:ring-2 focus:ring-[#526b5c]/20" value={plusOneCount} onChange={e => setPlusOneCount(Math.max(0, Number(e.target.value) || 0))} />
+              </label>
+              <label className="block text-sm font-medium text-slate-800">
+                Préférence de repas <span className="font-normal text-slate-500">(facultatif)</span>
+                <input className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#526b5c] focus:ring-2 focus:ring-[#526b5c]/20" value={mealPreference} onChange={e => setMealPreference(e.target.value)} />
+              </label>
+              <label className="block text-sm font-medium text-slate-800 sm:col-span-2">
+                Allergies ou restrictions alimentaires <span className="font-normal text-slate-500">(facultatif)</span>
+                <input className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#526b5c] focus:ring-2 focus:ring-[#526b5c]/20" value={allergies} onChange={e => setAllergies(e.target.value)} />
+              </label>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <button className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 transition hover:-translate-y-0.5 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60" type="button" onClick={handleConfirm} disabled={loadingAction === "confirm"}>{loadingAction === "confirm" ? "Confirmation..." : "Je confirme ma présence"}</button>
@@ -465,7 +469,7 @@ export function InvitationClient({ initial, mode = "full" }: { initial: Invitati
             <div className="mt-4 flex flex-wrap gap-2">
               <button type="button" onClick={downloadIcs} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5">Ajouter au calendrier</button>
               <a href={mapLinks.google} target="_blank" rel="noreferrer" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5">Ouvrir GPS</a>
-              <a href={`/invite/${initial.invitation.token}/guestbook`} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5">Livre d'or</a>
+              <a href={`/invite/${initial.invitation.token}/guestbook`} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5">Livre d’or</a>
               <a href={`/invite/${initial.invitation.token}/chat`} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-900 transition hover:-translate-y-0.5">Chat</a>
             </div>
           </div>
